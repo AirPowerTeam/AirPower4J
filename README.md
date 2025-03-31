@@ -1,6 +1,6 @@
 <p align="center">
   <!--suppress HtmlRequiredAltAttribute -->
-<img width="300" src="docs/img/logo.png"/> <b>4J</b>
+<img width="300" src="docs/img/airpower-bg.svg"/> <b>4J</b>
 </p>
 
 <p align="center">

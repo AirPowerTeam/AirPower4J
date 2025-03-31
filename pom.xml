@@ -158,20 +158,20 @@
     <licenses>
         <license>
             <name>The MIT License</name>
-            <url>https://raw.githubusercontent.com/HammCn/AirPower4J/main/LICENSE</url>
+            <url>https://raw.githubusercontent.com/AirPowerTeam/AirPower4J/main/LICENSE</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
-    <url>https://github.com/HammCn/AirPower4J</url>
+    <url>https://github.com/AirPowerTeam/AirPower4J</url>
     <scm>
-        <connection>scm:git:git://github.com/HammCn/AirPower4J.git</connection>
-        <developerConnection>scm:git:git://github.com/HammCn/AirPower4J.git</developerConnection>
-        <url>https://github.com/HammCn/AirPower4J</url>
+        <connection>scm:git:git://github.com/AirPowerTeam/AirPower4J.git</connection>
+        <developerConnection>scm:git:git://github.com/AirPowerTeam/AirPower4J.git</developerConnection>
+        <url>https://github.com/AirPowerTeam/AirPower4J</url>
         <tag>HEAD</tag>
     </scm>
     <developers>
         <developer>
-            <id>hammcn</id>
+            <id>HammCn</id>
             <name>Hamm</name>
             <email>admin@hamm.cn</email>
             <roles>

@@ -1,6 +1,6 @@
 <p align="center">
   <!--suppress HtmlRequiredAltAttribute -->
-<img width="300" src="docs/img/logo.png"/> <b>4J</b>
+<img width="300" src="docs/img/airpower-bg.svg"/> <b>4J</b>
 </p>
 
 <p align="center">
@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/HammCn/AirPower4J">GitHub</a> / <a href="https://gitee.com/air-power/AirPower4J">Gitee</a> / <a href="./CHANGELOG.md">CHANGELOG</a> / <a href="https://central.sonatype.com/namespace/cn.hamm">Maven</a>
+<a href="https://github.com/AirPowerTeam/AirPower4J">GitHub</a> / <a href="https://gitee.com/air-power/AirPower4J">Gitee</a> / <a href="./CHANGELOG.md">CHANGELOG</a> / <a href="https://central.sonatype.com/namespace/cn.hamm">Maven</a>
 </p>
 
 ## 📖 一、这是个什么项目
@@ -24,15 +24,16 @@
 当然，
 
 > 如果你对全栈感兴趣，也可以和我们的 **`AirPower4T`**
-> （[Github](https://github.com/HammCn/AirPower4T)/[Gitee](https://gitee.com/air-power/AirPower4T)） 一起玩耍，`AirPower4T`
+> （[Github](https://github.com/AirPowerTeam/AirPower4T)/[Gitee](https://gitee.com/air-power/AirPower4T)） 一起玩耍，
+`AirPower4T`
 > 是一个基于 `Vue3`/`TypeScript`/`ElementPlus`/`Vite` 等技术栈的一个基础开发脚手架，`AirPower4J`和`AirPower4T`
 > 的联合可以为你的全栈之路增加另外一份很不一样的开发体验。
 
 ## 🔑 二、如何使用(初始化)?
 
-通过我们提供的 ```AirPowerJavaStarter``` 项目来完成 **AirPower4J** 宿主项目的初始化:
+通过我们提供的另一个开源的 ```SPMS-Server``` 项目来完成 **AirPower4J** 宿主项目的初始化:
 
-> [GitHub](https://github.com/HammCn/AirPowerJavaStarter/blob/main/README.md) / [Gitee](https://gitee.com/air-power/AirPowerJavaStarter/blob/main/README.md)
+> [GitHub](https://github.com/s-pms/SPMS-Server/blob/main/README.md) / [Gitee](https://gitee.com/air-power/AirPowerJavaStarter/blob/main/README.md)
 
 ## 💐 三、项目架构
 
@@ -121,7 +122,7 @@
 ## 🛎 四、问题反馈与建议
 
 如果你有什么疑问或者问题，你也可以加入开发者交流QQ群(```555156313```)
-进行咨询，当然，我们更建议你发起 [Github issue](https://github.com/HammCn/AirPower4J/issues/new) / [Gitee issue](https://gitee.com/air-power/AirPower4J/issues/new)
+进行咨询，当然，我们更建议你发起 [Github issue](https://github.com/AirPowerTeam/AirPower4J/issues/new) / [Gitee issue](https://gitee.com/air-power/AirPower4J/issues/new)
 
 ## ⏰ 五、Enjoy it
 

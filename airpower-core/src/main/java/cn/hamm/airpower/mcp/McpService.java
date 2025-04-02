@@ -59,7 +59,7 @@ public class McpService {
     /**
      * <h3>方法列表</h3>
      */
-    public static ConcurrentMap<String, Method> methodMap = new ConcurrentHashMap<>();
+    public final static ConcurrentMap<String, Method> METHOD_MAP = new ConcurrentHashMap<>();
 
     @Autowired
     private BeanFactory beanFactory;
@@ -79,7 +79,7 @@ public class McpService {
                 McpTool mcpTool = getTool(method);
                 if (mcpTool != null) {
                     tools.add(mcpTool);
-                    methodMap.put(mcpTool.getName(), method);
+                    METHOD_MAP.put(mcpTool.getName(), method);
                 }
             });
         }
@@ -289,7 +289,7 @@ public class McpService {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> params = (Map<String, Object>) mcpRequest.getParams();
                 String methodName = params.get("name").toString();
-                Method method = methodMap.get(methodName);
+                Method method = METHOD_MAP.get(methodName);
                 if (Objects.isNull(method)) {
                     throw new McpException().setCode(McpErrorCode.MethodNotFound.getKey()).setMessage("Method not found");
                 }

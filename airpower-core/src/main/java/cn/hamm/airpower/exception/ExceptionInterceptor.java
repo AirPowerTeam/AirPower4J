@@ -65,10 +65,7 @@ public class ExceptionInterceptor {
         log.error(exception.getMessage());
         BindingResult result = exception.getBindingResult();
         StringBuilder stringBuilder = new StringBuilder();
-        if (!result.hasErrors()) {
-            return Json.error(PARAM_INVALID);
-        }
-        if (!result.hasFieldErrors()) {
+        if (!result.hasErrors() || !result.hasFieldErrors()) {
             return Json.error(PARAM_INVALID);
         }
         List<FieldError> errors = result.getFieldErrors();

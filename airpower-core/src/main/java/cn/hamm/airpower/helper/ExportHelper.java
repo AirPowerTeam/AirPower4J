@@ -34,18 +34,69 @@ import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 @Component
 @Slf4j
 public class ExportHelper {
+    private static final String EXPORT_DIR = "export";
     /**
      * <h3>导出文件夹前缀</h3>
      */
-    private static final String EXPORT_DIR_PREFIX = "export_";
+    private static final String EXPORT_CACHE_PREFIX = EXPORT_DIR + STRING_UNDERLINE;
     /**
      * <h3>导出文件后缀</h3>
      */
     private static final String EXPORT_FILE_CSV = ".csv";
+
     @Autowired
     private RedisHelper redisHelper;
+
     @Autowired
     private ServiceConfig serviceConfig;
+
+    /**
+     * <h3>保存文件流</h3>
+     *
+     * @param inputStream  文件流
+     * @param suffix       文件后缀
+     * @param absolutePath 绝对路径
+     * @return 文件名
+     */
+    private static @NotNull String saveFileStream(InputStream inputStream, String suffix, String absolutePath) {
+        try {
+            // 追加今日文件夹 定时任务将按存储文件夹进行删除过时文件
+            String todayDir = getTodayDir();
+            String exportFilePath = absolutePath + EXPORT_DIR + File.separator + todayDir + File.separator;
+
+            if (!Files.exists(Paths.get(exportFilePath))) {
+                Files.createDirectories(Paths.get(exportFilePath));
+            }
+
+            // 存储的文件名
+            final String fileName = DateTimeUtil.format(System.currentTimeMillis(),
+                    FULL_TIME.getValue()
+                            .replaceAll(STRING_COLON, STRING_EMPTY)
+            ) + STRING_UNDERLINE + RandomUtil.randomString() + suffix;
+
+            // 拼接最终存储路径
+            exportFilePath += fileName;
+            Path path = Paths.get(exportFilePath);
+            Files.write(path, inputStream.readAllBytes());
+            return exportFilePath.replaceAll(absolutePath, STRING_EMPTY);
+        } catch (Exception exception) {
+            log.error(exception.getMessage(), exception);
+            throw new ServiceException(exception);
+        }
+    }
+
+    /**
+     * <h3>获取今日文件夹</h3>
+     *
+     * @return 今日文件夹
+     */
+    private static @NotNull String getTodayDir() {
+        long milliSecond = System.currentTimeMillis();
+        return DateTimeUtil.format(milliSecond,
+                FULL_DATE.getValue()
+                        .replaceAll(STRING_LINE, STRING_EMPTY)
+        );
+    }
 
     /**
      * <h3>保存导出文件流为CSV</h3>
@@ -57,7 +108,6 @@ public class ExportHelper {
         return saveExportFileStream(inputStream, EXPORT_FILE_CSV);
     }
 
-
     /**
      * <h3>创建异步任务</h3>
      *
@@ -66,7 +116,7 @@ public class ExportHelper {
      */
     public final String createExportTask(Supplier<String> supplier) {
         String fileCode = RandomUtil.randomString().toLowerCase();
-        final String fileCacheKey = EXPORT_DIR_PREFIX + fileCode;
+        final String fileCacheKey = EXPORT_CACHE_PREFIX + fileCode;
         Object object = redisHelper.get(fileCacheKey);
         if (Objects.nonNull(object)) {
             return createExportTask(supplier);
@@ -83,7 +133,7 @@ public class ExportHelper {
      * @return 文件URL
      */
     public final String getExportFileUrl(String fileCode) {
-        Object object = redisHelper.get(EXPORT_DIR_PREFIX + fileCode);
+        Object object = redisHelper.get(EXPORT_CACHE_PREFIX + fileCode);
         DATA_NOT_FOUND.whenNull(object, "错误的FileCode");
         DATA_NOT_FOUND.whenEmpty(object, "文件暂未准备完毕");
         return object.toString();
@@ -99,35 +149,6 @@ public class ExportHelper {
     public final @NotNull String saveExportFileStream(InputStream inputStream, String suffix) {
         final String absolutePath = serviceConfig.getSaveFilePath() + File.separator;
         SERVICE_ERROR.when(!StringUtils.hasText(absolutePath), "导出失败，未配置导出文件目录");
-        try {
-            long milliSecond = System.currentTimeMillis();
-
-            // 追加今日文件夹 定时任务将按存储文件夹进行删除过时文件
-            String todayDir = DateTimeUtil.format(milliSecond,
-                    FULL_DATE.getValue()
-                            .replaceAll(STRING_LINE, STRING_EMPTY)
-            );
-            String exportFilePath = EXPORT_DIR_PREFIX;
-            exportFilePath += todayDir + File.separator;
-
-            if (!Files.exists(Paths.get(absolutePath + exportFilePath))) {
-                Files.createDirectory(Paths.get(absolutePath + exportFilePath));
-            }
-
-            // 存储的文件名
-            final String fileName = todayDir + STRING_UNDERLINE + DateTimeUtil.format(milliSecond,
-                    FULL_TIME.getValue()
-                            .replaceAll(STRING_COLON, STRING_EMPTY)
-            ) + STRING_UNDERLINE + RandomUtil.randomString() + suffix;
-
-            // 拼接最终存储路径
-            exportFilePath += fileName;
-            Path path = Paths.get(absolutePath + exportFilePath);
-            Files.write(path, inputStream.readAllBytes());
-            return exportFilePath;
-        } catch (Exception exception) {
-            log.error(exception.getMessage(), exception);
-            throw new ServiceException(exception);
-        }
+        return saveFileStream(inputStream, suffix, absolutePath);
     }
 }

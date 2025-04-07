@@ -20,7 +20,6 @@ import cn.hamm.airpower.validate.dictionary.Dictionary;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -111,9 +110,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
 
     @Autowired
     protected ServiceConfig serviceConfig;
-
-    @Autowired
-    protected HttpServletRequest request;
 
     /**
      * <h3>创建导出任务</h3>

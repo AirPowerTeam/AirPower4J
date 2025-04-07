@@ -37,6 +37,7 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
      * <h3>防重放时长</h3>
      */
     private static final int NONCE_CACHE_SECOND = 300;
+
     /**
      * <h3>防重放缓存前缀</h3>
      */
@@ -96,7 +97,6 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
         }
     }
 
-
     /**
      * <h3>验证切面点是否支持OpenApi</h3>
      *
@@ -122,7 +122,6 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
         if (!(args[0] instanceof OpenRequest openRequest)) {
             throw new ServiceException("OpenApi必须接收一个OpenRequest参数");
         }
-
         checkTimestamp(openRequest.getTimestamp());
         checkNonce(openRequest.getNonce());
         return openRequest;

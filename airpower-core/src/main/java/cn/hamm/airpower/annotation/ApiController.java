@@ -13,7 +13,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>{@code API} 控制器</h1>
+ * <h1>API 控制器</h1>
  *
  * @author Hamm.cn
  */
@@ -25,7 +25,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @RequestMapping
 public @interface ApiController {
     /**
-     * <h3><code>Api</code> 的路径</h3>
+     * <h3>API 的路径</h3>
      */
     @AliasFor(annotation = RequestMapping.class, attribute = "path")
     String value();

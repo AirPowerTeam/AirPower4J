@@ -79,14 +79,4 @@ public class ServiceConfig {
      * @apiNote 调试模式打开，控制台将输出部分错误堆栈信息等
      */
     private boolean debug = true;
-
-    /**
-     * <h3>{@code MQTT} 配置</h3>
-     */
-    private MqttConfig mqtt = new MqttConfig();
-
-    /**
-     * <h3>{@code Cookie} 配置</h3>
-     */
-    private CookieConfig cookie = new CookieConfig();
 }

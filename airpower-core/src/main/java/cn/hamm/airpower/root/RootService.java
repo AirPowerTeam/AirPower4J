@@ -87,6 +87,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
 
     @Autowired
     protected ServiceConfig serviceConfig;
+
     @Autowired
     private ExportHelper exportHelper;
 
@@ -144,7 +145,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
         return exportHelper.saveExportFileStream(exportFileStream);
     }
 
-
     /**
      * <h3>导出查询后置方法</h3>
      *
@@ -201,7 +201,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @param id     主键 {@code ID}
      * @param source 原始实体
      */
-    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterAdd(long id, @NotNull E source) {
     }
 
@@ -238,7 +237,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @see #afterSaved(long, E)
      * @see #update(E)
      */
-    @SuppressWarnings("unused")
     public final void updateWithNull(@NotNull E source) {
         updateToDatabase(true, source);
     }
@@ -256,7 +254,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @param id     主键 {@code ID}
      * @param source 原始实体
      */
-    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterUpdate(long id, @NotNull E source) {
     }
 
@@ -267,7 +264,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @param source 保存前的原数据
      * @apiNote 添加或修改后最后触发
      */
-    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterSaved(long id, @NotNull E source) {
 
     }
@@ -277,7 +273,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      *
      * @param id 主键 {@code ID}
      */
-    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void beforeDisable(long id) {
     }
 
@@ -299,7 +294,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      *
      * @param id 主键 {@code ID}
      */
-    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterDisable(long id) {
     }
 
@@ -308,7 +302,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      *
      * @param id 主键 {@code ID}
      */
-    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void beforeEnable(long id) {
     }
 
@@ -330,7 +323,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      *
      * @param id 主键 {@code ID}
      */
-    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterEnable(long id) {
     }
 
@@ -339,7 +331,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      *
      * @param id 主键 {@code ID}
      */
-    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void beforeDelete(long id) {
     }
 
@@ -361,7 +352,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      *
      * @param id 主键 {@code ID}
      */
-    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterDelete(long id) {
     }
 
@@ -462,7 +452,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @return 查询条件列表
      * @apiNote 如需要删除自动添加的查询条件，请调用 {@link #beforeCreatePredicate(RootEntity)}
      */
-    @SuppressWarnings("unused")
     protected @NotNull List<Predicate> addSearchPredicate(
             @NotNull Root<E> root,
             @NotNull CriteriaBuilder builder,
@@ -696,12 +685,10 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
                 "查询失败，请传入%s的ID！",
                 ReflectUtil.getDescription(getEntityClass())
         ));
-        return repository.findById(id).orElseThrow(() ->
-                new ServiceException(
-                        DATA_NOT_FOUND,
-                        String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getEntityClass()))
-                )
-        );
+        return repository.findById(id).orElseThrow(() -> new ServiceException(
+                DATA_NOT_FOUND,
+                String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getEntityClass()))
+        ));
     }
 
     /**

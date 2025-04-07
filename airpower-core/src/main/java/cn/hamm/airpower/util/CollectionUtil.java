@@ -56,8 +56,6 @@ public class CollectionUtil {
      */
     @Contract("_, _ -> new")
     public static <E extends RootEntity<E>> @NotNull InputStream toCsvInputStream(List<E> list, Class<E> itemClass) {
-        // 获取泛型的类
-
         List<Field> fieldList = new ArrayList<>();
         ReflectUtil.getFieldList(itemClass).forEach(field -> {
             ExcelColumn excelColumn = ReflectUtil.getAnnotation(ExcelColumn.class, field);

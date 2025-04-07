@@ -247,7 +247,6 @@ public interface IException {
             show(message);
         }
         when(!Objects.equals(str1.toLowerCase(), str2.toLowerCase()), message);
-
     }
 
     /**

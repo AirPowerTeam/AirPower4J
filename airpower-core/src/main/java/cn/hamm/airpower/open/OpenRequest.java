@@ -23,7 +23,6 @@ import static cn.hamm.airpower.exception.ServiceError.*;
 @Slf4j
 @Setter
 public class OpenRequest {
-
     /**
      * <h3>{@code AppKey}</h3>
      */

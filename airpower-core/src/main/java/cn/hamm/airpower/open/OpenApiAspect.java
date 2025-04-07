@@ -1,8 +1,11 @@
 package cn.hamm.airpower.open;
 
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.helper.AirHelper;
+import cn.hamm.airpower.helper.RedisHelper;
 import cn.hamm.airpower.model.Json;
+import cn.hamm.airpower.util.DateTimeUtil;
+import cn.hamm.airpower.util.RequestUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
@@ -16,8 +19,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Objects;
 
+import static cn.hamm.airpower.config.Constant.*;
 import static cn.hamm.airpower.exception.ServiceError.*;
 
 /**
@@ -28,39 +33,26 @@ import static cn.hamm.airpower.exception.ServiceError.*;
 @Aspect
 @Component
 public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService> {
+    /**
+     * <h3>防重放时长</h3>
+     */
+    private static final int NONCE_CACHE_SECOND = 300;
+    /**
+     * <h3>防重放缓存前缀</h3>
+     */
+    private static final String NONCE_CACHE_PREFIX = "NONCE_";
+
     @Autowired(required = false)
     private S openAppService;
 
     @Autowired(required = false)
     private LS openLogService;
 
-    /**
-     * <h3>验证切面点是否支持OpenApi</h3>
-     *
-     * @param proceedingJoinPoint {@code ProceedingJoinPoint}
-     */
-    private static void validOpenApi(@NotNull ProceedingJoinPoint proceedingJoinPoint) {
-        Signature signature = proceedingJoinPoint.getSignature();
-        MethodSignature methodSignature = (MethodSignature) signature;
-        Method method = methodSignature.getMethod();
-        OpenApi openApi = method.getAnnotation(OpenApi.class);
-        API_SERVICE_UNSUPPORTED.whenNull(openApi);
-    }
+    @Autowired
+    private HttpServletRequest request;
 
-    /**
-     * <h3>获取OpenApi请求参数</h3>
-     *
-     * @param proceedingJoinPoint {@code ProceedingJoinPoint}
-     * @return {@code OpenRequest}
-     */
-    private static @NotNull OpenRequest getOpenRequest(@NotNull ProceedingJoinPoint proceedingJoinPoint) {
-        Object[] args = proceedingJoinPoint.getArgs();
-        SERVICE_ERROR.when(args.length != 1, "OpenApi必须接收一个参数");
-        if (!(args[0] instanceof OpenRequest openRequest)) {
-            throw new ServiceException("OpenApi必须接收一个OpenRequest参数");
-        }
-        return openRequest;
-    }
+    @Autowired
+    private RedisHelper redisHelper;
 
     @SuppressWarnings("EmptyMethod")
     @Pointcut("@annotation(cn.hamm.airpower.open.OpenApi)")
@@ -78,11 +70,13 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
         Long openLogId = null;
         String response = "";
         try {
-            validOpenRequest(openRequest);
+            IOpenApp openApp = getOpenApp(openRequest);
+            checkIpWhiteList(openApp);
+            openRequest.checkSignature(openApp);
             Object object = proceedingJoinPoint.proceed();
             openLogId = addOpenLog(
                     openRequest.getOpenApp(),
-                    AirHelper.getRequest().getRequestURI(),
+                    request.getRequestURI(),
                     openRequest.decodeContent()
             );
             if (object instanceof Json json) {
@@ -102,19 +96,87 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
         }
     }
 
+
     /**
-     * <h3>验证请求</h3>
+     * <h3>验证切面点是否支持OpenApi</h3>
+     *
+     * @param proceedingJoinPoint {@code ProceedingJoinPoint}
+     */
+    private void validOpenApi(@NotNull ProceedingJoinPoint proceedingJoinPoint) {
+        Signature signature = proceedingJoinPoint.getSignature();
+        MethodSignature methodSignature = (MethodSignature) signature;
+        Method method = methodSignature.getMethod();
+        OpenApi openApi = method.getAnnotation(OpenApi.class);
+        API_SERVICE_UNSUPPORTED.whenNull(openApi);
+    }
+
+    /**
+     * <h3>获取OpenApi请求参数</h3>
+     *
+     * @param proceedingJoinPoint {@code ProceedingJoinPoint}
+     * @return {@code OpenRequest}
+     */
+    private @NotNull OpenRequest getOpenRequest(@NotNull ProceedingJoinPoint proceedingJoinPoint) {
+        Object[] args = proceedingJoinPoint.getArgs();
+        SERVICE_ERROR.when(args.length != 1, "OpenApi必须接收一个参数");
+        if (!(args[0] instanceof OpenRequest openRequest)) {
+            throw new ServiceException("OpenApi必须接收一个OpenRequest参数");
+        }
+
+        checkTimestamp(openRequest.getTimestamp());
+        checkNonce(openRequest.getNonce());
+        return openRequest;
+    }
+
+    /**
+     * <h3>时间戳检测</h3>
+     *
+     * @param timestamp 时间戳
+     */
+    private void checkTimestamp(long timestamp) {
+        long currentTimeMillis = System.currentTimeMillis();
+        int nonceExpireMillisecond = NONCE_CACHE_SECOND * DateTimeUtil.MILLISECONDS_PER_SECOND;
+        TIMESTAMP_INVALID.when(
+                timestamp > currentTimeMillis + nonceExpireMillisecond ||
+                        timestamp < currentTimeMillis - nonceExpireMillisecond
+        );
+    }
+
+    /**
+     * <h3>获取请求的应用</h3>
      *
      * @param openRequest {@code OpenRequest}
+     * @return {@code OpenApp}
      */
-    private void validOpenRequest(@NotNull OpenRequest openRequest) {
+    private @NotNull IOpenApp getOpenApp(@NotNull OpenRequest openRequest) {
         INVALID_APP_KEY.when(!StringUtils.hasText(openRequest.getAppKey()));
         SERVICE_ERROR.whenNull(openAppService, "注入OpenAppService失败");
         IOpenApp openApp = openAppService.getByAppKey(openRequest.getAppKey());
         INVALID_APP_KEY.whenNull(openApp);
         FORBIDDEN_OPEN_APP_DISABLED.when(openApp.getIsDisabled());
-        openRequest.setOpenApp(openApp);
-        openRequest.check();
+        return openApp;
+    }
+
+    /**
+     * <h3>验证IP白名单</h3>
+     */
+    private void checkIpWhiteList(@NotNull IOpenApp openApp) {
+        final String ipStr = openApp.getIpWhiteList();
+        if (!StringUtils.hasText(ipStr)) {
+            // 未配置IP白名单
+            return;
+        }
+        String[] ipList = ipStr
+                .replaceAll(STRING_BLANK, STRING_EMPTY)
+                .split(REGEX_LINE_BREAK);
+        final String ip = RequestUtil.getIpAddress(request);
+        if (!StringUtils.hasText(ip)) {
+            MISSING_REQUEST_ADDRESS.show();
+        }
+        if (Arrays.stream(ipList).toList().contains(ip)) {
+            return;
+        }
+        INVALID_REQUEST_ADDRESS.show();
     }
 
     /**
@@ -130,6 +192,16 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
             return openLogService.addRequest(openApp, url, requestBody);
         }
         return null;
+    }
+
+    /**
+     * <h3>防重放检测</h3>
+     */
+    private void checkNonce(String nonce) {
+        String cacheKey = NONCE_CACHE_PREFIX + nonce;
+        Object savedNonce = redisHelper.get(cacheKey);
+        REPEAT_REQUEST.whenNotNull(savedNonce);
+        redisHelper.set(cacheKey, 1, NONCE_CACHE_SECOND);
     }
 
     /**

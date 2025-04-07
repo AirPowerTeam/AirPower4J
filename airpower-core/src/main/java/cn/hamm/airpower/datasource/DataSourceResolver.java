@@ -1,6 +1,5 @@
 package cn.hamm.airpower.datasource;
 
-import cn.hamm.airpower.config.Configs;
 import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.config.ServiceConfig;
 import com.alibaba.druid.pool.DruidDataSource;
@@ -92,9 +91,9 @@ public class DataSourceResolver extends AbstractRoutingDataSource {
      * @param dataSource 数据源
      * @return 数据源地址
      */
-    private static @NotNull String getDataSourceUrl(DataSource dataSource) {
+    private @NotNull String getDataSourceUrl(DataSource dataSource) {
         return getServerUrl(dataSource) + Constant.STRING_SLASH +
-                Configs.getServiceConfig().getDatabasePrefix() + dataSource.getDatabase() +
+                serviceConfig.getDatabasePrefix() + dataSource.getDatabase() +
                 DATASOURCE_CONFIG;
     }
 
@@ -104,7 +103,7 @@ public class DataSourceResolver extends AbstractRoutingDataSource {
      * @param dataSource 数据源
      * @return 数据源地址
      */
-    private static @NotNull String getServerUrl(@NotNull DataSource dataSource) {
+    private @NotNull String getServerUrl(@NotNull DataSource dataSource) {
         return DATASOURCE_SCHEME + dataSource.getHost() + Constant.STRING_COLON + dataSource.getPort();
     }
 

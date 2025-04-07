@@ -1,22 +1,21 @@
 package cn.hamm.airpower.root;
 
 import cn.hamm.airpower.annotation.Desensitize;
-import cn.hamm.airpower.annotation.ExcelColumn;
 import cn.hamm.airpower.annotation.NullEnable;
 import cn.hamm.airpower.annotation.Search;
 import cn.hamm.airpower.config.ServiceConfig;
 import cn.hamm.airpower.exception.ServiceException;
+import cn.hamm.airpower.helper.ExportHelper;
 import cn.hamm.airpower.helper.RedisHelper;
-import cn.hamm.airpower.interfaces.IDictionary;
-import cn.hamm.airpower.model.Json;
 import cn.hamm.airpower.model.Page;
 import cn.hamm.airpower.model.Sort;
 import cn.hamm.airpower.model.query.QueryExport;
 import cn.hamm.airpower.model.query.QueryListRequest;
 import cn.hamm.airpower.model.query.QueryPageRequest;
 import cn.hamm.airpower.model.query.QueryPageResponse;
-import cn.hamm.airpower.util.*;
-import cn.hamm.airpower.validate.dictionary.Dictionary;
+import cn.hamm.airpower.util.CollectionUtil;
+import cn.hamm.airpower.util.ReflectUtil;
+import cn.hamm.airpower.util.TaskUtil;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
@@ -35,20 +34,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
 import java.beans.PropertyDescriptor;
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiFunction;
 
-import static cn.hamm.airpower.config.Constant.*;
-import static cn.hamm.airpower.enums.DateTimeFormatter.FULL_DATE;
-import static cn.hamm.airpower.enums.DateTimeFormatter.FULL_TIME;
+import static cn.hamm.airpower.config.Constant.STRING_PERCENT;
 import static cn.hamm.airpower.exception.ServiceError.*;
 
 /**
@@ -82,21 +74,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
     private static final String DATA_REQUIRED = "提交的数据不允许为空";
 
     /**
-     * <h3>导出文件夹前缀</h3>
-     */
-    private static final String EXPORT_DIR_PREFIX = "export_";
-
-    /**
-     * <h3>导出文件前缀</h3>
-     */
-    private static final String EXPORT_FILE_PREFIX = EXPORT_DIR_PREFIX + "file_";
-
-    /**
-     * <h3>导出文件后缀</h3>
-     */
-    private static final String EXPORT_FILE_CSV = ".csv";
-
-    /**
      * <h3>数据源</h3>
      */
     @Autowired
@@ -110,6 +87,8 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
 
     @Autowired
     protected ServiceConfig serviceConfig;
+    @Autowired
+    private ExportHelper exportHelper;
 
     /**
      * <h3>创建导出任务</h3>
@@ -121,20 +100,10 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @see #createExportStream(List)
      */
     public final String createExportTask(QueryListRequest<E> queryListRequest) {
-        String fileCode = RandomUtil.randomString().toLowerCase();
-        final String fileCacheKey = EXPORT_FILE_PREFIX + fileCode;
-        Object object = redisHelper.get(fileCacheKey);
-        if (Objects.nonNull(object)) {
-            return createExportTask(queryListRequest);
-        }
-        redisHelper.set(fileCacheKey, "");
-        TaskUtil.runAsync(() -> {
-            // 查数据 写文件
+        return exportHelper.createExportTask(() -> {
             List<E> list = exportQuery(queryListRequest);
-            String url = saveExportFile(createExportStream(list));
-            redisHelper.set(fileCacheKey, url);
+            return saveExportFile(createExportStream(list));
         });
-        return fileCode;
     }
 
     /**
@@ -160,36 +129,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * </ul>
      */
     protected InputStream createExportStream(List<E> exportList) {
-        // 导出到csv并存储文件
-        Class<E> entityClass = getEntityClass();
-        List<Field> fieldList = new ArrayList<>();
-        ReflectUtil.getFieldList(entityClass).forEach(field -> {
-            ExcelColumn excelColumn = ReflectUtil.getAnnotation(ExcelColumn.class, field);
-            if (Objects.isNull(excelColumn)) {
-                return;
-            }
-            fieldList.add(field);
-        });
-
-        List<String> rowList = new ArrayList<>();
-        // 添加表头
-        rowList.add(String.join(STRING_COMMA, fieldList.stream().map(ReflectUtil::getDescription).toList()));
-
-        String json = Json.toString(exportList);
-        List<Map<String, Object>> mapList = Json.parse2MapList(json);
-        mapList.forEach(map -> {
-            List<String> columnList = new ArrayList<>();
-            fieldList.forEach(field -> {
-                final String fieldName = field.getName();
-                Object value = map.get(fieldName);
-                value = prepareExcelColumn(fieldName, value, fieldList);
-                columnList.add(value.toString()
-                        .replaceAll(STRING_COMMA, STRING_BLANK)
-                        .replaceAll(REGEX_LINE_BREAK, STRING_BLANK));
-            });
-            rowList.add(String.join(STRING_COMMA, columnList));
-        });
-        return new ByteArrayInputStream(String.join(REGEX_LINE_BREAK, rowList).getBytes());
+        return CollectionUtil.toCsvInputStream(exportList, getEntityClass());
     }
 
     /**
@@ -201,39 +141,9 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      */
     protected String saveExportFile(InputStream exportFileStream) {
         // 准备导出的相对路径
-        final String absolutePath = serviceConfig.getExportFilePath() + File.separator;
-        SERVICE_ERROR.when(!StringUtils.hasText(absolutePath), "导出失败，未配置导出文件目录");
-        try {
-            long milliSecond = System.currentTimeMillis();
-
-            // 追加今日文件夹 定时任务将按存储文件夹进行删除过时文件
-            String todayDir = DateTimeUtil.format(milliSecond,
-                    FULL_DATE.getValue()
-                            .replaceAll(STRING_LINE, STRING_EMPTY)
-            );
-            String exportFilePath = EXPORT_DIR_PREFIX;
-            exportFilePath += todayDir + File.separator;
-
-            if (!Files.exists(Paths.get(absolutePath + exportFilePath))) {
-                Files.createDirectory(Paths.get(absolutePath + exportFilePath));
-            }
-
-            // 存储的文件名
-            final String fileName = todayDir + STRING_UNDERLINE + DateTimeUtil.format(milliSecond,
-                    FULL_TIME.getValue()
-                            .replaceAll(STRING_COLON, STRING_EMPTY)
-            ) + STRING_UNDERLINE + RandomUtil.randomString() + EXPORT_FILE_CSV;
-
-            // 拼接最终存储路径
-            exportFilePath += fileName;
-            Path path = Paths.get(absolutePath + exportFilePath);
-            Files.write(path, exportFileStream.readAllBytes());
-            return exportFilePath;
-        } catch (Exception exception) {
-            log.error(exception.getMessage(), exception);
-            throw new ServiceException(exception);
-        }
+        return exportHelper.saveExportFileStream(exportFileStream);
     }
+
 
     /**
      * <h3>导出查询后置方法</h3>
@@ -252,11 +162,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @return 导出文件地址
      */
     protected final String queryExport(@NotNull QueryExport queryExport) {
-        final String fileCacheKey = EXPORT_FILE_PREFIX + queryExport.getFileCode();
-        Object object = redisHelper.get(fileCacheKey);
-        DATA_NOT_FOUND.whenNull(object, "错误的FileCode");
-        DATA_NOT_FOUND.whenEmpty(object, "文件暂未准备完毕");
-        return object.toString();
+        return exportHelper.getExportFileUrl(queryExport.getFileCode());
     }
 
     /**
@@ -747,52 +653,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
         );
     }
 
-    /**
-     * <h3>准备导出列</h3>
-     *
-     * @param fieldName 字段名
-     * @param value     当前值
-     * @param fieldList 字段列表
-     * @return 处理后的值
-     */
-    private @NotNull Object prepareExcelColumn(String fieldName, Object value, List<Field> fieldList) {
-        if (Objects.isNull(value) || !StringUtils.hasText(value.toString())) {
-            value = STRING_LINE;
-        }
-        try {
-            Field field = fieldList.stream()
-                    .filter(item -> Objects.equals(item.getName(), fieldName))
-                    .findFirst()
-                    .orElse(null);
-            if (Objects.isNull(field)) {
-                return value;
-            }
-            ExcelColumn excelColumn = ReflectUtil.getAnnotation(ExcelColumn.class, field);
-            if (Objects.isNull(excelColumn)) {
-                return value;
-            }
-            return switch (excelColumn.value()) {
-                case DATETIME -> REGEX_TAB + DateTimeUtil.format(Long.parseLong(value.toString()));
-                case TEXT -> REGEX_TAB + value;
-                case BOOLEAN -> (boolean) value ? STRING_YES : STRING_NO;
-                case DICTIONARY -> {
-                    Dictionary dictionary = ReflectUtil.getAnnotation(Dictionary.class, field);
-                    if (Objects.isNull(dictionary)) {
-                        yield value;
-                    } else {
-                        IDictionary dict = DictionaryUtil.getDictionary(
-                                dictionary.value(), Integer.parseInt(value.toString())
-                        );
-                        yield dict.getLabel();
-                    }
-                }
-                default -> value;
-            };
-        } catch (Exception exception) {
-            log.error(exception.getMessage(), exception);
-            return value;
-        }
-    }
 
     /**
      * <h3>验证非空查询请求且非空过滤器请求</h3>

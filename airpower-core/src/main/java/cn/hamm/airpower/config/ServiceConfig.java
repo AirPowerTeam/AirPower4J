@@ -67,11 +67,6 @@ public class ServiceConfig {
     private long authorizeExpireSecond = DateTimeUtil.SECOND_PER_DAY;
 
     /**
-     * <h3>多租户的 {@code header} 的 {@code key}</h3>
-     */
-    private String tenantHeader = "tenant-code";
-
-    /**
      * <h3>导出文件的目录</h3>
      *
      * @apiNote 请 {@code 不要} 使用 {@code /} 结尾

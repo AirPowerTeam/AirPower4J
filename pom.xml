@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cn.hamm</groupId>
     <artifactId>airpower</artifactId>
-    <version>3.2.4</version>
+    <version>${airpower.version}</version>
     <name>airpower</name>
     <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA.</description>
     <properties>
-        <airpower.version>3.2.4</airpower.version>
+        <airpower.version>3.2.5</airpower.version>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -16,7 +16,6 @@
         <maven.compiler.target>17</maven.compiler.target>
         <springboot.version>3.3.2</springboot.version>
         <mysql.version>8.0.33</mysql.version>
-        <alibaba.druid.version>1.2.23</alibaba.druid.version>
         <jetbrains.annotations.version>23.0.0</jetbrains.annotations.version>
         <commons.codec.version>1.13</commons.codec.version>
         <spring.integration.mqtt.version>6.3.3</spring.integration.mqtt.version>
@@ -50,11 +49,6 @@
                 <artifactId>mysql-connector-java</artifactId>
                 <scope>runtime</scope>
                 <version>${mysql.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>druid-spring-boot-starter</artifactId>
-                <version>${alibaba.druid.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>

@@ -67,16 +67,11 @@ public class ServiceConfig {
     private long authorizeExpireSecond = DateTimeUtil.SECOND_PER_DAY;
 
     /**
-     * <h3>多租户的 {@code header} 的 {@code key}</h3>
-     */
-    private String tenantHeader = "tenant-code";
-
-    /**
-     * <h3>导出文件的目录</h3>
+     * <h3>生成文件的目录</h3>
      *
      * @apiNote 请 {@code 不要} 使用 {@code /} 结尾
      */
-    private String exportFilePath = "";
+    private String saveFilePath = "";
 
     /**
      * <h3>是否开启调试模式</h3>
@@ -84,14 +79,4 @@ public class ServiceConfig {
      * @apiNote 调试模式打开，控制台将输出部分错误堆栈信息等
      */
     private boolean debug = true;
-
-    /**
-     * <h3>{@code MQTT} 配置</h3>
-     */
-    private MqttConfig mqtt = new MqttConfig();
-
-    /**
-     * <h3>{@code Cookie} 配置</h3>
-     */
-    private CookieConfig cookie = new CookieConfig();
 }

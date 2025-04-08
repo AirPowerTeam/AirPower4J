@@ -1,22 +1,18 @@
 package cn.hamm.airpower.open;
 
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.helper.AirHelper;
-import cn.hamm.airpower.helper.RedisHelper;
 import cn.hamm.airpower.model.Json;
 import cn.hamm.airpower.root.RootModel;
-import cn.hamm.airpower.util.*;
+import cn.hamm.airpower.util.AesUtil;
+import cn.hamm.airpower.util.DictionaryUtil;
+import cn.hamm.airpower.util.RsaUtil;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
-
-import static cn.hamm.airpower.config.Constant.*;
 import static cn.hamm.airpower.exception.ServiceError.*;
 
 /**
@@ -28,16 +24,6 @@ import static cn.hamm.airpower.exception.ServiceError.*;
 @Setter
 public class OpenRequest {
     /**
-     * <h3>防重放缓存前缀</h3>
-     */
-    private static final String NONCE_CACHE_PREFIX = "NONCE_";
-
-    /**
-     * <h3>防重放时长</h3>
-     */
-    private static final int NONCE_CACHE_SECOND = 300;
-
-    /**
      * <h3>{@code AppKey}</h3>
      */
     @NotBlank(message = "AppKey不能为空")
@@ -48,12 +34,14 @@ public class OpenRequest {
      * <h3>版本号</h3>
      */
     @NotNull(message = "版本号不能为空")
+    @Getter
     private int version;
 
     /**
      * <h3>请求毫秒时间戳</h3>
      */
     @NotNull(message = "请求毫秒时间戳不能为空")
+    @Getter
     private long timestamp;
 
     /**
@@ -72,6 +60,7 @@ public class OpenRequest {
      * <h3>请求随机串</h3>
      */
     @NotBlank(message = "请求随机串不能为空")
+    @Getter
     private String nonce;
 
     /**
@@ -93,16 +82,6 @@ public class OpenRequest {
             JSON_DECODE_FAIL.show();
             throw new ServiceException(e);
         }
-    }
-
-    /**
-     * <h3>校验请求</h3>
-     */
-    final void check() {
-        checkIpWhiteList();
-        checkTimestamp();
-        checkSignature();
-        checkNonce();
     }
 
     /**
@@ -134,55 +113,13 @@ public class OpenRequest {
     }
 
     /**
-     * <h3>时间戳检测</h3>
+     * <h3>签名验证</h3>
+     *
+     * @param openApp 应用对象
      */
-    private void checkTimestamp() {
-        long currentTimeMillis = System.currentTimeMillis();
-        int nonceExpireMillisecond = NONCE_CACHE_SECOND * DateTimeUtil.MILLISECONDS_PER_SECOND;
-        TIMESTAMP_INVALID.when(
-                timestamp > currentTimeMillis + nonceExpireMillisecond ||
-                        timestamp < currentTimeMillis - nonceExpireMillisecond
-        );
-    }
-
-    /**
-     * <h3>验证IP白名单</h3>
-     */
-    private void checkIpWhiteList() {
-        final String ipStr = openApp.getIpWhiteList();
-        if (!StringUtils.hasText(ipStr)) {
-            // 未配置IP白名单
-            return;
-        }
-        String[] ipList = ipStr
-                .replaceAll(STRING_BLANK, STRING_EMPTY)
-                .split(REGEX_LINE_BREAK);
-        final String ip = RequestUtil.getIpAddress(AirHelper.getRequest());
-        if (!StringUtils.hasText(ip)) {
-            MISSING_REQUEST_ADDRESS.show();
-        }
-        if (Arrays.stream(ipList).toList().contains(ip)) {
-            return;
-        }
-        INVALID_REQUEST_ADDRESS.show();
-    }
-
-    /**
-     * <h3>签名验证结果</h3>
-     */
-    private void checkSignature() {
+    final void checkSignature(IOpenApp openApp) {
+        this.openApp = openApp;
         SIGNATURE_INVALID.whenNotEquals(signature, sign());
-    }
-
-    /**
-     * <h3>防重放检测</h3>
-     */
-    private void checkNonce() {
-        RedisHelper redisHelper = AirHelper.getRedisHelper();
-        String cacheKey = NONCE_CACHE_PREFIX + nonce;
-        Object savedNonce = redisHelper.get(cacheKey);
-        REPEAT_REQUEST.whenNotNull(savedNonce);
-        redisHelper.set(cacheKey, 1, NONCE_CACHE_SECOND);
     }
 
     /**

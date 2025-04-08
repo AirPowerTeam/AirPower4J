@@ -1,6 +1,6 @@
 package cn.hamm.airpower.websocket;
 
-import cn.hamm.airpower.config.Configs;
+import cn.hamm.airpower.config.ServiceConfig;
 import cn.hamm.airpower.config.WebSocketConfig;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.helper.MqttHelper;
@@ -75,6 +75,9 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     @Autowired
     protected MqttHelper mqttHelper;
 
+    @Autowired
+    private ServiceConfig serviceConfig;
+
     /**
      * <h3>收到 {@code Websocket} 消息时</h3>
      *
@@ -137,7 +140,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             return;
         }
         AccessTokenUtil.VerifiedToken verifiedToken = AccessTokenUtil.create()
-                .verify(accessToken, Configs.getServiceConfig().getAccessTokenSecret());
+                .verify(accessToken, serviceConfig.getAccessTokenSecret());
         long userId = verifiedToken.getPayloadId();
         switch (webSocketConfig.getSupport()) {
             case REDIS -> startRedisListener(session, userId);

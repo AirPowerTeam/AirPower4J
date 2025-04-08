@@ -26,6 +26,13 @@ public class FileUtil {
     public static final String[] UNITS = {"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
 
     /**
+     * <h3>禁止外部实例化</h3>
+     */
+    private FileUtil() {
+
+    }
+
+    /**
      * <h3>获取文件名后缀</h3>
      *
      * @param fileName 文件名

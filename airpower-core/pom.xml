@@ -8,7 +8,6 @@
         <version>3.2.5</version>
     </parent>
     <artifactId>airpower-core</artifactId>
-    <!--    <version>3.2.5</version>-->
     <name>airpower-core</name>
     <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA. It's the core of AirPower.
     </description>

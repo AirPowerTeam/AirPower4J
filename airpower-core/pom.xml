@@ -5,10 +5,10 @@
     <parent>
         <groupId>cn.hamm</groupId>
         <artifactId>airpower</artifactId>
-        <version>3.2.4</version>
+        <version>3.2.5</version>
     </parent>
     <artifactId>airpower-core</artifactId>
-    <version>3.2.4</version>
+    <version>${airpower.version}</version>
     <name>airpower-core</name>
     <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA. It's the core of AirPower.
     </description>

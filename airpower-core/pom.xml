@@ -8,7 +8,7 @@
         <version>3.2.5</version>
     </parent>
     <artifactId>airpower-core</artifactId>
-    <version>3.2.5</version>
+    <!--    <version>3.2.5</version>-->
     <name>airpower-core</name>
     <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA. It's the core of AirPower.
     </description>
@@ -55,6 +55,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.lettuce</groupId>
+                    <artifactId>lettuce-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -83,6 +89,14 @@
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
         </dependency>
     </dependencies>
 

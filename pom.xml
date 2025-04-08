@@ -14,7 +14,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <springboot.version>3.3.2</springboot.version>
+        <springboot.version>3.4.4</springboot.version>
         <mysql.version>8.0.33</mysql.version>
         <jetbrains.annotations.version>23.0.0</jetbrains.annotations.version>
         <commons.codec.version>1.13</commons.codec.version>

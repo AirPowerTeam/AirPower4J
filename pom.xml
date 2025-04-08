@@ -25,6 +25,7 @@
         <maven.central.publishing.plugin.version>0.5.0</maven.central.publishing.plugin.version>
         <maven.javadoc.plugin.version>3.8.0</maven.javadoc.plugin.version>
         <maven.gpg.plugin.version>3.2.5</maven.gpg.plugin.version>
+        <relections.version>0.10.1</relections.version>
     </properties>
     <packaging>pom</packaging>
     <modules>
@@ -85,6 +86,11 @@
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>${commons.codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>${relections.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

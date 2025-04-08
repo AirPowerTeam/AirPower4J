@@ -83,7 +83,6 @@
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
-            <version>0.10.1</version>
         </dependency>
     </dependencies>
 

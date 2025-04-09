@@ -1,5 +1,6 @@
 package cn.hamm.airpower.interceptor.cache;
 
+import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.util.RequestUtil;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -9,9 +10,11 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.MDC;
 import org.springframework.http.HttpMethod;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -35,6 +38,7 @@ public class RequestCacheFilter implements Filter {
             ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain
     ) {
         try {
+            MDC.put(Constant.REQUEST_ID, String.valueOf(UUID.randomUUID()));
             HttpServletRequest request = ((HttpServletRequest) servletRequest);
             // 如果是上传 不做任何缓存
             if (!requestCacheRequired(request)) {
@@ -45,6 +49,8 @@ public class RequestCacheFilter implements Filter {
             filterChain.doFilter(wrapper, servletResponse);
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
+        } finally {
+            MDC.remove(Constant.REQUEST_ID);
         }
     }
 

@@ -2,6 +2,7 @@ package cn.hamm.airpower.interceptor;
 
 import cn.hamm.airpower.annotation.DesensitizeExclude;
 import cn.hamm.airpower.annotation.Filter;
+import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.model.Json;
 import cn.hamm.airpower.model.query.QueryPageResponse;
 import cn.hamm.airpower.root.RootModel;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.MDC;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -92,9 +94,10 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             // 返回不是JsonData 原样返回
             return result;
         }
+        json.setRequestId(MDC.get(Constant.REQUEST_ID));
         Object data = json.getData();
         if (Objects.isNull(data)) {
-            return result;
+            return json;
         }
 
         Filter filter = ReflectUtil.getAnnotation(Filter.class, method);

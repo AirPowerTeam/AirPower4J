@@ -86,9 +86,4 @@ public class ServiceException extends RuntimeException implements IException<Ser
     public ServiceException(@NotNull Exception exception) {
         setCode(SERVICE_ERROR.getCode()).setMessage(exception.getMessage());
     }
-
-    @Override
-    public ServiceException get() {
-        return this;
-    }
 }

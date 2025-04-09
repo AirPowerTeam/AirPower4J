@@ -54,6 +54,17 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
+     * <h3>获取一个异常实例</h3>
+     *
+     * @return 异常实例
+     */
+    @Override
+    default T get() {
+        //noinspection unchecked
+        return (T) this;
+    }
+
+    /**
      * <h3>抛出异常</h3>
      *
      * @param message 返回信息

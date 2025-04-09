@@ -68,8 +68,6 @@ public class ServiceConfig {
 
     /**
      * <h3>生成文件的目录</h3>
-     *
-     * @apiNote 请 {@code 不要} 使用 {@code /} 结尾
      */
     private String saveFilePath = "";
 

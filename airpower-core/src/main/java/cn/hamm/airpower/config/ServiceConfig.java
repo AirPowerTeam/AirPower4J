@@ -70,11 +70,4 @@ public class ServiceConfig {
      * <h3>生成文件的目录</h3>
      */
     private String saveFilePath = "";
-
-    /**
-     * <h3>是否开启调试模式</h3>
-     *
-     * @apiNote 调试模式打开，控制台将输出部分错误堆栈信息等
-     */
-    private boolean debug = true;
 }

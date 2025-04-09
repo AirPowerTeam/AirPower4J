@@ -15,7 +15,7 @@ import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-public class ServiceException extends RuntimeException implements IException {
+public class ServiceException extends RuntimeException implements IException<ServiceException> {
     /**
      * <h3>错误代码</h3>
      */
@@ -25,7 +25,6 @@ public class ServiceException extends RuntimeException implements IException {
      * <h3>错误信息</h3>
      */
     private String message = SERVICE_ERROR.getMessage();
-
     /**
      * <h3>错误数据</h3>
      */

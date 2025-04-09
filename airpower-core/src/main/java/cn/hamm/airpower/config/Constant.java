@@ -169,6 +169,11 @@ public class Constant {
     public static final String STRING_UNKNOWN = "unknown";
 
     /**
+     * <h3>缓存的 {@code REQUEST_ID}</h3>
+     */
+    public static final String REQUEST_ID = "REQUEST_ID";
+
+    /**
      * <h3>禁止外部实例化</h3>
      */
     @Contract(pure = true)

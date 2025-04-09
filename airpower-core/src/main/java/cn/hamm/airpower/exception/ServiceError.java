@@ -4,6 +4,7 @@ import cn.hamm.airpower.interfaces.IDictionary;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <h1>系统错误代码字典</h1>
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.Contract;
 @SuppressWarnings("AlibabaEnumConstantsMustHaveComment")
 @Getter
 @AllArgsConstructor
-public enum ServiceError implements IException, IDictionary {
+public enum ServiceError implements IException<ServiceException>, IDictionary {
     CONTINUE(201, "请继续"),
 
     UPGRADE_CLIENT_NECESSARY(301, "请更新客户端"),
@@ -76,7 +77,19 @@ public enum ServiceError implements IException, IDictionary {
     WEBSOCKET_ERROR(5024, "WebSocket服务发生错误，请稍后再试");
 
     private final int code;
-    private final String message;
+    private String message;
+
+    /**
+     * <h3>设置错误信息</h3>
+     *
+     * @param message 错误信息
+     * @return 当前异常
+     */
+    @Contract(value = "_ -> this", mutates = "this")
+    public ServiceError setMessage(String message) {
+        this.message = message;
+        return this;
+    }
 
     @Contract(pure = true)
     @Override
@@ -88,5 +101,16 @@ public enum ServiceError implements IException, IDictionary {
     @Override
     public String getLabel() {
         return message;
+    }
+
+    /**
+     * 获取一个服务异常
+     *
+     * @return 服务异常
+     */
+    @Contract(" -> new")
+    @Override
+    public @NotNull ServiceException get() {
+        return new ServiceException(this);
     }
 }

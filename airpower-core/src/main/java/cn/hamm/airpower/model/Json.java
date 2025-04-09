@@ -57,6 +57,12 @@ public class Json {
     @Description("返回数据")
     private Object data;
 
+    /**
+     * <h3>请求ID</h3>
+     */
+    @Description("请求ID")
+    private String requestId;
+
     @Contract(pure = true)
     private Json() {
         // 禁止外部实例化
@@ -120,7 +126,7 @@ public class Json {
      * @param error 错误枚举
      * @return {@code Json}
      */
-    public static Json error(IException error) {
+    public static Json error(IException<?> error) {
         return error(error, error.getMessage());
     }
 
@@ -131,7 +137,7 @@ public class Json {
      * @param message 错误信息
      * @return {@code Json}
      */
-    public static Json error(@NotNull IException error, String message) {
+    public static Json error(@NotNull IException<?> error, String message) {
         return error(error, message, null);
     }
 
@@ -143,7 +149,7 @@ public class Json {
      * @param data    错误数据
      * @return {@code Json}
      */
-    public static Json error(@NotNull IException error, String message, Object data) {
+    public static Json error(@NotNull IException<?> error, String message, Object data) {
         return show(error.getCode(), message, data);
     }
 

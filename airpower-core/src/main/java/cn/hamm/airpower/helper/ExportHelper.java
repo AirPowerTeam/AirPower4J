@@ -2,8 +2,8 @@ package cn.hamm.airpower.helper;
 
 import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.config.ServiceConfig;
-import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.util.DateTimeUtil;
+import cn.hamm.airpower.util.FileUtil;
 import cn.hamm.airpower.util.RandomUtil;
 import cn.hamm.airpower.util.TaskUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -12,16 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.function.Supplier;
 
 import static cn.hamm.airpower.config.Constant.*;
-import static cn.hamm.airpower.enums.DateTimeFormatter.FULL_DATE;
 import static cn.hamm.airpower.enums.DateTimeFormatter.FULL_TIME;
 import static cn.hamm.airpower.exception.ServiceError.DATA_NOT_FOUND;
 import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
@@ -49,64 +45,6 @@ public class ExportHelper {
 
     @Autowired
     private ServiceConfig serviceConfig;
-
-    /**
-     * <h3>保存文件流</h3>
-     *
-     * @param inputStream  文件流
-     * @param suffix       文件后缀
-     * @param absolutePath 绝对路径
-     * @return 文件名
-     */
-    private static @NotNull String saveFileStream(InputStream inputStream, String suffix, String absolutePath) {
-        try {
-            // 追加今日文件夹 定时任务将按存储文件夹进行删除过时文件
-            String todayDir = getTodayDir();
-            String exportFilePath = absolutePath + EXPORT_DIR + File.separator + todayDir + File.separator;
-
-            if (!Files.exists(Paths.get(exportFilePath))) {
-                Files.createDirectories(Paths.get(exportFilePath));
-            }
-
-            // 存储的文件名
-            final String fileName = DateTimeUtil.format(System.currentTimeMillis(),
-                    FULL_TIME.getValue()
-                            .replaceAll(STRING_COLON, STRING_EMPTY)
-            ) + STRING_UNDERLINE + RandomUtil.randomString() + suffix;
-
-            // 拼接最终存储路径
-            exportFilePath += fileName;
-            Path path = Paths.get(exportFilePath);
-            Files.write(path, inputStream.readAllBytes());
-            return exportFilePath.replaceAll(absolutePath, STRING_EMPTY);
-        } catch (Exception exception) {
-            log.error(exception.getMessage(), exception);
-            throw new ServiceException(exception);
-        }
-    }
-
-    /**
-     * <h3>获取今日文件夹</h3>
-     *
-     * @return 今日文件夹
-     */
-    private static @NotNull String getTodayDir() {
-        long milliSecond = System.currentTimeMillis();
-        return DateTimeUtil.format(milliSecond,
-                FULL_DATE.getValue()
-                        .replaceAll(STRING_LINE, STRING_EMPTY)
-        );
-    }
-
-    /**
-     * <h3>保存导出文件流为CSV</h3>
-     *
-     * @param inputStream 文件流
-     * @return 保存后的文件名
-     */
-    public final @NotNull String saveExportFileStream(InputStream inputStream) {
-        return saveExportFileStream(inputStream, EXPORT_FILE_CSV);
-    }
 
     /**
      * <h3>创建异步任务</h3>
@@ -143,12 +81,38 @@ public class ExportHelper {
      * <h3>保存导出文件流为CSV</h3>
      *
      * @param inputStream 文件流
+     * @return 保存后的文件名
+     */
+    public final @NotNull String saveExportFileStream(InputStream inputStream) {
+        return saveExportFileStream(inputStream, EXPORT_FILE_CSV);
+    }
+
+    /**
+     * <h3>保存导出文件流为CSV</h3>
+     *
+     * @param inputStream 文件流
      * @param suffix      文件后缀
      * @return 保存后的文件名
      */
-    public final @NotNull String saveExportFileStream(InputStream inputStream, String suffix) {
-        final String absolutePath = serviceConfig.getSaveFilePath() + File.separator;
+    public final @NotNull String saveExportFileStream(@NotNull InputStream inputStream, String suffix) {
+        final String absolutePath = FileUtil.formatDirectory(serviceConfig.getSaveFilePath());
         SERVICE_ERROR.when(!StringUtils.hasText(absolutePath), "导出失败，未配置导出文件目录");
-        return saveFileStream(inputStream, suffix, absolutePath);
+
+        // 相对目录 默认为今天的文件夹
+        String relativeDirectory = FileUtil.getTodayDirectory(EXPORT_DIR);
+
+        // 存储的文件名
+        final String fileName = DateTimeUtil.format(System.currentTimeMillis(),
+                FULL_TIME.getValue()
+                        .replaceAll(STRING_COLON, STRING_EMPTY)
+        ) + STRING_UNDERLINE + RandomUtil.randomString() + suffix;
+
+        try {
+            FileUtil.saveFile(absolutePath + relativeDirectory, fileName, inputStream.readAllBytes());
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
+        return relativeDirectory + fileName;
     }
 }

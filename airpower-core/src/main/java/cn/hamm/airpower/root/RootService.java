@@ -685,8 +685,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
                 "查询失败，请传入%s的ID！",
                 ReflectUtil.getDescription(getEntityClass())
         ));
-        return repository.findById(id).orElseThrow(() -> new ServiceException(
-                DATA_NOT_FOUND,
+        return repository.findById(id).orElseThrow(DATA_NOT_FOUND.setMessage(
                 String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getEntityClass()))
         ));
     }

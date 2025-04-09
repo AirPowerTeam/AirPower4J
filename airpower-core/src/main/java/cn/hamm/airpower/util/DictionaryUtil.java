@@ -52,7 +52,7 @@ public class DictionaryUtil {
         return Arrays.stream(enumClass.getEnumConstants())
                 .filter(enumItem -> Objects.equals(function.apply(enumItem), value))
                 .findFirst()
-                .orElseThrow(() -> new ServiceException(
+                .orElseThrow(new ServiceException(
                         "传入的值(" + enumClass.getSimpleName() + "=" + value + ")不在字典可选范围内",
                         getDictionaryList(enumClass))
                 );

@@ -5,13 +5,14 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * <h1>异常接口</h1>
  *
  * @author Hamm.cn
  */
-public interface IException {
+public interface IException<T extends IException<T>> extends Supplier<T> {
     /**
      * <h3>获取错误代码</h3>
      *

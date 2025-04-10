@@ -6,7 +6,7 @@ import cn.hamm.airpower.mcp.exception.McpException;
 import cn.hamm.airpower.mcp.method.McpCallMethodResponse;
 import cn.hamm.airpower.mcp.method.McpMethod;
 import cn.hamm.airpower.mcp.method.McpMethods;
-import cn.hamm.airpower.mcp.method.McpRequired;
+import cn.hamm.airpower.mcp.method.McpOptional;
 import cn.hamm.airpower.mcp.model.McpInitializeData;
 import cn.hamm.airpower.mcp.model.McpRequest;
 import cn.hamm.airpower.mcp.model.McpResponse;
@@ -108,9 +108,9 @@ public class McpService {
 
             String paramName = method.getParameters()[index].getName();
 
-            McpRequired mcpRequired = parameterType.getAnnotation(McpRequired.class);
-            if (Objects.isNull(mcpRequired) || Boolean.TRUE.equals(mcpRequired.value())) {
-                // 除非明确为 false 否则默认都为必须
+            McpOptional mcpOptional = parameterType.getAnnotation(McpOptional.class);
+            if (Objects.isNull(mcpOptional)) {
+                // 没有标记可选属性的注解 则为必须属性
                 inputSchema.getRequired().add(paramName);
             }
 

@@ -6,6 +6,7 @@ import cn.hamm.airpower.mcp.exception.McpException;
 import cn.hamm.airpower.mcp.method.McpCallMethodResponse;
 import cn.hamm.airpower.mcp.method.McpMethod;
 import cn.hamm.airpower.mcp.method.McpMethods;
+import cn.hamm.airpower.mcp.method.McpOptional;
 import cn.hamm.airpower.mcp.model.McpInitializeData;
 import cn.hamm.airpower.mcp.model.McpRequest;
 import cn.hamm.airpower.mcp.model.McpResponse;
@@ -50,17 +51,14 @@ public class McpService {
      * <h3>SseEmitters</h3>
      */
     public final static ConcurrentHashMap<String, SseEmitter> EMITTERS = new ConcurrentHashMap<>();
-
-    /**
-     * <h3>工具列表</h3>
-     */
-    public static List<McpTool> tools = new ArrayList<>();
-
     /**
      * <h3>方法列表</h3>
      */
     public final static ConcurrentMap<String, Method> METHOD_MAP = new ConcurrentHashMap<>();
-
+    /**
+     * <h3>工具列表</h3>
+     */
+    public static List<McpTool> tools = new ArrayList<>();
     @Autowired
     private BeanFactory beanFactory;
 
@@ -110,8 +108,11 @@ public class McpService {
 
             String paramName = method.getParameters()[index].getName();
 
-            // 添加为必须
-            inputSchema.getRequired().add(paramName);
+            McpOptional mcpOptional = parameterType.getAnnotation(McpOptional.class);
+            if (Objects.isNull(mcpOptional)) {
+                // 没有标记可选属性的注解 则为必须属性
+                inputSchema.getRequired().add(paramName);
+            }
 
             // 参数的描述
             String paramDesc = ReflectUtil.getDescription(method.getParameters()[index]);

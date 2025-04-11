@@ -239,6 +239,11 @@ public class ExceptionInterceptor {
         return responseError(SERVICE_ERROR);
     }
 
+    /**
+     * <h3>记录异常信息</h3>
+     *
+     * @param exception 异常
+     */
     private void logException(@NotNull Exception exception) {
         if (exception instanceof IException<?> serviceError) {
             log.error("[{}]{}", serviceError.getCode(), serviceError.getMessage(), exception);
@@ -247,10 +252,23 @@ public class ExceptionInterceptor {
         log.error(exception.getMessage(), exception);
     }
 
+    /**
+     * <h3>返回错误信息</h3>
+     *
+     * @param serviceError 错误信息
+     * @return Json
+     */
     private Json responseError(IException<?> serviceError) {
         return responseError(serviceError, serviceError.getMessage());
     }
 
+    /**
+     * <h3>返回错误信息</h3>
+     *
+     * @param serviceError 错误信息
+     * @param message      错误信息
+     * @return Json
+     */
     private Json responseError(IException<?> serviceError, String message) {
         return Json.error(serviceError, message).setRequestId(MDC.get(Constant.REQUEST_ID));
     }

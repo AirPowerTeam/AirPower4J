@@ -90,7 +90,7 @@ public class TreeUtil {
             S extends RootService<E, R>,
             R extends RootRepository<E>
             > @NotNull List<E> findByParentId(@NotNull S service, Long parentId) {
-        return service.filter(service.getEntityInstance().setParentId(parentId));
+        return service.filter(ReflectUtil.newInstance(service.getEntityClass()).setParentId(parentId));
     }
 
     /**

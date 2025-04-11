@@ -4,13 +4,13 @@ import cn.hamm.airpower.annotation.Description;
 import cn.hamm.airpower.annotation.Extends;
 import cn.hamm.airpower.annotation.Filter;
 import cn.hamm.airpower.annotation.Permission;
-import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.interfaces.IEntityAction;
 import cn.hamm.airpower.model.Json;
 import cn.hamm.airpower.model.query.QueryExport;
 import cn.hamm.airpower.model.query.QueryListRequest;
 import cn.hamm.airpower.model.query.QueryPageRequest;
 import cn.hamm.airpower.model.query.QueryPageResponse;
+import cn.hamm.airpower.util.ReflectUtil;
 import cn.hamm.airpower.util.TaskUtil;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -381,21 +381,8 @@ public class RootEntityController<
     private <Q extends QueryListRequest<E>> @NotNull Q requireQueryAndFilterNonNullElse(
             Q queryListRequest, Q newInstance) {
         queryListRequest = Objects.requireNonNullElse(queryListRequest, newInstance);
-        queryListRequest.setFilter(Objects.requireNonNullElse(queryListRequest.getFilter(), getNewEntity()));
+        queryListRequest.setFilter(Objects.requireNonNullElse(queryListRequest.getFilter(), ReflectUtil.newInstance(getEntityClass())));
         return queryListRequest;
-    }
-
-    /**
-     * <h3>获取一个空实体</h3>
-     *
-     * @return 实体
-     */
-    private @NotNull E getNewEntity() {
-        try {
-            return getEntityClass().getConstructor().newInstance();
-        } catch (java.lang.Exception exception) {
-            throw new ServiceException(exception.getMessage());
-        }
     }
 
     /**

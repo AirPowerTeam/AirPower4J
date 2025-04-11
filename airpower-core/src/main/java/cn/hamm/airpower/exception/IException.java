@@ -266,6 +266,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
      *
      * @param obj 被验证的数据
      */
+    @Contract("null -> fail")
     default void whenEmpty(Object obj) {
         whenEmpty(obj, getMessage());
     }
@@ -276,6 +277,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
      * @param obj     被验证的数据
      * @param message 返回信息
      */
+    @Contract("null, _ -> fail")
     default void whenEmpty(Object obj, String message) {
         when(Objects.isNull(obj) || Constant.STRING_EMPTY.equalsIgnoreCase(obj.toString()), message);
     }

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
-import static cn.hamm.airpower.root.RootService.STRING_CREATE_TIME;
+import static cn.hamm.airpower.root.RootEntity.STRING_CREATE_TIME;
 
 /**
  * <h1>全局默认配置文件</h1>

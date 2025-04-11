@@ -1,7 +1,9 @@
 package cn.hamm.airpower.enums;
 
+import cn.hamm.airpower.util.DateTimeUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <h3>格式化模板</h3>
@@ -63,4 +65,23 @@ public enum DateTimeFormatter {
     ;
 
     private final String value;
+
+    /**
+     * <h3>使用这个模板格式化毫秒时间戳</h3>
+     *
+     * @param milliSecond 毫秒时间戳
+     * @return 格式化后的字符串
+     */
+    public final @NotNull String format(long milliSecond) {
+        return DateTimeUtil.format(milliSecond, this);
+    }
+
+    /**
+     * <h3>使用这个模板格式化当前时间</h3>
+     *
+     * @return 格式化后的字符串
+     */
+    public final @NotNull String formatCurrent() {
+        return format(System.currentTimeMillis());
+    }
 }

@@ -2,7 +2,6 @@ package cn.hamm.airpower.helper;
 
 import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.config.ServiceConfig;
-import cn.hamm.airpower.util.DateTimeUtil;
 import cn.hamm.airpower.util.FileUtil;
 import cn.hamm.airpower.util.RandomUtil;
 import cn.hamm.airpower.util.TaskUtil;
@@ -72,7 +71,6 @@ public class ExportHelper {
      */
     public final String getExportFileUrl(String fileCode) {
         Object object = redisHelper.get(EXPORT_CACHE_PREFIX + fileCode);
-        DATA_NOT_FOUND.whenNull(object, "错误的FileCode");
         DATA_NOT_FOUND.whenEmpty(object, "文件暂未准备完毕");
         return object.toString();
     }
@@ -102,10 +100,8 @@ public class ExportHelper {
         String relativeDirectory = FileUtil.getTodayDirectory(EXPORT_DIR);
 
         // 存储的文件名
-        final String fileName = DateTimeUtil.format(System.currentTimeMillis(),
-                FULL_TIME.getValue()
-                        .replaceAll(STRING_COLON, STRING_EMPTY)
-        ) + STRING_UNDERLINE + RandomUtil.randomString() + suffix;
+        final String fileName = FULL_TIME.formatCurrent().replaceAll(STRING_COLON, STRING_EMPTY) +
+                STRING_UNDERLINE + RandomUtil.randomString() + suffix;
 
         try {
             FileUtil.saveFile(absolutePath + relativeDirectory, fileName, inputStream.readAllBytes());

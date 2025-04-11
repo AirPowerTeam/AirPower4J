@@ -90,6 +90,21 @@ public class ReflectUtil {
     }
 
     /**
+     * <h3>获取对象实例</h3>
+     *
+     * @param clazz 类
+     * @param <T>   对象类型
+     * @return 对象实例
+     */
+    public static <T extends RootModel<T>> @NotNull T newInstance(Class<T> clazz) {
+        try {
+            return clazz.getConstructor().newInstance();
+        } catch (java.lang.Exception exception) {
+            throw new ServiceException(exception.getMessage());
+        }
+    }
+
+    /**
      * <h3>清空对象指定属性的值</h3>
      *
      * @param object 对象

@@ -2,7 +2,7 @@ package cn.hamm.airpower.util;
 
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.model.Json;
-import cn.hamm.airpower.root.RootService;
+import cn.hamm.airpower.root.RootEntity;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +92,7 @@ public class AccessTokenUtil {
      * @return {@code AccessTokenUtil}
      */
     public AccessTokenUtil setPayloadId(Long id, long expireSecond) {
-        return addPayload(RootService.STRING_ID, id)
+        return addPayload(RootEntity.STRING_ID, id)
                 .setExpireMillisecond(expireSecond * DateTimeUtil.MILLISECONDS_PER_SECOND);
     }
 
@@ -104,7 +104,7 @@ public class AccessTokenUtil {
      * @apiNote 不设置令牌过期时间
      */
     public AccessTokenUtil setPayloadId(Long id) {
-        return addPayload(RootService.STRING_ID, id);
+        return addPayload(RootEntity.STRING_ID, id);
     }
 
     /**
@@ -258,7 +258,7 @@ public class AccessTokenUtil {
          * @return {@code ID}
          */
         public final long getPayloadId() {
-            Object userId = getPayload(RootService.STRING_ID);
+            Object userId = getPayload(RootEntity.STRING_ID);
             UNAUTHORIZED.whenNull(userId);
             return Long.parseLong(userId.toString());
         }

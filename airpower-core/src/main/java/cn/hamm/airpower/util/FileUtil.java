@@ -34,6 +34,7 @@ public class FileUtil {
     /**
      * <h3>禁止外部实例化</h3>
      */
+    @Contract(pure = true)
     private FileUtil() {
 
     }

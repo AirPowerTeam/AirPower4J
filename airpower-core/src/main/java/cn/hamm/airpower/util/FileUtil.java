@@ -34,6 +34,7 @@ public class FileUtil {
     /**
      * <h3>禁止外部实例化</h3>
      */
+    @Contract(pure = true)
     private FileUtil() {
 
     }
@@ -94,10 +95,7 @@ public class FileUtil {
      * @return 今日文件夹路径
      */
     public static @NotNull String getTodayDirectory(String directory) {
-        String todayDirectory = DateTimeUtil.format(System.currentTimeMillis(),
-                FULL_DATE.getValue()
-                        .replaceAll(STRING_LINE, STRING_EMPTY)
-        );
+        String todayDirectory = FULL_DATE.formatCurrent().replaceAll(STRING_LINE, STRING_EMPTY);
         directory = formatDirectory(directory);
         return directory + todayDirectory + File.separator;
     }

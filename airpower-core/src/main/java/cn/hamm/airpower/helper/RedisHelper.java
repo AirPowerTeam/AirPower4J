@@ -4,6 +4,7 @@ import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.config.ServiceConfig;
 import cn.hamm.airpower.model.Json;
 import cn.hamm.airpower.root.RootEntity;
+import cn.hamm.airpower.root.RootModel;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -37,30 +38,22 @@ public class RedisHelper {
     /**
      * <h3>从缓存中获取实体</h3>
      *
-     * @param entity 实体
+     * @param entityClass 实体类
      * @return 缓存实体
+     * @apiNote 默认使用内置的 {@code key} 规则
      */
-    public final @Nullable <E extends RootEntity<E>> E getEntity(E entity) {
-        Object object = get(getCacheKey(entity));
-        if (Objects.isNull(object)) {
-            return null;
-        }
-        String json = object.toString();
-        if (Objects.isNull(json)) {
-            return null;
-        }
-        //noinspection unchecked
-        return (E) Json.parse(json, entity.getClass());
+    public final @Nullable <E extends RootEntity<E>> E getEntity(Class<E> entityClass, Long id) {
+        return getEntity(getCacheKey(entityClass, id), entityClass);
     }
 
     /**
      * <h3>从缓存中获取实体</h3>
      *
-     * @param key    缓存的 {@code Key}
-     * @param entity 实体
+     * @param key   缓存的 {@code Key}
+     * @param clazz 实体类
      * @return 缓存的实体
      */
-    public final @Nullable <E extends RootEntity<E>> E getEntity(String key, E entity) {
+    public final @Nullable <E extends RootEntity<E>> E getEntity(String key, Class<E> clazz) {
         Object object = get(key);
         if (Objects.isNull(object)) {
             return null;
@@ -69,8 +62,7 @@ public class RedisHelper {
         if (Objects.isNull(json)) {
             return null;
         }
-        //noinspection unchecked
-        return (E) Json.parse(json, entity.getClass());
+        return Json.parse(json, clazz);
     }
 
     /**
@@ -78,8 +70,8 @@ public class RedisHelper {
      *
      * @param entity 实体
      */
-    public final <E extends RootEntity<E>> void deleteEntity(E entity) {
-        del(getCacheKey(entity));
+    public final <E extends RootEntity<E>> void deleteEntity(@NotNull E entity) {
+        del(getEntityCacheKey(entity));
     }
 
     /**
@@ -97,8 +89,9 @@ public class RedisHelper {
      * @param entity 实体
      * @param second 缓存时间(秒)
      */
-    public final <E extends RootEntity<E>> void saveEntity(E entity, long second) {
-        set(getCacheKey(entity), Json.toString(entity), second);
+    public final <E extends RootEntity<E>> void saveEntity(@NotNull E entity, long second) {
+        String cacheKey = getEntityCacheKey(entity);
+        set(cacheKey, Json.toString(entity), second);
     }
 
     /**
@@ -258,12 +251,25 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>获取缓存 {@code Entity} 的 {@code cacheKey}</h3>
+     * <h3>获取缓存 {@code 模型} 的 {@code cacheKey}</h3>
+     *
+     * @param clazz 模型类
+     * @param id    ID
+     * @return key
+     */
+    private @NotNull <T extends RootModel<T>> String getCacheKey(@NotNull Class<T> clazz, Long id) {
+        REDIS_ERROR.whenNull(id, "ID不能为空");
+        return clazz.getSimpleName() + Constant.STRING_UNDERLINE + id;
+    }
+
+    /**
+     * <h3>获取缓存 {@code 实体} 的 {@code cacheKey}</h3>
      *
      * @param entity 实体
      * @return key
      */
-    private @NotNull <E extends RootEntity<E>> String getCacheKey(@NotNull E entity) {
-        return entity.getClass().getSimpleName() + Constant.STRING_UNDERLINE + entity.getId().toString();
+    private <T extends RootEntity<T>> @NotNull String getEntityCacheKey(@NotNull T entity) {
+        //noinspection unchecked
+        return getCacheKey(entity.getClass(), entity.getId());
     }
 }

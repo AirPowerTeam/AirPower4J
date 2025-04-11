@@ -72,7 +72,6 @@ public class ExportHelper {
      */
     public final String getExportFileUrl(String fileCode) {
         Object object = redisHelper.get(EXPORT_CACHE_PREFIX + fileCode);
-        DATA_NOT_FOUND.whenNull(object, "错误的FileCode");
         DATA_NOT_FOUND.whenEmpty(object, "文件暂未准备完毕");
         return object.toString();
     }

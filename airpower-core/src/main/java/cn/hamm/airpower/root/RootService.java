@@ -4,7 +4,6 @@ import cn.hamm.airpower.annotation.Desensitize;
 import cn.hamm.airpower.annotation.NullEnable;
 import cn.hamm.airpower.annotation.Search;
 import cn.hamm.airpower.config.ServiceConfig;
-import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.helper.ExportHelper;
 import cn.hamm.airpower.helper.RedisHelper;
 import cn.hamm.airpower.model.Page;
@@ -53,21 +52,6 @@ import static cn.hamm.airpower.exception.ServiceError.*;
 @SuppressWarnings({"SpringJavaInjectionPointsAutowiringInspection"})
 @Slf4j
 public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
-    /**
-     * <h3>创建时间字段名 {@code createTime}</h3>
-     */
-    public static final String STRING_CREATE_TIME = "createTime";
-
-    /**
-     * <h3>修改时间字段名 {@code updateTime}</h3>
-     */
-    public static final String STRING_UPDATE_TIME = "updateTime";
-
-    /**
-     * <h3>主键 {@code ID} 字段名</h3>
-     */
-    public static final String STRING_ID = "id";
-
     /**
      * <h3>提交的数据不允许为空</h3>
      */
@@ -190,7 +174,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
         source.setId(null).setIsDisabled(false).setCreateTime(System.currentTimeMillis());
         E finalSource = source;
-        long id = saveToDatabase(source);
+        long id = saveToDatabaseIgnoreNull(source);
         TaskUtil.run(() -> afterAdd(id, finalSource));
         return id;
     }
@@ -399,7 +383,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @return List数据
      */
     public final @NotNull List<E> filter(@Nullable E filter, @Nullable Sort sort) {
-        filter = Objects.requireNonNullElse(filter, getEntityInstance());
+        filter = Objects.requireNonNullElse(filter, ReflectUtil.newInstance(getEntityClass()));
         return repository.findAll(createSpecification(filter, true), createSort(sort));
     }
 
@@ -540,7 +524,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      */
     protected final void disableById(long id) {
         E entity = get(id);
-        saveToDatabase(entity.setIsDisabled(true));
+        saveToDatabaseIgnoreNull(entity.setIsDisabled(true));
     }
 
     /**
@@ -553,7 +537,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      */
     protected final void enableById(long id) {
         E entity = get(id);
-        saveToDatabase(entity.setIsDisabled(false));
+        saveToDatabaseIgnoreNull(entity.setIsDisabled(false));
     }
 
     /**
@@ -638,7 +622,8 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      */
     private @NotNull List<E> query(@NotNull QueryListRequest<E> queryListRequest) {
         return repository.findAll(
-                createSpecification(queryListRequest.getFilter(), false), createSort(queryListRequest.getSort())
+                createSpecification(queryListRequest.getFilter(), false),
+                createSort(queryListRequest.getSort())
         );
     }
 
@@ -653,7 +638,10 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
     private <Q extends QueryListRequest<E>> @NotNull Q requireWithFilterNonNullElse(
             Q queryListRequest, Q newInstance) {
         queryListRequest = Objects.requireNonNullElse(queryListRequest, newInstance);
-        queryListRequest.setFilter(Objects.requireNonNullElse(queryListRequest.getFilter(), getEntityInstance()));
+        queryListRequest.setFilter(Objects.requireNonNullElse(
+                queryListRequest.getFilter(),
+                ReflectUtil.newInstance(getEntityClass()))
+        );
         return queryListRequest;
     }
 
@@ -680,7 +668,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @param id 主键 {@code ID}
      * @return 实体
      */
-    private @NotNull E getById(long id) {
+    private @NotNull E getById(Long id) {
         PARAM_MISSING.whenNull(id, String.format(
                 "查询失败，请传入%s的ID！",
                 ReflectUtil.getDescription(getEntityClass())
@@ -711,7 +699,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @param entity 待保存实体
      * @return 实体ID
      */
-    private long saveToDatabase(@NotNull E entity) {
+    private long saveToDatabaseIgnoreNull(@NotNull E entity) {
         return saveToDatabase(entity, false);
     }
 
@@ -752,7 +740,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @apiNote 仅供 {@link #saveToDatabase(E, boolean)} 调用
      */
     private long saveAndFlush(@NotNull E entity) {
-        E target = getEntityInstance();
+        E target = ReflectUtil.newInstance(getEntityClass());
         BeanUtils.copyProperties(entity, target);
         target = beforeSaveToDatabase(target);
         target = repository.saveAndFlush(target);
@@ -830,7 +818,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
                 // 没有值 不校验
                 return;
             }
-            E search = getEntityInstance();
+            E search = ReflectUtil.newInstance(getEntityClass());
             ReflectUtil.setFieldValue(search, field, fieldValue);
             Example<E> example = Example.of(search);
             Optional<E> exist = repository.findOne(example);
@@ -849,25 +837,11 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
     }
 
     /**
-     * <h3>获取一个空实体对象</h3>
-     *
-     * @return 实体
-     */
-    @NotNull
-    public E getEntityInstance() {
-        try {
-            return getEntityClass().getConstructor().newInstance();
-        } catch (Exception exception) {
-            throw new ServiceException(exception.getMessage());
-        }
-    }
-
-    /**
      * <h3>获取实体类</h3>
      *
      * @return 类
      */
-    private @NotNull Class<E> getEntityClass() {
+    public final @NotNull Class<E> getEntityClass() {
         //noinspection unchecked
         return (Class<E>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
     }
@@ -1021,16 +995,16 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
             @NotNull E search, @NotNull List<Predicate> predicateList
     ) {
         addPredicateNonNull(root, predicateList,
-                STRING_CREATE_TIME, builder::greaterThanOrEqualTo, search.getCreateTimeFrom()
+                RootEntity.STRING_CREATE_TIME, builder::greaterThanOrEqualTo, search.getCreateTimeFrom()
         );
         addPredicateNonNull(root, predicateList,
-                STRING_CREATE_TIME, builder::lessThan, search.getCreateTimeTo()
+                RootEntity.STRING_CREATE_TIME, builder::lessThan, search.getCreateTimeTo()
         );
         addPredicateNonNull(root, predicateList,
-                STRING_UPDATE_TIME, builder::greaterThanOrEqualTo, search.getUpdateTimeFrom()
+                RootEntity.STRING_UPDATE_TIME, builder::greaterThanOrEqualTo, search.getUpdateTimeFrom()
         );
         addPredicateNonNull(root, predicateList,
-                STRING_UPDATE_TIME, builder::lessThan, search.getUpdateTimeTo()
+                RootEntity.STRING_UPDATE_TIME, builder::lessThan, search.getUpdateTimeTo()
         );
     }
 

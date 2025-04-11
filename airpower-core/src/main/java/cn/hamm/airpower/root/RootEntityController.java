@@ -4,7 +4,6 @@ import cn.hamm.airpower.annotation.Description;
 import cn.hamm.airpower.annotation.Extends;
 import cn.hamm.airpower.annotation.Filter;
 import cn.hamm.airpower.annotation.Permission;
-import cn.hamm.airpower.enums.Api;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.interfaces.IEntityAction;
 import cn.hamm.airpower.model.Json;
@@ -20,12 +19,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.lang.reflect.ParameterizedType;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 import static cn.hamm.airpower.enums.Api.*;
-import static cn.hamm.airpower.exception.ServiceError.API_SERVICE_UNSUPPORTED;
 
 /**
  * <h1>实体控制器根类</h1>
@@ -50,7 +47,7 @@ public class RootEntityController<
     @Description("创建导出任务")
     @PostMapping("export")
     public Json export(@RequestBody QueryListRequest<E> queryListRequest) {
-        checkApiAvailableStatus(Export);
+        Export.checkApiAvailable(this);
         return Json.data(service.createExportTask(queryListRequest), "导出任务创建成功");
     }
 
@@ -61,7 +58,7 @@ public class RootEntityController<
     @PostMapping("queryExport")
     @Permission(authorize = false)
     public Json queryExport(@RequestBody @Validated QueryExport queryExport) {
-        checkApiAvailableStatus(QueryExport);
+        QueryExport.checkApiAvailable(this);
         return Json.data(service.queryExport(queryExport), "请下载导出的文件");
     }
 
@@ -77,7 +74,7 @@ public class RootEntityController<
     @PostMapping("add")
     @Filter(WhenGetDetail.class)
     public Json add(@RequestBody @Validated(WhenAdd.class) E source) {
-        checkApiAvailableStatus(Add);
+        Add.checkApiAvailable(this);
         source.ignoreReadOnlyFields();
         source = beforeAdd(source);
         final E finalSource = source;
@@ -101,7 +98,7 @@ public class RootEntityController<
     @PostMapping("update")
     @Filter(WhenGetDetail.class)
     public Json update(@RequestBody @Validated(WhenUpdate.class) @NotNull E source) {
-        checkApiAvailableStatus(Update);
+        Update.checkApiAvailable(this);
         long id = source.getId();
         source.ignoreReadOnlyFields();
         source = beforeUpdate(source);
@@ -124,7 +121,7 @@ public class RootEntityController<
     @Description("删除")
     @PostMapping("delete")
     public Json delete(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
-        checkApiAvailableStatus(Delete);
+        Delete.checkApiAvailable(this);
         long id = source.getId();
         beforeDelete(id);
         service.delete(id);
@@ -142,7 +139,7 @@ public class RootEntityController<
     @PostMapping("getDetail")
     @Filter(WhenGetDetail.class)
     public Json getDetail(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
-        checkApiAvailableStatus(GetDetail);
+        GetDetail.checkApiAvailable(this);
         return Json.data(afterGetDetail(service.get(source.getId())));
     }
 
@@ -156,7 +153,7 @@ public class RootEntityController<
     @Description("禁用")
     @PostMapping("disable")
     public Json disable(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
-        checkApiAvailableStatus(Disable);
+        Disable.checkApiAvailable(this);
         long id = source.getId();
         beforeDisable(id);
         service.disable(id);
@@ -174,7 +171,7 @@ public class RootEntityController<
     @Description("启用")
     @PostMapping("enable")
     public Json enable(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
-        checkApiAvailableStatus(Enable);
+        Enable.checkApiAvailable(this);
         long id = source.getId();
         beforeEnable(id);
         service.enable(id);
@@ -193,7 +190,7 @@ public class RootEntityController<
     @PostMapping("getList")
     @Filter(WhenGetList.class)
     public Json getList(@RequestBody QueryListRequest<E> queryListRequest) {
-        checkApiAvailableStatus(GetList);
+        GetList.checkApiAvailable(this);
         queryListRequest = requireQueryAndFilterNonNullElse(queryListRequest, new QueryListRequest<>());
         queryListRequest = beforeGetList(queryListRequest);
         return Json.data(afterGetList(service.getList(queryListRequest)));
@@ -210,7 +207,7 @@ public class RootEntityController<
     @PostMapping("getPage")
     @Filter(WhenGetPage.class)
     public Json getPage(@RequestBody QueryPageRequest<E> queryPageRequest) {
-        checkApiAvailableStatus(GetPage);
+        GetPage.checkApiAvailable(this);
         queryPageRequest = requireQueryAndFilterNonNullElse(queryPageRequest, new QueryPageRequest<>());
         queryPageRequest = beforeGetPage(queryPageRequest);
         return Json.data(afterGetPage(service.getPage(queryPageRequest)));
@@ -384,34 +381,8 @@ public class RootEntityController<
     private <Q extends QueryListRequest<E>> @NotNull Q requireQueryAndFilterNonNullElse(
             Q queryListRequest, Q newInstance) {
         queryListRequest = Objects.requireNonNullElse(queryListRequest, newInstance);
-        queryListRequest.setFilter(Objects.requireNonNullElse(queryListRequest.getFilter(), getNewInstance()));
+        queryListRequest.setFilter(Objects.requireNonNullElse(queryListRequest.getFilter(), getNewEntity()));
         return queryListRequest;
-    }
-
-    /**
-     * <h3>检查Api可用状态</h3>
-     */
-    private void checkApiAvailableStatus(Api api) {
-        Extends extendsApi = getClass().getAnnotation(Extends.class);
-        if (Objects.isNull(extendsApi)) {
-            // 没配置
-            return;
-        }
-        List<Api> whiteList = Arrays.asList(extendsApi.value());
-        List<Api> blackList = Arrays.asList(extendsApi.exclude());
-        if (whiteList.isEmpty() && blackList.isEmpty()) {
-            // 配了个寂寞
-            return;
-        }
-        if (whiteList.contains(api)) {
-            // 在白名单里
-            return;
-        }
-        if (blackList.isEmpty() || !blackList.contains(api)) {
-            // 不在黑名单里
-            return;
-        }
-        API_SERVICE_UNSUPPORTED.show();
     }
 
     /**
@@ -419,7 +390,7 @@ public class RootEntityController<
      *
      * @return 实体
      */
-    private @NotNull E getNewInstance() {
+    private @NotNull E getNewEntity() {
         try {
             return getEntityClass().getConstructor().newInstance();
         } catch (java.lang.Exception exception) {

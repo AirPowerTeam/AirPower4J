@@ -1,6 +1,6 @@
 package cn.hamm.airpower.annotation;
 
-import cn.hamm.airpower.validate.dictionary.Dictionary;
+import cn.hamm.airpower.validate.Dictionary;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;

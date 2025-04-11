@@ -4,7 +4,7 @@ import cn.hamm.airpower.annotation.ExcelColumn;
 import cn.hamm.airpower.interfaces.IDictionary;
 import cn.hamm.airpower.model.Json;
 import cn.hamm.airpower.root.RootEntity;
-import cn.hamm.airpower.validate.dictionary.Dictionary;
+import cn.hamm.airpower.validate.Dictionary;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -115,7 +115,7 @@ public class CollectionUtil {
                 case TEXT -> REGEX_TAB + value;
                 case BOOLEAN -> (boolean) value ? STRING_YES : STRING_NO;
                 case DICTIONARY -> {
-                    cn.hamm.airpower.validate.dictionary.Dictionary dictionary = ReflectUtil.getAnnotation(Dictionary.class, field);
+                    Dictionary dictionary = ReflectUtil.getAnnotation(Dictionary.class, field);
                     if (Objects.isNull(dictionary)) {
                         yield value;
                     } else {

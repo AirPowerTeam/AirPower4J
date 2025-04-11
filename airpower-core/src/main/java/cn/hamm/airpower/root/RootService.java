@@ -509,7 +509,15 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
         org.springframework.data.domain.Page<E> pageData = repository.findAll(
                 createSpecification(queryPageRequest.getFilter(), false), createPageable(queryPageRequest)
         );
-        QueryPageResponse<E> queryPageResponse = getResponsePageList(pageData);
+        // 组装分页数据
+        QueryPageResponse<E> queryPageResponse = new QueryPageResponse<E>()
+                .setList(pageData.getContent())
+                .setTotal(Math.toIntExact(pageData.getTotalElements()))
+                .setPageCount(pageData.getTotalPages())
+                .setPage(new Page()
+                        .setPageSize(pageData.getPageable().getPageSize())
+                        .setPageNum(pageData.getPageable().getPageNumber() + 1)
+                );
         queryPageResponse.setSort(queryPageRequest.getSort());
         return afterGetPage(queryPageResponse);
     }
@@ -873,25 +881,6 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
             }
         });
         return list.toArray(new String[0]);
-    }
-
-    /**
-     * <h3>获取响应的分页数据</h3>
-     *
-     * @param data 分页数据
-     * @return 输出分页对象
-     */
-    private @NotNull QueryPageResponse<E> getResponsePageList(
-            @NotNull org.springframework.data.domain.Page<E> data
-    ) {
-        return new QueryPageResponse<E>()
-                .setList(data.getContent())
-                .setTotal(Math.toIntExact(data.getTotalElements()))
-                .setPageCount(data.getTotalPages())
-                .setPage(new Page()
-                        .setPageSize(data.getPageable().getPageSize())
-                        .setPageNum(data.getPageable().getPageNumber() + 1)
-                );
     }
 
     /**

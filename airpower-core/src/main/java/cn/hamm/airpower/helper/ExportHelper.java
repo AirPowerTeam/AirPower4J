@@ -100,7 +100,7 @@ public class ExportHelper {
         String relativeDirectory = FileUtil.getTodayDirectory(EXPORT_DIR);
 
         // 存储的文件名
-        final String fileName = FULL_TIME.current().replaceAll(STRING_COLON, STRING_EMPTY) +
+        final String fileName = FULL_TIME.formatCurrent().replaceAll(STRING_COLON, STRING_EMPTY) +
                 STRING_UNDERLINE + RandomUtil.randomString() + suffix;
 
         try {

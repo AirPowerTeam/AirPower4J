@@ -81,7 +81,7 @@ public enum DateTimeFormatter {
      *
      * @return 格式化后的字符串
      */
-    public @NotNull String current() {
+    public @NotNull String formatCurrent() {
         return format(System.currentTimeMillis());
     }
 }

@@ -95,7 +95,7 @@ public class FileUtil {
      * @return 今日文件夹路径
      */
     public static @NotNull String getTodayDirectory(String directory) {
-        String todayDirectory = FULL_DATE.current().replaceAll(STRING_LINE, STRING_EMPTY);
+        String todayDirectory = FULL_DATE.formatCurrent().replaceAll(STRING_LINE, STRING_EMPTY);
         directory = formatDirectory(directory);
         return directory + todayDirectory + File.separator;
     }

@@ -6,6 +6,7 @@ import cn.hamm.airpower.model.Sort;
 import cn.hamm.airpower.root.RootModel;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,4 +49,22 @@ public class QueryPageResponse<M extends RootModel<M>> {
      */
     @Description("排序信息")
     private Sort sort = new Sort();
+
+    /**
+     * <h2>获取新的实例</h2>
+     *
+     * @param page Spring分页数据
+     * @param <M>  实体类型
+     * @return 实例
+     */
+    public static <M extends RootModel<M>> QueryPageResponse<M> newInstance(org.springframework.data.domain.@NotNull Page<M> page) {
+        return new QueryPageResponse<M>()
+                .setList(page.getContent())
+                .setTotal(Math.toIntExact(page.getTotalElements()))
+                .setPageCount(page.getTotalPages())
+                .setPage(new Page()
+                        .setPageSize(page.getPageable().getPageSize())
+                        .setPageNum(page.getPageable().getPageNumber() + 1)
+                );
+    }
 }

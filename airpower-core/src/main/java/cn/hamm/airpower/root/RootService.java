@@ -510,14 +510,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
                 createSpecification(queryPageRequest.getFilter(), false), createPageable(queryPageRequest)
         );
         // 组装分页数据
-        QueryPageResponse<E> queryPageResponse = new QueryPageResponse<E>()
-                .setList(pageData.getContent())
-                .setTotal(Math.toIntExact(pageData.getTotalElements()))
-                .setPageCount(pageData.getTotalPages())
-                .setPage(new Page()
-                        .setPageSize(pageData.getPageable().getPageSize())
-                        .setPageNum(pageData.getPageable().getPageNumber() + 1)
-                );
+        QueryPageResponse<E> queryPageResponse = QueryPageResponse.newInstance(pageData);
         queryPageResponse.setSort(queryPageRequest.getSort());
         return afterGetPage(queryPageResponse);
     }
@@ -765,7 +758,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @return 目标实体
      */
     @Contract("_, _ -> param2")
-    protected final @NotNull E getEntityForUpdate(@NotNull E sourceEntity, @NotNull E exist) {
+    private @NotNull E getEntityForUpdate(@NotNull E sourceEntity, @NotNull E exist) {
         String[] updateFieldNames = getUpdateFieldNames(sourceEntity);
         BeanUtils.copyProperties(sourceEntity, exist, updateFieldNames);
         return desensitize(exist);

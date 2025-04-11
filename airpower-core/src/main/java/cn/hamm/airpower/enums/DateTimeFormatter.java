@@ -72,7 +72,7 @@ public enum DateTimeFormatter {
      * @param milliSecond 毫秒时间戳
      * @return 格式化后的字符串
      */
-    public @NotNull String format(long milliSecond) {
+    public final @NotNull String format(long milliSecond) {
         return DateTimeUtil.format(milliSecond, this);
     }
 
@@ -81,7 +81,7 @@ public enum DateTimeFormatter {
      *
      * @return 格式化后的字符串
      */
-    public @NotNull String formatCurrent() {
+    public final @NotNull String formatCurrent() {
         return format(System.currentTimeMillis());
     }
 }

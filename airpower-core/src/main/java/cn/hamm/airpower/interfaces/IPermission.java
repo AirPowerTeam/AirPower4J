@@ -23,7 +23,7 @@ public interface IPermission<E extends IPermission<E>> extends ITree<E> {
      * @return 树实体
      */
     E setName(String name);
-    
+
     /**
      * <h3>获取权限标识</h3>
      *

@@ -10,6 +10,21 @@ import cn.hamm.airpower.util.PermissionUtil;
  */
 public interface IPermission<E extends IPermission<E>> extends ITree<E> {
     /**
+     * <h3>获取树的名称</h3>
+     *
+     * @return 树名称
+     */
+    String getName();
+
+    /**
+     * <h3>设置树名称</h3>
+     *
+     * @param name 树名称
+     * @return 树实体
+     */
+    E setName(String name);
+
+    /**
      * <h3>获取权限标识</h3>
      *
      * @return 权限标识

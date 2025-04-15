@@ -9,21 +9,6 @@ import java.util.List;
  */
 public interface ITree<E extends ITree<E>> extends IEntity<E> {
     /**
-     * <h3>获取树的名称</h3>
-     *
-     * @return 树名称
-     */
-    String getName();
-
-    /**
-     * <h3>设置树名称</h3>
-     *
-     * @param name 树名称
-     * @return 树实体
-     */
-    E setName(String name);
-
-    /**
      * <h3>获取树的父级 {@code ID}</h3>
      *
      * @return 父级 {@code ID}

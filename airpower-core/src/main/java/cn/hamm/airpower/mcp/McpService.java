@@ -195,32 +195,31 @@ public class McpService {
     /**
      * <h3>发送错误</h3>
      *
-     * @param uuid uuid
-     * @param id   id
-     * @param code 错误代码
-     * @throws McpException 异常
-     */
-    public static void emitError(String uuid, Long id, @NotNull McpErrorCode code) throws McpException {
-        emitError(uuid, id, code.getKey(), code.getLabel());
-    }
-
-    /**
-     * <h3>发送错误</h3>
-     *
      * @param uuid    uuid
      * @param id      id
      * @param code    错误代码
      * @param message 错误信息
      * @throws McpException 异常
      */
-    public static void emitError(String uuid, Long id, Integer code, String message) throws McpException {
+    public static void emitError(String uuid, Long id, @NotNull McpErrorCode code, String message) throws McpException {
         McpResponse response = new McpResponse();
         response.setId(id);
-        McpException error = new McpException();
-        error.setCode(code).setMessage(message);
+        McpException error = new McpException(message, code);
         response.setError(error);
         emit(uuid, response);
         throw error;
+    }
+
+    /**
+     * <h3>发送错误</h3>
+     *
+     * @param uuid uuid
+     * @param id   id
+     * @param code 错误信息
+     * @throws McpException 异常
+     */
+    public static void emitError(String uuid, Long id, @NotNull McpErrorCode code) throws McpException {
+        emitError(uuid, id, code, code.getLabel());
     }
 
     /**
@@ -232,7 +231,7 @@ public class McpService {
      * @throws McpException 异常
      */
     public static void emitError(String uuid, Long id, String message) throws McpException {
-        emitError(uuid, id, McpErrorCode.InternalError.getKey(), message);
+        emitError(uuid, id, McpErrorCode.InternalError, message);
     }
 
     /**
@@ -254,7 +253,7 @@ public class McpService {
                         .data(string)
                 );
             } catch (IOException e) {
-                throw new McpException().setCode(McpErrorCode.InternalError.getKey()).setMessage(e.getMessage());
+                throw new McpException(e.getMessage());
             }
         }
         return response;
@@ -292,11 +291,11 @@ public class McpService {
                 String methodName = params.get("name").toString();
                 Method method = METHOD_MAP.get(methodName);
                 if (Objects.isNull(method)) {
-                    throw new McpException().setCode(McpErrorCode.MethodNotFound.getKey()).setMessage("Method not found");
+                    throw new McpException(McpErrorCode.MethodNotFound);
                 }
                 McpTool mcpTool = getTool(method);
                 if (Objects.isNull(mcpTool)) {
-                    throw new McpException().setCode(McpErrorCode.MethodNotFound.getKey()).setMessage("McpTool not found");
+                    throw new McpException("McpTool not found");
                 }
                 Object callResult;
                 try {
@@ -339,7 +338,7 @@ public class McpService {
                 ));
                 break;
             default:
-                throw new McpException().setCode(McpErrorCode.MethodNotFound.getKey()).setMessage("Method not found");
+                throw new McpException(McpErrorCode.MethodNotFound);
         }
         return responseData;
     }

@@ -28,7 +28,13 @@ public enum McpMethods implements IDictionary {
     TOOLS_CALL(3, "tools/call"),
     ;
 
+    /**
+     * <h2>key</h2>
+     */
     private final int key;
 
+    /**
+     * <h2>方法名称</h2>
+     */
     private final String label;
 }

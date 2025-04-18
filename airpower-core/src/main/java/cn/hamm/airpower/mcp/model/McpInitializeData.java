@@ -22,16 +22,31 @@ public class McpInitializeData {
     private String protocolVersion = "2024-11-05";
 
     /**
-     * <h3>能力</h3>
+     * <h3>服务能力</h3>
      */
-    private Capabilities capabilities = new Capabilities();
+    private McpCapability capabilities = new McpCapability();
 
+    /**
+     * <h3>服务能力</h3>
+     */
     @Data
-    @Accessors(chain = true)
-    public static class Capabilities {
+    @Accessors
+    static class McpCapability {
         /**
-         * <h3>工具</h3>
+         * <h3>工具能力</h3>
          */
-        private McpTool tools = new McpTool();
+        private McpToolCapability tools = new McpToolCapability();
+
+        /**
+         * <h3>工具能力</h3>
+         */
+        @Data
+        @Accessors
+        static class McpToolCapability {
+            /**
+             * <h3>是否通知客户端更新</h3>
+             */
+            private Boolean listChanged = false;
+        }
     }
 }

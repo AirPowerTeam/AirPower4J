@@ -1,5 +1,6 @@
 package cn.hamm.airpower.mcp.model;
 
+import cn.hamm.airpower.mcp.common.McpJson;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;

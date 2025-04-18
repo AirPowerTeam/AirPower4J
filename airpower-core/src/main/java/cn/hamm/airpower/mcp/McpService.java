@@ -1,23 +1,15 @@
 package cn.hamm.airpower.mcp;
 
 import cn.hamm.airpower.config.Constant;
+import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.mcp.exception.McpErrorCode;
-import cn.hamm.airpower.mcp.exception.McpException;
-import cn.hamm.airpower.mcp.method.McpCallMethodResponse;
 import cn.hamm.airpower.mcp.method.McpMethod;
 import cn.hamm.airpower.mcp.method.McpMethods;
 import cn.hamm.airpower.mcp.method.McpOptional;
-import cn.hamm.airpower.mcp.model.McpInitializeData;
-import cn.hamm.airpower.mcp.model.McpRequest;
-import cn.hamm.airpower.mcp.model.McpResponse;
-import cn.hamm.airpower.mcp.model.McpTool;
-import cn.hamm.airpower.model.Json;
-import cn.hamm.airpower.util.DateTimeUtil;
+import cn.hamm.airpower.mcp.model.*;
 import cn.hamm.airpower.util.ReflectUtil;
-import cn.hamm.airpower.util.TaskUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.reflections.Reflections;
@@ -26,12 +18,9 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -48,17 +37,15 @@ import java.util.stream.IntStream;
 @Service
 public class McpService {
     /**
-     * <h3>SseEmitters</h3>
-     */
-    public final static ConcurrentHashMap<String, SseEmitter> EMITTERS = new ConcurrentHashMap<>();
-    /**
      * <h3>方法列表</h3>
      */
     public final static ConcurrentMap<String, Method> METHOD_MAP = new ConcurrentHashMap<>();
+
     /**
      * <h3>工具列表</h3>
      */
     public static List<McpTool> tools = new ArrayList<>();
+
     @Autowired
     private BeanFactory beanFactory;
 
@@ -108,7 +95,7 @@ public class McpService {
 
             String paramName = method.getParameters()[index].getName();
 
-            McpOptional mcpOptional = parameterType.getAnnotation(McpOptional.class);
+            McpOptional mcpOptional = method.getParameters()[index].getAnnotation(McpOptional.class);
             if (Objects.isNull(mcpOptional)) {
                 // 没有标记可选属性的注解 则为必须属性
                 inputSchema.getRequired().add(paramName);
@@ -138,128 +125,6 @@ public class McpService {
     }
 
     /**
-     * <h3>获取SseEmitter</h3>
-     *
-     * @param uuid         uuid
-     * @param expireSecond 超时时间 默认 {@code 秒}
-     * @return SseEmitter
-     */
-    public static @NotNull SseEmitter getSseEmitter(String uuid, long expireSecond) {
-        SseEmitter emitter = new SseEmitter(expireSecond * DateTimeUtil.MILLISECONDS_PER_SECOND);
-        McpService.EMITTERS.put(uuid, emitter);
-
-        // 每3s 发送ping
-        TaskUtil.runAsync(() -> {
-            while (true) {
-                try {
-                    emitter.send(SseEmitter.event().name("ping").data("ping").build());
-                    //noinspection BusyWait
-                    Thread.sleep(Duration.ofSeconds(3).toMillis());
-                } catch (Exception e) {
-                    break;
-                }
-            }
-        });
-
-        emitter.onCompletion(() -> McpService.EMITTERS.remove(uuid));
-        emitter.onTimeout(() -> McpService.EMITTERS.remove(uuid));
-        return emitter;
-    }
-
-    /**
-     * <h3>获取SseEmitter</h3>
-     *
-     * @param uuid uuid
-     * @return SseEmitter
-     */
-    public static @NotNull SseEmitter getSseEmitter(String uuid) {
-        return getSseEmitter(uuid, 300);
-    }
-
-    /**
-     * <h3>发送结果</h3>
-     *
-     * @param uuid uuid
-     * @param id   id
-     * @param data 数据
-     * @return McpResponse
-     * @throws McpException 异常
-     */
-    public static McpResponse emitResult(String uuid, Long id, Object data) throws McpException {
-        McpResponse response = new McpResponse();
-        response.setId(id);
-        response.setResult(data);
-        return emit(uuid, response);
-    }
-
-    /**
-     * <h3>发送错误</h3>
-     *
-     * @param uuid    uuid
-     * @param id      id
-     * @param code    错误代码
-     * @param message 错误信息
-     * @throws McpException 异常
-     */
-    public static void emitError(String uuid, Long id, @NotNull McpErrorCode code, String message) throws McpException {
-        McpResponse response = new McpResponse();
-        response.setId(id);
-        McpException error = new McpException(message, code);
-        response.setError(error);
-        emit(uuid, response);
-        throw error;
-    }
-
-    /**
-     * <h3>发送错误</h3>
-     *
-     * @param uuid uuid
-     * @param id   id
-     * @param code 错误信息
-     * @throws McpException 异常
-     */
-    public static void emitError(String uuid, Long id, @NotNull McpErrorCode code) throws McpException {
-        emitError(uuid, id, code, code.getLabel());
-    }
-
-    /**
-     * <h3>发送错误</h3>
-     *
-     * @param uuid    uuid
-     * @param id      id
-     * @param message 错误信息
-     * @throws McpException 异常
-     */
-    public static void emitError(String uuid, Long id, String message) throws McpException {
-        emitError(uuid, id, McpErrorCode.InternalError, message);
-    }
-
-    /**
-     * <h3>发送</h3>
-     *
-     * @param uuid     uuid
-     * @param response 响应
-     * @return McpResponse
-     * @throws McpException 异常
-     */
-    @Contract("_, _ -> param2")
-    private static McpResponse emit(String uuid, McpResponse response) throws McpException {
-        SseEmitter sseEmitter = EMITTERS.get(uuid);
-        String string = Json.toString(response);
-        if (Objects.nonNull(sseEmitter)) {
-            try {
-                sseEmitter.send(SseEmitter.event()
-                        .name("message")
-                        .data(string)
-                );
-            } catch (IOException e) {
-                throw new McpException(e.getMessage());
-            }
-        }
-        return response;
-    }
-
-    /**
      * <h3>获取访问指定工具需要的权限</h3>
      *
      * @param mcpTool 工具
@@ -270,33 +135,33 @@ public class McpService {
     }
 
     /**
-     * <h3>运行方法</h3>
+     * <h3>运行Mcp方法</h3>
      *
-     * @param uuid            uuid
-     * @param mcpMethods      方法
      * @param mcpRequest      请求
-     * @param checkPermission 权限验证方法
-     * @return 响应
-     * @throws McpException 异常
+     * @param checkPermission 检查权限
+     * @return McpResponse
+     * @throws ServiceException ServiceException
      */
-    public McpResponse run(String uuid, @NotNull McpMethods mcpMethods, McpRequest mcpRequest, Consumer<McpTool> checkPermission) throws McpException {
-        McpResponse responseData;
+    public final @Nullable McpResponse run(@NotNull McpRequest mcpRequest, Consumer<McpTool> checkPermission) throws ServiceException {
+        McpResponse responseData = new McpResponse();
+        responseData.setId(mcpRequest.getId());
+        McpMethods mcpMethods = Arrays.stream(McpMethods.values())
+                .filter(value -> value.getLabel().equals(mcpRequest.getMethod()))
+                .findFirst()
+                .orElse(null);
+        log.info("Mcp请求方法: {}，参数: {}", mcpRequest.getMethod(), mcpRequest.getParams());
+        McpErrorCode.MethodNotFound.whenNull(mcpMethods);
         switch (mcpMethods) {
             case INITIALIZE:
-                responseData = McpService.emitResult(uuid, mcpRequest.getId(), new McpInitializeData());
-                break;
+                return responseData.setResult(new McpInitializeData());
             case TOOLS_CALL:
                 @SuppressWarnings("unchecked")
                 Map<String, Object> params = (Map<String, Object>) mcpRequest.getParams();
                 String methodName = params.get("name").toString();
                 Method method = METHOD_MAP.get(methodName);
-                if (Objects.isNull(method)) {
-                    throw new McpException(McpErrorCode.MethodNotFound);
-                }
+                McpErrorCode.MethodNotFound.whenNull(method);
                 McpTool mcpTool = getTool(method);
-                if (Objects.isNull(mcpTool)) {
-                    throw new McpException("McpTool not found");
-                }
+                McpErrorCode.MethodNotFound.whenNull(mcpTool, "McpTool not found");
                 Object callResult;
                 try {
                     checkPermission.accept(mcpTool);
@@ -323,23 +188,17 @@ public class McpService {
                         callResult = e.getMessage();
                     }
                 }
-                McpCallMethodResponse mcpCallMethodResponse = new McpCallMethodResponse();
                 if (Objects.isNull(callResult) || !StringUtils.hasText(callResult.toString())) {
                     callResult = "操作成功";
                 }
-                mcpCallMethodResponse.getContent().add(
-                        new McpCallMethodResponse.Text().setText(callResult.toString())
-                );
-                responseData = emitResult(uuid, mcpRequest.getId(), mcpCallMethodResponse);
-                break;
+                return responseData.setResult(new McpResponseResult().addTextContent(callResult.toString()));
             case TOOLS_LIST:
-                responseData = McpService.emitResult(uuid, mcpRequest.getId(), Map.of(
+                return responseData.setResult(Map.of(
                         "tools", McpService.tools
                 ));
-                break;
             default:
-                throw new McpException(McpErrorCode.MethodNotFound);
+                McpErrorCode.MethodNotFound.show();
+                return null;
         }
-        return responseData;
     }
 }

@@ -1,4 +1,4 @@
-package cn.hamm.airpower.mcp.model;
+package cn.hamm.airpower.mcp.common;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

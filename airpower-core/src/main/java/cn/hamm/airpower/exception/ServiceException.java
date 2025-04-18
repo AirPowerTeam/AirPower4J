@@ -25,6 +25,7 @@ public class ServiceException extends RuntimeException implements IException<Ser
      * <h3>错误信息</h3>
      */
     private String message = SERVICE_ERROR.getMessage();
+
     /**
      * <h3>错误数据</h3>
      */

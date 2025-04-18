@@ -56,6 +56,9 @@ public class McpTool {
          */
         private List<String> required = new ArrayList<>();
 
+        /**
+         * <h3>属性</h3>
+         */
         @Data
         @Accessors(chain = true)
         public static class Property {

@@ -1,6 +1,6 @@
 package cn.hamm.airpower.mcp.exception;
 
-import cn.hamm.airpower.interfaces.IDictionary;
+import cn.hamm.airpower.exception.IException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +11,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum McpErrorCode implements IDictionary {
+public enum McpErrorCode implements IException<McpErrorCode> {
     /**
      * <h3>转换错误</h3>
      */
@@ -37,6 +37,13 @@ public enum McpErrorCode implements IDictionary {
      */
     InternalError(-32603, "Internal error");
 
-    private final int key;
-    private final String label;
+    /**
+     * <h3>错误码</h3>
+     */
+    private final int code;
+
+    /**
+     * <h3>错误信息</h3>
+     */
+    private final String message;
 }

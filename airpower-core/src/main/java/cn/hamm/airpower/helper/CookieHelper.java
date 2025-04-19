@@ -18,6 +18,11 @@ public class CookieHelper {
      */
     public static final String COOKIE = "Cookie";
 
+    /**
+     * <h3>默认路径</h3>
+     */
+    public static final String DEFAULT_PATH = "/";
+
     @Autowired
     private CookieConfig cookieConfig;
 

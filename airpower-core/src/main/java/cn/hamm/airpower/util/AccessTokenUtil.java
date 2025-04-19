@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static cn.hamm.airpower.config.Constant.REGEX_DOT;
-import static cn.hamm.airpower.config.Constant.STRING_DOT;
 import static cn.hamm.airpower.exception.ServiceError.PARAM_INVALID;
 import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -50,6 +48,11 @@ public class AccessTokenUtil {
      * <h3>算法</h3>
      */
     private static final String HMAC_SHA_256 = "HmacSHA256";
+
+    /**
+     * <h3>{@code Token} 分隔符</h3>
+     */
+    private static final String TOKEN_DELIMITER = ".";
 
     /**
      * <h3>{@code HMAC-SHA-256}错误</h3>
@@ -123,9 +126,9 @@ public class AccessTokenUtil {
                 Json.toString(verifiedToken.getPayloads()).getBytes(UTF_8)
         );
         String content = verifiedToken.getExpireTimestamps() +
-                STRING_DOT +
-                hmacSha256(secret, verifiedToken.getExpireTimestamps() + STRING_DOT + payloadBase) +
-                STRING_DOT +
+                TOKEN_DELIMITER +
+                hmacSha256(secret, verifiedToken.getExpireTimestamps() + TOKEN_DELIMITER + payloadBase) +
+                TOKEN_DELIMITER +
                 payloadBase;
         return Base64.getUrlEncoder().encodeToString(content.getBytes(UTF_8));
     }
@@ -184,12 +187,12 @@ public class AccessTokenUtil {
             throw new ServiceException(UNAUTHORIZED, ACCESS_TOKEN_INVALID);
         }
         UNAUTHORIZED.when(!StringUtils.hasText(source), ACCESS_TOKEN_INVALID);
-        String[] list = source.split(REGEX_DOT);
+        String[] list = source.split("\\" + TOKEN_DELIMITER);
         if (list.length != TOKEN_PART_COUNT) {
             throw new ServiceException(UNAUTHORIZED, ACCESS_TOKEN_INVALID);
         }
         //noinspection AlibabaUndefineMagicConstant
-        if (!Objects.equals(hmacSha256(secret, list[0] + STRING_DOT + list[2]), list[1])) {
+        if (!Objects.equals(hmacSha256(secret, list[0] + TOKEN_DELIMITER + list[2]), list[1])) {
             throw new ServiceException(UNAUTHORIZED, ACCESS_TOKEN_INVALID);
         }
         if (Long.parseLong(list[0]) < System.currentTimeMillis() && Long.parseLong(list[0]) != 0) {

@@ -2,7 +2,6 @@ package cn.hamm.airpower.root;
 
 import cn.hamm.airpower.annotation.*;
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.interfaces.IAction;
 import cn.hamm.airpower.util.CollectionUtil;
 import cn.hamm.airpower.util.DesensitizeUtil;
 import cn.hamm.airpower.util.ReflectUtil;
@@ -33,7 +32,7 @@ import static cn.hamm.airpower.config.Constant.STRING_GET;
 @Slf4j
 @EqualsAndHashCode
 @SuppressWarnings("unchecked")
-public class RootModel<M extends RootModel<M>> implements IAction {
+public class RootModel<M extends RootModel<M>> {
     /**
      * <h3>忽略只读字段</h3>
      */

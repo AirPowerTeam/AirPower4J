@@ -5,7 +5,7 @@ package cn.hamm.airpower.interfaces;
  *
  * @author Hamm.cn
  */
-public interface IEntityAction extends IAction {
+public interface IEntityAction {
     /**
      * <h3>{@code ID} 必须传入的场景</h3>
      */

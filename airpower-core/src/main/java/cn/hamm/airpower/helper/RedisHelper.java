@@ -1,6 +1,5 @@
 package cn.hamm.airpower.helper;
 
-import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.config.ServiceConfig;
 import cn.hamm.airpower.model.Json;
 import cn.hamm.airpower.root.RootEntity;
@@ -259,7 +258,7 @@ public class RedisHelper {
      */
     private @NotNull <T extends RootModel<T>> String getCacheKey(@NotNull Class<T> clazz, Long id) {
         REDIS_ERROR.whenNull(id, "ID不能为空");
-        return clazz.getSimpleName() + Constant.STRING_UNDERLINE + id;
+        return clazz.getSimpleName() + "_" + id;
     }
 
     /**

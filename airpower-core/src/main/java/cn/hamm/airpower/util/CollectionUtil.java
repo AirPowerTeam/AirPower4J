@@ -113,7 +113,7 @@ public class CollectionUtil {
             return switch (excelColumn.value()) {
                 case DATETIME -> REGEX_TAB + DateTimeUtil.format(Long.parseLong(value.toString()));
                 case TEXT -> REGEX_TAB + value;
-                case BOOLEAN -> (boolean) value ? STRING_YES : STRING_NO;
+                case BOOLEAN -> (boolean) value ? "是" : "否";
                 case DICTIONARY -> {
                     Dictionary dictionary = ReflectUtil.getAnnotation(Dictionary.class, field);
                     if (Objects.isNull(dictionary)) {

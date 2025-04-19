@@ -1,7 +1,7 @@
 package cn.hamm.airpower.exception;
 
-import cn.hamm.airpower.config.Constant;
 import org.jetbrains.annotations.Contract;
+import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -268,7 +268,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
      */
     @Contract("null, _ -> fail")
     default void whenEmpty(Object obj, String message) {
-        when(Objects.isNull(obj) || Constant.STRING_EMPTY.equalsIgnoreCase(obj.toString()), message);
+        when(Objects.isNull(obj) || !StringUtils.hasText(obj.toString()), message);
     }
 
     /**

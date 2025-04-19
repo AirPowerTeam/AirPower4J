@@ -1,6 +1,5 @@
 package cn.hamm.airpower.mcp;
 
-import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.mcp.exception.McpErrorCode;
 import cn.hamm.airpower.mcp.method.McpMethod;
@@ -85,7 +84,7 @@ public class McpService {
         McpTool mcpTool = new McpTool();
         String mcpToolName = annotation.value();
         if (!StringUtils.hasText(mcpToolName)) {
-            mcpToolName = method.getDeclaringClass().getSimpleName() + Constant.STRING_UNDERLINE + method.getName();
+            mcpToolName = method.getDeclaringClass().getSimpleName() + "_" + method.getName();
         }
         McpTool.InputSchema inputSchema = new McpTool.InputSchema();
         // 获取Method的形参列表

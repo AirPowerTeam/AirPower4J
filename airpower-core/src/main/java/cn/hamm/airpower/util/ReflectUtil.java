@@ -25,8 +25,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static cn.hamm.airpower.config.Constant.*;
-
 /**
  * <h1>反射工具类</h1>
  *
@@ -36,24 +34,40 @@ import static cn.hamm.airpower.config.Constant.*;
 @Slf4j
 public class ReflectUtil {
     /**
-     * <h3>反射操作属性失败</h3>
+     * {@code get}
+     */
+    private static final String GET = "get";
+
+    /**
+     * 反射操作属性失败
      */
     private static final String REFLECT_EXCEPTION = "反射操作属性失败";
 
     /**
-     * <h3>缓存字段列表</h3>
+     * 缓存字段列表
      */
     private final static ConcurrentHashMap<Class<?>, List<Field>> FIELD_LIST_MAP = new ConcurrentHashMap<>();
 
     /**
-     * <h3>缓存属性列表</h3>
+     * 缓存属性列表
      *
      * @apiNote 声明属性列表
      */
     private final static ConcurrentHashMap<String, Field[]> DECLARED_FIELD_LIST_MAP = new ConcurrentHashMap<>();
 
     /**
-     * <h3>获取对象指定属性的值</h3>
+     * 获取字段的 Getter 方法名
+     *
+     * @param field 字段
+     * @return Getter 方法名
+     */
+    public static @NotNull String getFieldGetter(@NotNull Field field) {
+        final String fieldName = field.getName();
+        return GET + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+    }
+
+    /**
+     * 获取对象指定属性的值
      *
      * @param object 对象
      * @param field  属性
@@ -72,7 +86,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>设置对象指定属性的值</h3>
+     * 设置对象指定属性的值
      *
      * @param object 对象
      * @param field  属性
@@ -90,7 +104,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>获取对象实例</h3>
+     * 获取对象实例
      *
      * @param clazz 类
      * @param <T>   对象类型
@@ -105,7 +119,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>清空对象指定属性的值</h3>
+     * 清空对象指定属性的值
      *
      * @param object 对象
      * @param field  属性
@@ -115,7 +129,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>判断是否是根类</h3>
+     * 判断是否是根类
      *
      * @param clazz 类
      * @return 判断结果
@@ -127,7 +141,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>递归获取指定方法的注解</h3>
+     * 递归获取指定方法的注解
      *
      * @param annotationClass 注解类
      * @param method          方法
@@ -139,7 +153,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>递归获取指定类的注解</h3>
+     * 递归获取指定类的注解
      *
      * @param annotationClass 注解类
      * @param clazz           类
@@ -159,7 +173,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>递归获取字段的注解</h3>
+     * 递归获取字段的注解
      *
      * @param annotationClass 注解类
      * @param field           字段
@@ -172,7 +186,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>递归获取类描述</h3>
+     * 递归获取类描述
      *
      * @param clazz 类
      * @return 描述
@@ -184,7 +198,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>递归获取方法描述</h3>
+     * 递归获取方法描述
      *
      * @param method 方法
      * @return 描述
@@ -196,7 +210,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>递归获取字段描述</h3>
+     * 递归获取字段描述
      *
      * @param field 字段
      * @return 描述
@@ -208,7 +222,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>获取参数描述</h3>
+     * 获取参数描述
      *
      * @param parameter 参数
      * @return 描述
@@ -219,23 +233,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>是否是继承自 {@code RootEntity}</h3>
-     *
-     * @param clazz 类
-     * @return 布尔
-     */
-    public static boolean isEntity(Class<?> clazz) {
-        if (Objects.isNull(clazz)) {
-            return false;
-        }
-        if (clazz.getName().equalsIgnoreCase(RootEntity.class.getName())) {
-            return true;
-        }
-        return isEntity(clazz.getSuperclass());
-    }
-
-    /**
-     * <h3>是否是继承自 {@code RootModel}</h3>
+     * 是否是继承自 RootModel
      *
      * @param clazz 类
      * @return 布尔
@@ -251,7 +249,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>获取指定类的字段列表</h3>
+     * 获取指定类的字段列表
      *
      * @param clazz 类
      * @return 字段数组
@@ -261,7 +259,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>获取指定类的字段列表</h3>
+     * 获取指定类的字段列表
      *
      * @param clazz 类
      * @return 字段数组
@@ -286,7 +284,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>获取类的所有属性</h3>
+     * 获取类的所有属性
      *
      * @param clazz 类
      * @return 属性数组
@@ -297,20 +295,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>获取类的所有公开属性名称列表</h3>
-     *
-     * @param clazz 类
-     * @return 属性名数组
-     */
-    public static @NotNull List<String> getFieldNameList(@NotNull Class<?> clazz) {
-        Field[] fields = getDeclaredFields(clazz);
-        return Arrays.stream(fields)
-                .map(Field::getName)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * <h3>获取 {@code Lambda} 的 {@code Function} 表达式的函数名</h3>
+     * 获取 Lambda 的 Function 表达式的函数名
      *
      * @param lambda 表达式
      * @return 函数名
@@ -318,26 +303,14 @@ public class ReflectUtil {
     public static @NotNull String getLambdaFunctionName(@NotNull IFunction<?, ?> lambda) {
         return getSerializedLambda(lambda)
                 .getImplMethodName()
-                .replace(STRING_GET, STRING_EMPTY);
+                .replace(GET, "");
     }
 
     /**
-     * <h3>获取 {@code Lambda} 的 {@code Function} 类的函数名</h3>
+     * 获取一个 SerializedLambda
      *
      * @param lambda 表达式
-     * @return 类名
-     */
-    public static @NotNull String getLambdaClassName(@NotNull IFunction<?, ?> lambda) {
-        return getSerializedLambda(lambda)
-                .getImplClass()
-                .replaceAll(STRING_SLASH, STRING_DOT);
-    }
-
-    /**
-     * <h3>获取一个 {@code SerializedLambda}</h3>
-     *
-     * @param lambda 表达式
-     * @return {@code SerializedLambda}
+     * @return SerializedLambda
      */
     private static SerializedLambda getSerializedLambda(@NotNull IFunction<?, ?> lambda) {
         try {
@@ -350,7 +323,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>递归获取方法的注解</h3>
+     * 递归获取方法的注解
      *
      * @param <A>             注解泛型
      * @param annotationClass 注解类
@@ -384,7 +357,7 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>递归获取字段</h3>
+     * 递归获取字段
      *
      * @param fieldName 字段名
      * @param clazz     当前类

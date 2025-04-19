@@ -15,8 +15,6 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static cn.hamm.airpower.config.Constant.*;
-
 /**
  * <h1>内置的集合工具类</h1>
  *
@@ -25,14 +23,29 @@ import static cn.hamm.airpower.config.Constant.*;
 @Slf4j
 public class CollectionUtil {
     /**
-     * <h3>禁止外部实例化</h3>
+     * CSV 缩进符号
+     */
+    private static final String INDENT = "\t";
+
+    /**
+     * CSV 列分隔符
+     */
+    private static final String CSV_COLUMN_DELIMITER = ",";
+
+    /**
+     * CSV 行分隔符
+     */
+    private static final String CSV_ROW_DELIMITER = "\n";
+
+    /**
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private CollectionUtil() {
     }
 
     /**
-     * <h3>获取集合中的 {@code 非null} 元素</h3>
+     * 获取集合中的 {@code 非null} 元素
      *
      * @param list       原始集合
      * @param fieldClass 数据类型
@@ -47,7 +60,7 @@ public class CollectionUtil {
     }
 
     /**
-     * <h3>将集合转换为CSV文件</h3>
+     * 将集合转换为 CSV 文件
      *
      * @param list      集合
      * @param itemClass 元素的类名
@@ -67,7 +80,7 @@ public class CollectionUtil {
 
         List<String> rowList = new ArrayList<>();
         // 添加表头
-        rowList.add(String.join(STRING_COMMA, fieldList.stream().map(ReflectUtil::getDescription).toList()));
+        rowList.add(String.join(CSV_COLUMN_DELIMITER, fieldList.stream().map(ReflectUtil::getDescription).toList()));
 
         String json = Json.toString(list);
         List<Map<String, Object>> mapList = Json.parse2MapList(json);
@@ -78,16 +91,16 @@ public class CollectionUtil {
                 Object value = map.get(fieldName);
                 value = prepareExcelColumn(fieldName, value, fieldList);
                 columnList.add(value.toString()
-                        .replaceAll(STRING_COMMA, STRING_BLANK)
-                        .replaceAll(REGEX_LINE_BREAK, STRING_BLANK));
+                        .replaceAll(CSV_COLUMN_DELIMITER, " ")
+                        .replaceAll(CSV_ROW_DELIMITER, " "));
             });
-            rowList.add(String.join(STRING_COMMA, columnList));
+            rowList.add(String.join(CSV_COLUMN_DELIMITER, columnList));
         });
-        return new ByteArrayInputStream(String.join(REGEX_LINE_BREAK, rowList).getBytes());
+        return new ByteArrayInputStream(String.join(CSV_ROW_DELIMITER, rowList).getBytes());
     }
 
     /**
-     * <h3>准备导出列</h3>
+     * 准备导出列
      *
      * @param fieldName 字段名
      * @param value     当前值
@@ -96,7 +109,7 @@ public class CollectionUtil {
      */
     private static @NotNull Object prepareExcelColumn(String fieldName, Object value, List<Field> fieldList) {
         if (Objects.isNull(value) || !StringUtils.hasText(value.toString())) {
-            value = STRING_LINE;
+            value = "-";
         }
         try {
             Field field = fieldList.stream()
@@ -111,9 +124,9 @@ public class CollectionUtil {
                 return value;
             }
             return switch (excelColumn.value()) {
-                case DATETIME -> REGEX_TAB + DateTimeUtil.format(Long.parseLong(value.toString()));
-                case TEXT -> REGEX_TAB + value;
-                case BOOLEAN -> (boolean) value ? STRING_YES : STRING_NO;
+                case DATETIME -> INDENT + DateTimeUtil.format(Long.parseLong(value.toString()));
+                case TEXT -> INDENT + value;
+                case BOOLEAN -> (boolean) value ? "是" : "否";
                 case DICTIONARY -> {
                     Dictionary dictionary = ReflectUtil.getAnnotation(Dictionary.class, field);
                     if (Objects.isNull(dictionary)) {

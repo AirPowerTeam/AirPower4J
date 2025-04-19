@@ -6,7 +6,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * <h3>格式化模板</h3>
+ * <h1>格式化模板</h1>
  *
  * @author Hamm.cn
  */
@@ -14,52 +14,52 @@ import org.jetbrains.annotations.NotNull;
 @AllArgsConstructor
 public enum DateTimeFormatter {
     /**
-     * <h3>年</h3>
+     * 年
      */
     YEAR("yyyy"),
 
     /**
-     * <h3>月</h3>
+     * 月
      */
     MONTH("MM"),
 
     /**
-     * <h3>日</h3>
+     * 日
      */
     DAY("dd"),
 
     /**
-     * <h3>时</h3>
+     * 时
      */
     HOUR("HH"),
 
     /**
-     * <h3>分</h3>
+     * 分
      */
     MINUTE("mm"),
 
     /**
-     * <h3>秒</h3>
+     * 秒
      */
     SECOND("ss"),
 
     /**
-     * <h3>年月日</h3>
+     * 年月日
      */
     FULL_DATE("yyyy-MM-dd"),
 
     /**
-     * <h3>时分秒</h3>
+     * 时分秒
      */
     FULL_TIME("HH:mm:ss"),
 
     /**
-     * <h3>年月日时分秒</h3>
+     * 年月日时分秒
      */
     FULL_DATETIME("yyyy-MM-dd HH:mm:ss"),
 
     /**
-     * <h3>月日时分</h3>
+     * 月日时分
      */
     SHORT_DATETIME("MM-dd HH:mm"),
     ;
@@ -67,7 +67,7 @@ public enum DateTimeFormatter {
     private final String value;
 
     /**
-     * <h3>使用这个模板格式化毫秒时间戳</h3>
+     * 使用这个模板格式化毫秒时间戳
      *
      * @param milliSecond 毫秒时间戳
      * @return 格式化后的字符串
@@ -77,7 +77,7 @@ public enum DateTimeFormatter {
     }
 
     /**
-     * <h3>使用这个模板格式化当前时间</h3>
+     * 使用这个模板格式化当前时间
      *
      * @return 格式化后的字符串
      */

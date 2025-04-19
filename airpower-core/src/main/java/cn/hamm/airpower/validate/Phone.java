@@ -29,46 +29,44 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface Phone {
     /**
-     * <h3>错误信息</h3>
+     * 错误信息
      */
     String message() default "不是有效的电话号码";
 
     /**
-     * <h3>验证组</h3>
+     * 验证组
      */
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
 
     /**
-     * <h3>是否允许手机号格式</h3>
+     * 是否允许手机号格式
      */
     boolean mobile() default true;
 
     /**
-     * <h3>是否允许座机电话格式</h3>
+     * 是否允许座机电话格式
      */
     boolean tel() default true;
 
     /**
-     * <h1>电话验证实现类</h1>
-     *
-     * @author Hamm.cn
+     * 电话验证实现类
      */
     @Component
     class PhoneValidator implements ConstraintValidator<Phone, String> {
         /**
-         * <h3>是否座机</h3>
+         * 是否座机
          */
         private boolean tel = true;
 
         /**
-         * <h3>是否手机号</h3>
+         * 是否手机号
          */
         private boolean mobile = true;
 
         /**
-         * <h3>验证</h3>
+         * 验证
          *
          * @param value   验证的值
          * @param context 验证会话
@@ -96,7 +94,7 @@ public @interface Phone {
         }
 
         /**
-         * <h3>初始化</h3>
+         * 初始化
          *
          * @param phone 电话验证注解
          */

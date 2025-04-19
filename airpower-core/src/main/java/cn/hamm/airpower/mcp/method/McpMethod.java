@@ -7,7 +7,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>标记为一个MCP方法</h1>
+ * <h1>标记为一个 MCP 方法</h1>
  *
  * @author Hamm.cn
  */
@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface McpMethod {
     /**
-     * <h2>方法名</h2>
+     * 方法名
      */
     String value() default "";
 }

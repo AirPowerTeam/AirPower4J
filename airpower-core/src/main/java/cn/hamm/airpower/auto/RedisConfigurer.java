@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * <h1>{@code Redis} 配置</h1>
+ * <h1>Redis 配置</h1>
  *
  * @author Hamm.cn
  */
@@ -29,13 +29,13 @@ import java.util.Objects;
 @EnableCaching
 public class RedisConfigurer implements CachingConfigurer {
     /**
-     * <h3>{@code Redis} 连接工厂</h3>
+     * 连接工厂
      */
     @Resource
     private RedisConnectionFactory redisConnectionFactory;
 
     /**
-     * <h3>缓存管理器</h3>
+     * 缓存管理器
      */
     @Bean
     @Override
@@ -57,7 +57,7 @@ public class RedisConfigurer implements CachingConfigurer {
     }
 
     /**
-     * <h3>缓存键生成器</h3>
+     * 缓存键生成器
      */
     @Bean
     @Override
@@ -72,7 +72,7 @@ public class RedisConfigurer implements CachingConfigurer {
     }
 
     /**
-     * <h3>缓存解析器</h3>
+     * 缓存解析器
      */
     @Bean
     @Override

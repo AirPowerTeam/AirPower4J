@@ -9,29 +9,29 @@ import java.util.List;
  */
 public interface ITree<E extends ITree<E>> extends IEntity<E> {
     /**
-     * <h3>获取树的父级 {@code ID}</h3>
+     * 获取树的父级 ID
      *
-     * @return 父级 {@code ID}
+     * @return 父级 ID
      */
     Long getParentId();
 
     /**
-     * <h3>设置父级 {@code ID}</h3>
+     * 设置父级 ID
      *
-     * @param parentId 设置父级 {@code ID}
+     * @param parentId 设置父级 ID
      * @return 树实体
      */
     E setParentId(Long parentId);
 
     /**
-     * <h3>获取树的子集列表</h3>
+     * 获取树的子集列表
      *
      * @return 树的子集
      */
     List<E> getChildren();
 
     /**
-     * <h3>设置树的子集列表</h3>
+     * 设置树的子集列表
      *
      * @param children 子集
      * @return 树实体

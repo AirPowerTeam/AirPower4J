@@ -22,19 +22,19 @@ import static cn.hamm.airpower.exception.ServiceError.FORBIDDEN_DELETE;
  */
 public class TreeUtil {
     /**
-     * <h3>根节点ID</h3>
+     * 根节点 ID
      */
     public static final long ROOT_ID = 0L;
 
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private TreeUtil() {
     }
 
     /**
-     * <h3>生成树结构</h3>
+     * 生成树结构
      *
      * @param list 原始数据列表
      * @param <E>  泛型
@@ -45,10 +45,10 @@ public class TreeUtil {
     }
 
     /**
-     * <h3>生成树结构</h3>
+     * 生成树结构
      *
      * @param list     原始数据列表
-     * @param parentId 父级 {@code ID}
+     * @param parentId 父级 ID
      * @param <E>      泛型
      * @return 数结构数组
      */
@@ -62,7 +62,7 @@ public class TreeUtil {
     }
 
     /**
-     * <h3>获取所有子节点</h3>
+     * 获取所有子节点
      *
      * @param service 服务
      * @param list    树结构列表
@@ -79,10 +79,10 @@ public class TreeUtil {
     }
 
     /**
-     * <h3>根据父级ID获取所有子节点</h3>
+     * 根据父级ID获取所有子节点
      *
      * @param service  服务
-     * @param parentId 父级ID
+     * @param parentId 父级 ID
      * @return 子节点列表
      */
     public static <
@@ -94,10 +94,10 @@ public class TreeUtil {
     }
 
     /**
-     * <h3>删除前确认是否包含子节点数据</h3>
+     * 删除前确认是否包含子节点数据
      *
      * @param service 服务
-     * @param id      待删除的ID
+     * @param id      待删除的 ID
      */
     public static <
             E extends RootEntity<E> & ITree<E>,
@@ -108,9 +108,9 @@ public class TreeUtil {
     }
 
     /**
-     * <h3>获取指定父ID下的所有子ID</h3>
+     * 获取指定父ID下的所有子 ID
      *
-     * @param parentId    父ID
+     * @param parentId    父 ID
      * @param service     服务类
      * @param entityClass 实体类
      * @param <T>         实体类型
@@ -127,9 +127,9 @@ public class TreeUtil {
     }
 
     /**
-     * <h3>获取指定父ID下的所有子ID</h3>
+     * 获取指定父ID下的所有子 ID
      *
-     * @param parentId    父ID
+     * @param parentId    父 ID
      * @param service     服务类
      * @param entityClass 实体类型
      * @param list        集合

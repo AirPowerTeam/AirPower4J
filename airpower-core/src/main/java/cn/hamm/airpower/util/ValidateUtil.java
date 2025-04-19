@@ -24,19 +24,19 @@ import static cn.hamm.airpower.exception.ServiceError.PARAM_INVALID;
  */
 public class ValidateUtil {
     /**
-     * <h3>验证器实例</h3>
+     * 验证器实例
      */
     private static Validator validator;
 
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private ValidateUtil() {
     }
 
     /**
-     * <h3>初始化验证器</h3>
+     * 初始化验证器
      */
     private static void initValidator() {
         try (ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
@@ -46,7 +46,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是数字</h3>
+     * 是否是数字
      *
      * @param value 参数
      * @return 验证结果
@@ -56,7 +56,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是整数</h3>
+     * 是否是整数
      *
      * @param value 参数
      * @return 验证结果
@@ -66,7 +66,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是邮箱</h3>
+     * 是否是邮箱
      *
      * @param value 参数
      * @return 验证结果
@@ -76,7 +76,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是字母</h3>
+     * 是否是字母
      *
      * @param value 参数
      * @return 验证结果
@@ -86,7 +86,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是字母+数字</h3>
+     * 是否是字母+数字
      *
      * @param value 参数
      * @return 验证结果
@@ -96,7 +96,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是中文汉字</h3>
+     * 是否是中文汉字
      *
      * @param value 参数
      * @return 验证结果
@@ -106,7 +106,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是手机号</h3>
+     * 是否是手机号
      *
      * @param value 参数
      * @return 验证结果
@@ -116,7 +116,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是座机电话</h3>
+     * 是否是座机电话
      *
      * @param value 参数
      * @return 验证结果
@@ -126,7 +126,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是普通字符</h3>
+     * 是否是普通字符
      * 允许字符:
      * <p>
      * {@code @ # % a-z A-Z 0-9 汉字 _ + /}
@@ -140,7 +140,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是纯字母和数字</h3>
+     * 是否是纯字母和数字
      *
      * @param value 参数
      * @return 验证结果
@@ -150,7 +150,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是自然数</h3>
+     * 是否是自然数
      *
      * @param value 参数
      * @return 验证结果
@@ -160,7 +160,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是自然整数</h3>
+     * 是否是自然整数
      *
      * @param value 参数
      * @return 验证结果
@@ -170,7 +170,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>是否是有效二代身份证号</h3>
+     * 是否是有效二代身份证号
      *
      * @param idCard 身份证号
      * @return 验证结果
@@ -203,7 +203,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>正则校验</h3>
+     * 正则校验
      *
      * @param value   参数
      * @param pattern 正则
@@ -214,7 +214,7 @@ public class ValidateUtil {
     }
 
     /**
-     * <h3>验证传入的数据模型</h3>
+     * 验证传入的数据模型
      *
      * @param model   数据模型
      * @param actions {@code 可选} 校验分组

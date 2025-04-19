@@ -18,12 +18,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Inherited
 public @interface Permission {
     /**
-     * <h3>需要登录</h3>
+     * 需要登录
      */
     boolean login() default true;
 
     /**
-     * <h3>需要授权</h3>
+     * 需要授权
      */
     boolean authorize() default true;
 }

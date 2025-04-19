@@ -12,7 +12,7 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>{@code Excel} 导出列</h1>
+ * <h1>Excel 导出列</h1>
  *
  * @author Hamm.cn
  */
@@ -22,38 +22,38 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface ExcelColumn {
     /**
-     * <h3>列数据类型</h3>
+     * 列数据类型
      */
     Type value() default TEXT;
 
     /**
-     * <h3>列数据类型</h3>
+     * 列数据类型
      */
     enum Type {
         /**
-         * <h3>普通文本</h3>
+         * 普通文本
          */
         TEXT,
 
         /**
-         * <h3>时间日期</h3>
+         * 时间日期
          */
         DATETIME,
 
         /**
-         * <h3>数字</h3>
+         * 数字
          */
         NUMBER,
 
         /**
-         * <h3>字典</h3>
+         * 字典
          *
-         * @apiNote 请确保同时标记了 @{@link Dictionary}
+         * @apiNote 请确保同时标记了 {@link Dictionary}
          */
         DICTIONARY,
 
         /**
-         * <h3>布尔值</h3>
+         * 布尔值
          */
         BOOLEAN
     }

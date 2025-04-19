@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <h1>McpTool</h1>
+ * <h1>Mcp 工具</h1>
  *
  * @author Hamm.cn
  */
@@ -19,53 +19,54 @@ import java.util.Map;
 @Accessors(chain = true)
 public class McpTool {
     /**
-     * <h3>工具名称</h3>
+     * 工具名称
      */
     private String name;
 
     /**
-     * <h3>工具描述</h3>
+     * 工具描述
      */
     private String description;
 
     /**
-     * <h3>输入参数</h3>
+     * 输入参数
      */
     private InputSchema inputSchema;
 
     /**
-     * <h3>输入参数</h3>
-     *
-     * @author Hamm.cn
+     * 输入参数
      */
     @Data
     @Accessors(chain = true)
     public static class InputSchema {
         /**
-         * <h3>类型</h3>
+         * 类型
          */
         private String type = "object";
 
         /**
-         * <h3>属性</h3>
+         * 属性
          */
         private Map<String, Property> properties = new HashMap<>();
 
         /**
-         * <h3>必填</h3>
+         * 必填
          */
         private List<String> required = new ArrayList<>();
 
+        /**
+         * 属性
+         */
         @Data
         @Accessors(chain = true)
         public static class Property {
             /**
-             * <h3>类型</h3>
+             * 类型
              */
             private String type = "string";
 
             /**
-             * <h3>描述</h3>
+             * 描述
              */
             private String description;
         }

@@ -3,7 +3,6 @@ package cn.hamm.airpower.util;
 import cn.hamm.airpower.enums.ContentType;
 import cn.hamm.airpower.enums.HttpMethod;
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.helper.CookieHelper;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Contract;
@@ -16,12 +15,11 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
 
-import static cn.hamm.airpower.config.Constant.*;
 import static cn.hamm.airpower.enums.ContentType.JSON;
 import static cn.hamm.airpower.enums.HttpMethod.GET;
 
 /**
- * <h1>{@code HTTP} 请求工具类</h1>
+ * <h1>HTTP 请求工具类</h1>
  *
  * @author Hamm.cn
  */
@@ -29,55 +27,50 @@ import static cn.hamm.airpower.enums.HttpMethod.GET;
 @Accessors(chain = true, makeFinal = true)
 public class HttpUtil {
     /**
-     * <h3>{@code ContentType}</h3>
-     */
-    public static final String CONTENT_TYPE = "Content-Type";
-
-    /**
-     * <h3>请求头</h3>
+     * 请求头
      */
     private Map<String, Object> headers = new HashMap<>();
 
     /**
-     * <h3>{@code Cookie}</h3>
+     * Cookie
      */
     private Map<String, Object> cookies = new HashMap<>();
 
     /**
-     * <h3>请求地址</h3>
+     * 请求地址
      */
     private String url;
 
     /**
-     * <h3>请求体</h3>
+     * 请求体
      */
-    private String body = STRING_EMPTY;
+    private String body = "";
 
     /**
-     * <h3>请求方法</h3>
+     * 请求方法
      */
     private HttpMethod method = GET;
 
     /**
-     * <h3>请求体类型</h3>
+     * 请求体类型
      */
     private ContentType contentType = JSON;
 
     /**
-     * <h3>连接超时时间</h3>
+     * 连接超时时间
      */
     private int connectTimeout = 5;
 
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     private HttpUtil() {
     }
 
     /**
-     * <h3>创建一个 {@code HttpUtil} 对象</h3>
+     * 创建一个 HttpUtil 对象
      *
-     * @return {@code HttpUtil}
+     * @return HttpUtil
      */
     @Contract(" -> new")
     public static @NotNull HttpUtil create() {
@@ -85,11 +78,11 @@ public class HttpUtil {
     }
 
     /**
-     * <h3>添加 {@code Cookie}</h3>
+     * 添加  Cookie
      *
-     * @param key   {@code Cookie} 键
-     * @param value {@code Cookie} 值
-     * @return {@code HttpUtil}
+     * @param key   Cookie 键
+     * @param value Cookie 值
+     * @return HttpUtil
      */
     @Contract("_, _ -> this")
     public final HttpUtil addCookie(String key, String value) {
@@ -98,9 +91,9 @@ public class HttpUtil {
     }
 
     /**
-     * <h3>发送 {@code POST} 请求</h3>
+     * 发送 POST 请求
      *
-     * @return {@code HttpResponse}
+     * @return HttpResponse
      */
     public final HttpResponse<String> post() {
         method = HttpMethod.POST;
@@ -108,11 +101,12 @@ public class HttpUtil {
     }
 
     /**
-     * <h3>发送 {@code POST} 请求</h3>
+     * 发送 POST 请求
      *
      * @param body 请求体
-     * @return {@code HttpResponse}
+     * @return HttpResponse
      */
+    @SuppressWarnings("UnusedReturnValue")
     public final HttpResponse<String> post(String body) {
         method = HttpMethod.POST;
         this.body = body;
@@ -120,9 +114,9 @@ public class HttpUtil {
     }
 
     /**
-     * <h3>发送GET请求</h3>
+     * 发送GET请求
      *
-     * @return {@code HttpResponse}
+     * @return HttpResponse
      */
     public final HttpResponse<String> get() {
         method = GET;
@@ -130,9 +124,9 @@ public class HttpUtil {
     }
 
     /**
-     * <h3>发送请求</h3>
+     * 发送请求
      *
-     * @return {@code HttpResponse}
+     * @return HttpResponse
      */
     public final HttpResponse<String> send() {
         try {
@@ -143,9 +137,9 @@ public class HttpUtil {
     }
 
     /**
-     * <h3>获取 {@code HttpRequest} 对象</h3>
+     * 获取 HttpRequest 对象
      *
-     * @return {@code HttpRequest}
+     * @return HttpRequest
      */
     private HttpRequest getHttpRequest() {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -161,21 +155,21 @@ public class HttpUtil {
         }
         if (Objects.nonNull(cookies)) {
             List<String> cookieList = new ArrayList<>();
-            cookies.forEach((key, value) -> cookieList.add(key + STRING_EQUAL + value));
+            cookies.forEach((key, value) -> cookieList.add(key + "=" + value));
             requestBuilder.setHeader(
-                    CookieHelper.COOKIE, String.join(STRING_SEMICOLON + STRING_BLANK, cookieList)
+                    "Cookie", String.join("; ", cookieList)
             );
         }
         if (Objects.nonNull(contentType)) {
-            requestBuilder.header(CONTENT_TYPE, contentType.getValue());
+            requestBuilder.header("Content-Type", contentType.getValue());
         }
         return requestBuilder.build();
     }
 
     /**
-     * <h3>获取 {@code HttpClient}</h3>
+     * 获取 HttpClient
      *
-     * @return {@code HttpClient}
+     * @return HttpClient
      */
     private HttpClient getHttpClient() {
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
@@ -186,11 +180,11 @@ public class HttpUtil {
     }
 
     /**
-     * <h3>添加 {@code Header}</h3>
+     * 添加 Header
      *
-     * @param key   {@code Header} 键
-     * @param value {@code Header} 值
-     * @return {@code HttpUtil}
+     * @param key   Header 键
+     * @param value Header 值
+     * @return HttpUtil
      */
     @Contract("_, _ -> this")
     public final HttpUtil addHeader(String key, Object value) {

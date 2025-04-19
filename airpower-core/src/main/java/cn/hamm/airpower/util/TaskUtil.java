@@ -21,7 +21,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @Slf4j
 public class TaskUtil {
     /**
-     * <h3>线程池</h3>
+     * 线程池
      */
     private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
             5,
@@ -32,14 +32,14 @@ public class TaskUtil {
     );
 
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private TaskUtil() {
     }
 
     /**
-     * <h3>执行任务{@code 不会抛出异常}</h3>
+     * 执行任务 {@code 不会抛出异常}
      *
      * @param runnable     任务
      * @param moreRunnable 更多任务
@@ -56,7 +56,7 @@ public class TaskUtil {
     }
 
     /**
-     * <h3>异步执行任务{@code 不会抛出异常}</h3>
+     * 异步执行任务 {@code 不会抛出异常}
      *
      * @param runnable     任务
      * @param moreRunnable 更多任务
@@ -67,7 +67,7 @@ public class TaskUtil {
     }
 
     /**
-     * <h3>获取任务列表</h3>
+     * 获取任务列表
      *
      * @param runnable     任务
      * @param moreRunnable 更多任务

@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
- * <h1>{@code WebSocket} 事件</h1>
+ * <h1>WebSocket 事件</h1>
  *
  * @author Hamm.cn
  */
@@ -18,32 +18,32 @@ import java.util.Base64;
 @Accessors(chain = true)
 public class WebSocketEvent {
     /**
-     * <h3>事件 {@code ID}</h3>
+     * 事件 ID
      */
     private String id;
 
     /**
-     * <h3>发送方 {@code ID}</h3>
+     * 发送方 ID
      */
     private Long from;
 
     /**
-     * <h3>接收方 {@code ID}</h3>
+     * 接收方 ID
      */
     private Long to;
 
     /**
-     * <h3>事件时间戳</h3>
+     * 事件时间戳
      */
     private Long time;
 
     /**
-     * <h3>事件负载</h3>
+     * 事件负载
      */
     private WebSocketPayload payload;
 
     /**
-     * <h3>创建 {@code WebSocket} 事件</h3>
+     * 创建 WebSocket 事件
      *
      * @param payload 负载
      * @return 事件
@@ -53,7 +53,7 @@ public class WebSocketEvent {
     }
 
     /**
-     * <h3>创建 {@code WebSocket} 事件</h3>
+     * 创建 WebSocket 事件
      *
      * @return 事件
      */
@@ -63,7 +63,7 @@ public class WebSocketEvent {
     }
 
     /**
-     * <h3>重置事件的 {@code ID} 和事件</h3>
+     * 重置事件的 ID 和事件
      */
     @Contract(" -> this")
     protected final WebSocketEvent resetEvent() {

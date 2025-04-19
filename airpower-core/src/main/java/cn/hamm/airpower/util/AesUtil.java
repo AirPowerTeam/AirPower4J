@@ -18,50 +18,50 @@ import static javax.crypto.Cipher.DECRYPT_MODE;
 import static javax.crypto.Cipher.ENCRYPT_MODE;
 
 /**
- * <h1>{@code AES} 工具类</h1>
+ * <h1>AES 工具类</h1>
  *
  * @author Hamm.cn
  */
 public class AesUtil {
     /**
-     * <h3>密钥长度</h3>
+     * 密钥长度
      */
     private static final int KEY_SIZE = 256;
 
     /**
-     * <h3>AES</h3>
+     * AES
      */
     private static final String AES = "AES";
 
     /**
-     * <h3>{@code AES/CBC/PKCS5Padding}</h3>
+     * {@code AES/CBC/PKCS5Padding}
      */
     private static final String AES_CBC_PKCS5_PADDING = "AES/CBC/PKCS5Padding";
 
     /**
-     * <h3>密钥</h3>
+     * 密钥
      */
     private byte[] key;
 
     /**
-     * <h3>偏移向量</h3>
+     * 偏移向量
      */
     private byte[] iv = "0000000000000000".getBytes(UTF_8);
 
     /**
-     * <h3>算法</h3>
+     * 算法
      */
     private String algorithm = AES_CBC_PKCS5_PADDING;
 
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     private AesUtil() {
 
     }
 
     /**
-     * <h3>创建实例</h3>
+     * 创建实例
      *
      * @return 新实例
      */
@@ -71,7 +71,7 @@ public class AesUtil {
     }
 
     /**
-     * <h3>获取随机密钥</h3>
+     * 获取随机密钥
      *
      * @return 随机密钥
      */
@@ -89,7 +89,7 @@ public class AesUtil {
     }
 
     /**
-     * <h3>获取随机向量</h3>
+     * 获取随机向量
      *
      * @return 随机向量
      */
@@ -107,10 +107,10 @@ public class AesUtil {
     }
 
     /**
-     * <h3>设置偏移向量</h3>
+     * 设置偏移向量
      *
      * @param iv 偏移向量
-     * @return {@code AesUtil}
+     * @return <b>AesUtil</b> 实例
      */
     @Contract("_ -> this")
     public final AesUtil setIv(String iv) {
@@ -119,10 +119,10 @@ public class AesUtil {
     }
 
     /**
-     * <h3>设置算法</h3>
+     * 设置算法
      *
      * @param algorithm 算法
-     * @return {@code AesUtil}
+     * @return <b>AesUtil</b> 实例
      */
     @Contract(value = "_ -> this", mutates = "this")
     public final AesUtil setAlgorithm(String algorithm) {
@@ -131,10 +131,10 @@ public class AesUtil {
     }
 
     /**
-     * <h3>设置密钥</h3>
+     * 设置密钥
      *
      * @param key 密钥
-     * @return {@code AesUtil}
+     * @return <b>AesUtil</b> 实例
      */
     @Contract("_ -> this")
     public final AesUtil setKey(String key) {
@@ -143,7 +143,7 @@ public class AesUtil {
     }
 
     /**
-     * <h3>加密</h3>
+     * 加密
      *
      * @param source 待加密的内容
      * @return 加密后的内容
@@ -158,7 +158,7 @@ public class AesUtil {
     }
 
     /**
-     * <h3>解密</h3>
+     * 解密
      *
      * @param content 加密后的内容
      * @return 解密后的内容
@@ -174,7 +174,7 @@ public class AesUtil {
     }
 
     /**
-     * <h3>获取 {@code Cipher}</h3>
+     * 获取 {@code Cipher}
      *
      * @param mode 模式
      * @return {@code Cipher}

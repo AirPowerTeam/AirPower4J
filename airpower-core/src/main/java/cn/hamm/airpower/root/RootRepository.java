@@ -17,7 +17,7 @@ import static jakarta.persistence.LockModeType.PESSIMISTIC_WRITE;
 @NoRepositoryBean
 public interface RootRepository<E extends RootEntity<E>> extends JpaRepository<E, Long>, JpaSpecificationExecutor<E> {
     /**
-     * <h3>加写锁查询</h3>
+     * 加 {@code 写锁} 查询
      *
      * @param id ID
      * @return 实体

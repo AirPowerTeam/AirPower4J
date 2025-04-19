@@ -4,7 +4,6 @@ import cn.hamm.airpower.annotation.Description;
 import cn.hamm.airpower.annotation.ExcelColumn;
 import cn.hamm.airpower.annotation.ReadOnly;
 import cn.hamm.airpower.annotation.Search;
-import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.interfaces.IEntity;
 import cn.hamm.airpower.interfaces.IEntityAction;
@@ -39,23 +38,23 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @DynamicInsert
 @DynamicUpdate
-@Description(Constant.STRING_EMPTY)
+@Description("实体")
 @Slf4j
 @SuppressWarnings("unchecked")
 public class RootEntity<E extends RootEntity<E>> extends RootModel<E>
         implements Serializable, IEntity<E>, IEntityAction {
     /**
-     * <h3>主键 {@code ID} 字段名</h3>
+     * 主键 ID 字段名
      */
     public static final String STRING_ID = "id";
 
     /**
-     * <h3>创建时间字段名 {@code createTime}</h3>
+     * 创建时间字段名
      */
     public static final String STRING_CREATE_TIME = "createTime";
 
     /**
-     * <h3>修改时间字段名 {@code updateTime}</h3>
+     * 修改时间字段名
      */
     public static final String STRING_UPDATE_TIME = "updateTime";
 
@@ -105,9 +104,9 @@ public class RootEntity<E extends RootEntity<E>> extends RootModel<E>
     private Long updateTimeTo;
 
     /**
-     * <h3>设置 {@code ID}</h3>
+     * 设置 ID
      *
-     * @param id {@code ID}
+     * @param id ID
      * @return 实体
      */
     @Override
@@ -117,7 +116,7 @@ public class RootEntity<E extends RootEntity<E>> extends RootModel<E>
     }
 
     /**
-     * <h3>设置是否禁用</h3>
+     * 设置是否禁用
      *
      * @param isDisabled 禁用
      * @return 实体
@@ -128,7 +127,7 @@ public class RootEntity<E extends RootEntity<E>> extends RootModel<E>
     }
 
     /**
-     * <h3>设置创建时间</h3>
+     * 设置创建时间
      *
      * @param createTime 创建时间
      * @return 实体
@@ -139,7 +138,7 @@ public class RootEntity<E extends RootEntity<E>> extends RootModel<E>
     }
 
     /**
-     * <h3>设置更新时间</h3>
+     * 设置更新时间
      *
      * @param updateTime 更新时间
      * @return 实体
@@ -150,7 +149,7 @@ public class RootEntity<E extends RootEntity<E>> extends RootModel<E>
     }
 
     /**
-     * <h3>获取简单实体对象</h3>
+     * 获取简单实体对象
      *
      * @apiNote 舍弃一些基础数据
      */
@@ -161,9 +160,9 @@ public class RootEntity<E extends RootEntity<E>> extends RootModel<E>
     }
 
     /**
-     * <h3>复制一个只包含 {@code ID} 的实体</h3>
+     * 复制一个只包含 ID 的实体
      *
-     * @return 只复制 {@code ID} 的实体
+     * @return 只复制 ID 的实体
      */
     public final @org.jetbrains.annotations.NotNull E copyOnlyId() {
         try {

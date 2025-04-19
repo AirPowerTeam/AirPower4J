@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static cn.hamm.airpower.config.Constant.*;
 import static org.springframework.core.io.support.ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX;
 
 /**
@@ -39,17 +38,12 @@ import static org.springframework.core.io.support.ResourcePatternResolver.CLASSP
 @Slf4j
 public class PermissionUtil {
     /**
-     * <h3>控制器后缀 {@code Controller}</h3>
+     * {@code Controller}
      */
-    private static final String CONTROLLER_SUFFIX = "Controller";
+    private static final String CONTROLLER = "Controller";
 
     /**
-     * <h3>控制器字节码文件路径</h3>
-     */
-    private static final String CONTROLLER_CLASS_PATH = "/**/*" + CONTROLLER_SUFFIX + ".class";
-
-    /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private PermissionUtil() {
@@ -57,7 +51,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>获取需要被授权的类型</h3>
+     * 获取需要被授权的类型
      *
      * @param clazz  类
      * @param method 方法
@@ -87,7 +81,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>获取权限标识</h3>
+     * 获取权限标识
      *
      * @param clazz  类
      * @param method 方法
@@ -95,12 +89,12 @@ public class PermissionUtil {
      */
     public static @NotNull String getPermissionIdentity(@NotNull Class<?> clazz, @NotNull Method method) {
         return StringUtils.uncapitalize(clazz.getSimpleName()
-                .replaceAll(CONTROLLER_SUFFIX, STRING_EMPTY)) +
-                STRING_UNDERLINE + method.getName();
+                .replaceAll(CONTROLLER, "")) +
+                "_" + method.getName();
     }
 
     /**
-     * <h3>扫描并返回权限列表</h3>
+     * 扫描并返回权限列表
      *
      * @param clazz           入口类
      * @param permissionClass 权限类
@@ -114,7 +108,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>扫描并返回权限列表</h3>
+     * 扫描并返回权限列表
      *
      * @param packageName     包名
      * @param permissionClass 权限类
@@ -128,7 +122,7 @@ public class PermissionUtil {
         try {
             ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
             String pattern = CLASSPATH_ALL_URL_PREFIX +
-                    ClassUtils.convertClassNameToResourcePath(packageName) + CONTROLLER_CLASS_PATH;
+                    ClassUtils.convertClassNameToResourcePath(packageName) + "/**/*" + CONTROLLER + ".class";
             Resource[] resources = resourcePatternResolver.getResources(pattern);
             MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory(resourcePatternResolver);
 
@@ -146,13 +140,12 @@ public class PermissionUtil {
                 }
 
                 String customClassName = ReflectUtil.getDescription(clazz);
-                String identity = clazz.getSimpleName().replaceAll(CONTROLLER_SUFFIX, STRING_EMPTY);
+                String identity = clazz.getSimpleName().replaceAll(CONTROLLER, "");
                 P permission = permissionClass.getConstructor().newInstance();
 
                 permission.setName(customClassName).setIdentity(identity).setChildren(new ArrayList<>());
 
-                String apiPath = clazz.getSimpleName()
-                        .replaceAll(CONTROLLER_SUFFIX, STRING_EMPTY) + STRING_UNDERLINE;
+                String apiPath = identity + "_";
 
                 // 取出所有控制器方法
                 Method[] methods = clazz.getMethods();
@@ -181,7 +174,7 @@ public class PermissionUtil {
                         continue;
                     }
                     P subPermission = permissionClass.getConstructor().newInstance();
-                    subPermission.setIdentity(subIdentity).setName(customClassName + STRING_LINE + customMethodName);
+                    subPermission.setIdentity(subIdentity).setName(customClassName + "-" + customMethodName);
                     permission.getChildren().add(subPermission);
                 }
                 permissions.add(permission);
@@ -193,7 +186,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>检查Api是否在子控制器中被排除</h3>
+     * 检查Api是否在子控制器中被排除
      *
      * @param api    Api
      * @param extend 注解
@@ -212,7 +205,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>获取方法权限标识</h3>
+     * 获取方法权限标识
      *
      * @param method 方法
      * @return 权限标识

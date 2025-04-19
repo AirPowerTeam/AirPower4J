@@ -8,49 +8,49 @@ package cn.hamm.airpower.open;
  */
 public interface IOpenApp {
     /**
-     * <h3>获取应用的 {@code AppKey}</h3>
+     * 获取应用的 AppKey
      *
-     * @return {@code AppKey}
+     * @return AppKey
      */
     String getAppKey();
 
     /**
-     * <h3>获取应用的 {@code AppSecret}</h3>
+     * 获取应用的 AppSecret
      *
-     * @return {@code AppSecret}
+     * @return AppSecret
      */
     String getAppSecret();
 
     /**
-     * <h3>获取应用的加密算法</h3>
+     * 获取应用的加密算法
      *
      * @return 算法
      */
     Integer getArithmetic();
 
     /**
-     * <h3>获取应用的私钥</h3>
+     * 获取应用的私钥
      *
      * @return 私钥
      */
     String getPrivateKey();
 
     /**
-     * <h3>获取应用的公钥</h3>
+     * 获取应用的公钥
      *
      * @return 公钥
      */
     String getPublicKey();
 
     /**
-     * <h3>获取IP白名单列表</h3>
+     * 获取 IP 白名单列表
      *
-     * @return IP白名单
+     * @return IP 白名单
      */
     String getIpWhiteList();
 
     /**
-     * <h3>是否禁用</h3>
+     * 是否禁用
      *
      * @return 是否禁用
      */

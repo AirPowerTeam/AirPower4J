@@ -7,16 +7,16 @@ package cn.hamm.airpower.interfaces;
  */
 public interface IEntity<E extends IEntity<E>> {
     /**
-     * <h3>获取主键 {@code ID}</h3>
+     * 获取主键 ID
      *
-     * @return 主键 {@code ID}
+     * @return 主键 ID
      */
     Long getId();
 
     /**
-     * <h3>设置主键 {@code ID}</h3>
+     * 设置主键 ID
      *
-     * @param id 主键 {@code ID}
+     * @param id 主键 ID
      * @return 实体
      */
     E setId(Long id);

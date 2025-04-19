@@ -1,6 +1,5 @@
 package cn.hamm.airpower.util;
 
-import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.enums.DateTimeFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
@@ -164,7 +163,7 @@ public class DateTimeUtil {
         long diff = Math.abs(currentSecond - second);
         if (second < 0) {
             log.error("时间戳错误：{}", second);
-            return Constant.STRING_LINE;
+            return "-";
         }
         if (second < currentSecond && diff < SECOND_PER_MINUTE) {
             // 过去时间，且小于60s

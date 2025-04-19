@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -20,8 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
-
-import static cn.hamm.airpower.config.Constant.STRING_GET;
 
 /**
  * <h1>数据根模型</h1>
@@ -125,7 +122,7 @@ public class RootModel<M extends RootModel<M>> {
      */
     private void excludeBy(@NotNull Field field, @NotNull Class<?> filterClass) {
         Class<?>[] excludeClasses = null;
-        final String fieldGetter = STRING_GET + StringUtils.capitalize(field.getName());
+        final String fieldGetter = ReflectUtil.getFieldGetter(field);
         try {
             Method getMethod = getClass().getMethod(fieldGetter);
             Exclude methodExclude = ReflectUtil.getAnnotation(Exclude.class, getMethod);
@@ -162,7 +159,7 @@ public class RootModel<M extends RootModel<M>> {
      * @param filterClass 过滤器
      */
     private void exposeBy(@NotNull Field field, @NotNull Class<?> filterClass) {
-        final String fieldGetter = STRING_GET + StringUtils.capitalize(field.getName());
+        final String fieldGetter = ReflectUtil.getFieldGetter(field);
         Class<?>[] exposeClasses = null;
         try {
             Method getMethod = getClass().getMethod(fieldGetter);

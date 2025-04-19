@@ -9,9 +9,10 @@ import org.springframework.util.StringUtils;
 
 import java.net.InetAddress;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-import static cn.hamm.airpower.config.Constant.STRING_COMMA;
 import static cn.hamm.airpower.exception.ServiceError.FORBIDDEN;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
@@ -31,6 +32,11 @@ public class RequestUtil {
      * <h3>{@code unknown}</h3>
      */
     public static final String STRING_UNKNOWN = "unknown";
+
+    /**
+     * <h3>缓存的 {@code REQUEST_ID}</h3>
+     */
+    public static final String REQUEST_ID = "REQUEST_ID";
 
     /**
      * <h3>获取IP地址异常</h3>
@@ -138,9 +144,33 @@ public class RequestUtil {
      * @return 处理之后的真实IP
      */
     private static @NotNull String getIpAddressFromMultiIp(@NotNull String ipAddress) {
-        if (ipAddress.indexOf(STRING_COMMA) > 0) {
-            ipAddress = ipAddress.substring(0, ipAddress.indexOf(STRING_COMMA));
+        final String split = ",";
+        if (ipAddress.indexOf(split) > 0) {
+            ipAddress = ipAddress.substring(0, ipAddress.indexOf(split));
         }
         return ipAddress;
+    }
+
+    /**
+     * <h2>将 Map 参数转换为 QueryString</h2>
+     *
+     * @param map 参数
+     * @return QueryString
+     */
+    public static String mapToQueryString(@NotNull Map<String, Object> map) {
+        return map.entrySet().stream()
+                .map(item -> item.getKey() + "=" + item.getValue().toString())
+                .collect(Collectors.joining("&"));
+    }
+
+    /**
+     * <h2>构建 Query 请求的 URL</h2>
+     *
+     * @param url URL
+     * @param map 参数
+     * @return 完整的 URL
+     */
+    public static @NotNull String buildQueryUrl(String url, Map<String, Object> map) {
+        return url + "?" + mapToQueryString(map);
     }
 }

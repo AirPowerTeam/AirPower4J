@@ -4,7 +4,6 @@ import cn.hamm.airpower.annotation.Description;
 import cn.hamm.airpower.annotation.ExcelColumn;
 import cn.hamm.airpower.annotation.ReadOnly;
 import cn.hamm.airpower.annotation.Search;
-import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.interfaces.IEntity;
 import cn.hamm.airpower.interfaces.IEntityAction;
@@ -39,7 +38,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @DynamicInsert
 @DynamicUpdate
-@Description(Constant.STRING_EMPTY)
+@Description("实体")
 @Slf4j
 @SuppressWarnings("unchecked")
 public class RootEntity<E extends RootEntity<E>> extends RootModel<E>

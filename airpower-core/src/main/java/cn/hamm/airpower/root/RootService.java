@@ -39,7 +39,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.function.BiFunction;
 
-import static cn.hamm.airpower.config.Constant.STRING_PERCENT;
 import static cn.hamm.airpower.exception.ServiceError.*;
 
 /**
@@ -52,6 +51,10 @@ import static cn.hamm.airpower.exception.ServiceError.*;
 @SuppressWarnings({"SpringJavaInjectionPointsAutowiringInspection"})
 @Slf4j
 public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
+    /**
+     * <h3>SQL LIKE 查询符号 {@code %}</h3>
+     */
+    public static final String SQL_LIKE_FLAG = "%";
     /**
      * <h3>提交的数据不允许为空</h3>
      */
@@ -950,7 +953,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
                     if (!isEqual) {
                         // 如果是模糊匹配
                         predicateList.add(
-                                builder.like(root.get(field.getName()), fieldValue + STRING_PERCENT)
+                                builder.like(root.get(field.getName()), fieldValue + SQL_LIKE_FLAG)
                         );
                         break;
                     }

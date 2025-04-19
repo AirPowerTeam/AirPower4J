@@ -25,8 +25,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static cn.hamm.airpower.config.Constant.*;
-
 /**
  * <h1>反射工具类</h1>
  *
@@ -35,6 +33,11 @@ import static cn.hamm.airpower.config.Constant.*;
  */
 @Slf4j
 public class ReflectUtil {
+    /**
+     * <h3>{@code get}</h3>
+     */
+    private static final String GET = "get";
+
     /**
      * <h3>反射操作属性失败</h3>
      */
@@ -51,6 +54,18 @@ public class ReflectUtil {
      * @apiNote 声明属性列表
      */
     private final static ConcurrentHashMap<String, Field[]> DECLARED_FIELD_LIST_MAP = new ConcurrentHashMap<>();
+
+
+    /**
+     * <h3>获取字段的Getter方法名</h3>
+     *
+     * @param fieldName 字段名
+     * @return Getter方法名
+     */
+    public static @NotNull String getFieldGetter(@NotNull Field field) {
+        final String fieldName = field.getName();
+        return GET + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+    }
 
     /**
      * <h3>获取对象指定属性的值</h3>
@@ -219,22 +234,6 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>是否是继承自 {@code RootEntity}</h3>
-     *
-     * @param clazz 类
-     * @return 布尔
-     */
-    public static boolean isEntity(Class<?> clazz) {
-        if (Objects.isNull(clazz)) {
-            return false;
-        }
-        if (clazz.getName().equalsIgnoreCase(RootEntity.class.getName())) {
-            return true;
-        }
-        return isEntity(clazz.getSuperclass());
-    }
-
-    /**
      * <h3>是否是继承自 {@code RootModel}</h3>
      *
      * @param clazz 类
@@ -297,19 +296,6 @@ public class ReflectUtil {
     }
 
     /**
-     * <h3>获取类的所有公开属性名称列表</h3>
-     *
-     * @param clazz 类
-     * @return 属性名数组
-     */
-    public static @NotNull List<String> getFieldNameList(@NotNull Class<?> clazz) {
-        Field[] fields = getDeclaredFields(clazz);
-        return Arrays.stream(fields)
-                .map(Field::getName)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * <h3>获取 {@code Lambda} 的 {@code Function} 表达式的函数名</h3>
      *
      * @param lambda 表达式
@@ -318,19 +304,7 @@ public class ReflectUtil {
     public static @NotNull String getLambdaFunctionName(@NotNull IFunction<?, ?> lambda) {
         return getSerializedLambda(lambda)
                 .getImplMethodName()
-                .replace(STRING_GET, STRING_EMPTY);
-    }
-
-    /**
-     * <h3>获取 {@code Lambda} 的 {@code Function} 类的函数名</h3>
-     *
-     * @param lambda 表达式
-     * @return 类名
-     */
-    public static @NotNull String getLambdaClassName(@NotNull IFunction<?, ?> lambda) {
-        return getSerializedLambda(lambda)
-                .getImplClass()
-                .replaceAll(STRING_SLASH, STRING_DOT);
+                .replace(GET, "");
     }
 
     /**

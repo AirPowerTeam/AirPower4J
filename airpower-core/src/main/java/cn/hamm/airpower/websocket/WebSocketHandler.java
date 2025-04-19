@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static cn.hamm.airpower.config.Constant.STRING_UNDERLINE;
 import static cn.hamm.airpower.exception.ServiceError.WEBSOCKET_ERROR;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -314,7 +313,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
      */
     @Contract(pure = true)
     protected final @NotNull String getRealChannel(String channel) {
-        return webSocketConfig.getChannelPrefix() + STRING_UNDERLINE + channel;
+        return webSocketConfig.getChannelPrefix() + "_" + channel;
     }
 
     /**

@@ -1,6 +1,5 @@
 package cn.hamm.airpower.helper;
 
-import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.config.WebSocketConfig;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.model.Json;
@@ -63,7 +62,7 @@ public class WebsocketHelper {
             throw new ServiceException("没有配置 airpower.websocket.channelPrefix, 无法启动WebSocket服务");
         }
         final WebSocketEvent event = WebSocketEvent.create(payload);
-        final String targetChannel = channelPrefix + Constant.STRING_UNDERLINE + channel;
+        final String targetChannel = channelPrefix + "_" + channel;
         log.info("发布消息到频道 {} : {}", targetChannel, Json.toString(event));
         try {
             switch (websocketConfig.getSupport()) {

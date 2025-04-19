@@ -1,7 +1,7 @@
 package cn.hamm.airpower.exception;
 
-import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.model.Json;
+import cn.hamm.airpower.util.RequestUtil;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -121,7 +121,7 @@ public class ExceptionInterceptor {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public Json methodExceptionHandle(@NotNull HttpRequestMethodNotSupportedException exception) {
         logException(exception);
-        String supportedMethod = String.join(Constant.STRING_SLASH, Objects.requireNonNull(exception.getSupportedMethods()));
+        String supportedMethod = String.join("/", Objects.requireNonNull(exception.getSupportedMethods()));
         return responseError(REQUEST_METHOD_UNSUPPORTED, String.format(
                 "%s 不被支持，请使用 %s 方法请求", exception.getMethod(), supportedMethod
         ));
@@ -270,6 +270,6 @@ public class ExceptionInterceptor {
      * @return Json
      */
     private Json responseError(IException<?> serviceError, String message) {
-        return Json.error(serviceError, message).setRequestId(MDC.get(Constant.REQUEST_ID));
+        return Json.error(serviceError, message).setRequestId(MDC.get(RequestUtil.REQUEST_ID));
     }
 }

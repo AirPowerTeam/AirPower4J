@@ -1,6 +1,5 @@
 package cn.hamm.airpower.helper;
 
-import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.config.ServiceConfig;
 import cn.hamm.airpower.util.FileUtil;
 import cn.hamm.airpower.util.RandomUtil;
@@ -16,7 +15,6 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import static cn.hamm.airpower.config.Constant.*;
 import static cn.hamm.airpower.enums.DateTimeFormatter.FULL_TIME;
 import static cn.hamm.airpower.exception.ServiceError.DATA_NOT_FOUND;
 import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
@@ -33,11 +31,12 @@ public class ExportHelper {
     /**
      * <h3>导出文件夹前缀</h3>
      */
-    private static final String EXPORT_CACHE_PREFIX = EXPORT_DIR + STRING_UNDERLINE;
+    private static final String EXPORT_CACHE_PREFIX = EXPORT_DIR + "_";
+
     /**
      * <h3>导出文件后缀</h3>
      */
-    private static final String EXPORT_FILE_CSV = ".csv";
+    private static final String EXPORT_FILE_CSV = "csv";
 
     @Autowired
     private RedisHelper redisHelper;
@@ -58,7 +57,7 @@ public class ExportHelper {
         if (Objects.nonNull(object)) {
             return createExportTask(supplier);
         }
-        redisHelper.set(fileCacheKey, Constant.STRING_EMPTY);
+        redisHelper.set(fileCacheKey, "");
         TaskUtil.runAsync(() -> redisHelper.set(fileCacheKey, supplier.get()));
         return fileCode;
     }
@@ -89,10 +88,10 @@ public class ExportHelper {
      * <h3>保存导出文件流为CSV</h3>
      *
      * @param inputStream 文件流
-     * @param suffix      文件后缀
+     * @param extension   文件后缀
      * @return 保存后的文件名
      */
-    public final @NotNull String saveExportFileStream(@NotNull InputStream inputStream, String suffix) {
+    public final @NotNull String saveExportFileStream(@NotNull InputStream inputStream, String extension) {
         final String absolutePath = FileUtil.formatDirectory(serviceConfig.getSaveFilePath());
         SERVICE_ERROR.when(!StringUtils.hasText(absolutePath), "导出失败，未配置导出文件目录");
 
@@ -100,8 +99,8 @@ public class ExportHelper {
         String relativeDirectory = FileUtil.getTodayDirectory(EXPORT_DIR);
 
         // 存储的文件名
-        final String fileName = FULL_TIME.formatCurrent().replaceAll(STRING_COLON, STRING_EMPTY) +
-                STRING_UNDERLINE + RandomUtil.randomString() + suffix;
+        final String fileName = FULL_TIME.formatCurrent().replaceAll(":", "") +
+                "_" + RandomUtil.randomString() + FileUtil.EXTENSION_SEPARATOR + extension;
 
         try {
             FileUtil.saveFile(absolutePath + relativeDirectory, fileName, inputStream.readAllBytes());

@@ -1,6 +1,5 @@
 package cn.hamm.airpower.mcp.model;
 
-import cn.hamm.airpower.config.Constant;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -15,7 +14,7 @@ public class McpServerInfo {
     /**
      * <h3>服务器名称</h3>
      */
-    private String name = Constant.AIRPOWER;
+    private String name = "Mcp Server";
 
     /**
      * <h3>服务器版本</h3>

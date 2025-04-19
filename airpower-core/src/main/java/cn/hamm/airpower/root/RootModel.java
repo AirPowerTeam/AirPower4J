@@ -88,18 +88,6 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * <h3>脱敏字段</h3>
-     *
-     * @return 实体
-     * @see #filterAndDesensitize(Class, boolean)
-     * @see #filterAndDesensitize(Filter, boolean)
-     * @see #filter(Class)
-     */
-    public final M deserialize() {
-        return filterAndDesensitize(Void.class, true);
-    }
-
-    /**
      * <h3>过滤字段</h3>
      *
      * @param filterClass 过滤器

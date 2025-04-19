@@ -22,7 +22,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static cn.hamm.airpower.config.Constant.*;
 import static cn.hamm.airpower.exception.ServiceError.*;
 
 /**
@@ -165,14 +164,12 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
             // 未配置IP白名单
             return;
         }
-        String[] ipList = ipStr
-                .replaceAll(STRING_BLANK, STRING_EMPTY)
-                .split(REGEX_LINE_BREAK);
+        final String[] ipList = ipStr.split("\n");
         final String ip = RequestUtil.getIpAddress(request);
         if (!StringUtils.hasText(ip)) {
             MISSING_REQUEST_ADDRESS.show();
         }
-        if (Arrays.stream(ipList).toList().contains(ip)) {
+        if (Arrays.stream(ipList).map(String::trim).toList().contains(ip)) {
             return;
         }
         INVALID_REQUEST_ADDRESS.show();

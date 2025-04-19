@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import static cn.hamm.airpower.config.Constant.STRING_EMPTY;
-import static cn.hamm.airpower.config.Constant.STRING_SUCCESS;
 import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS;
@@ -49,7 +48,7 @@ public class Json {
      * <h3>错误信息</h3>
      */
     @Description("错误信息")
-    private String message = STRING_SUCCESS;
+    private String message = "";
 
     /**
      * <h3>返回数据</h3>

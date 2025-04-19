@@ -106,6 +106,7 @@ public class HttpUtil {
      * @param body 请求体
      * @return HttpResponse
      */
+    @SuppressWarnings("UnusedReturnValue")
     public final HttpResponse<String> post(String body) {
         method = HttpMethod.POST;
         this.body = body;

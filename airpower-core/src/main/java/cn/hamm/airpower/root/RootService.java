@@ -247,6 +247,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      * @param source 保存前的原数据
      * @apiNote 添加或修改后最后触发
      */
+    @SuppressWarnings("EmptyMethod")
     protected void afterSaved(long id, @NotNull E source) {
 
     }
@@ -277,6 +278,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      *
      * @param id 主键 ID
      */
+    @SuppressWarnings("EmptyMethod")
     protected void afterDisable(long id) {
     }
 
@@ -285,6 +287,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      *
      * @param id 主键 ID
      */
+    @SuppressWarnings("EmptyMethod")
     protected void beforeEnable(long id) {
     }
 
@@ -306,6 +309,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      *
      * @param id 主键 ID
      */
+    @SuppressWarnings("EmptyMethod")
     protected void afterEnable(long id) {
     }
 
@@ -335,6 +339,7 @@ public class RootService<E extends RootEntity<E>, R extends RootRepository<E>> {
      *
      * @param id 主键 ID
      */
+    @SuppressWarnings("EmptyMethod")
     protected void afterDelete(long id) {
     }
 

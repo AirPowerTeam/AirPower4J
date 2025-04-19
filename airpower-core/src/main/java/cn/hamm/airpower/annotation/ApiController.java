@@ -29,6 +29,7 @@ public @interface ApiController {
      *
      * @see RequestMapping#path()
      */
+    @SuppressWarnings("UnusedReturnValue")
     @AliasFor(annotation = RequestMapping.class, attribute = "path")
     String value();
 }

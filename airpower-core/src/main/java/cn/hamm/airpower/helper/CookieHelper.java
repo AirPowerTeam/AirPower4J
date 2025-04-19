@@ -23,6 +23,11 @@ public class CookieHelper {
      */
     public static final String DEFAULT_PATH = "/";
 
+    /**
+     * <h3>{@code Cookie} 值分隔符</h3>
+     */
+    public static final CharSequence COOKIE_VALUE_DELIMITER = "; ";
+
     @Autowired
     private CookieConfig cookieConfig;
 

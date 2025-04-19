@@ -16,7 +16,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
 
-import static cn.hamm.airpower.config.Constant.*;
 import static cn.hamm.airpower.enums.ContentType.JSON;
 import static cn.hamm.airpower.enums.HttpMethod.GET;
 
@@ -51,7 +50,7 @@ public class HttpUtil {
     /**
      * <h3>请求体</h3>
      */
-    private String body = STRING_EMPTY;
+    private String body = "";
 
     /**
      * <h3>请求方法</h3>
@@ -161,9 +160,9 @@ public class HttpUtil {
         }
         if (Objects.nonNull(cookies)) {
             List<String> cookieList = new ArrayList<>();
-            cookies.forEach((key, value) -> cookieList.add(key + STRING_EQUAL + value));
+            cookies.forEach((key, value) -> cookieList.add(key + "=" + value));
             requestBuilder.setHeader(
-                    CookieHelper.COOKIE, String.join(STRING_SEMICOLON + STRING_BLANK, cookieList)
+                    CookieHelper.COOKIE, String.join(CookieHelper.COOKIE_VALUE_DELIMITER, cookieList)
             );
         }
         if (Objects.nonNull(contentType)) {

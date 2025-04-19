@@ -22,7 +22,6 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static cn.hamm.airpower.config.Constant.STRING_EMPTY;
 import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
 
@@ -170,7 +169,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
     protected final @NotNull String getRequestBody(HttpServletRequest request) {
         // 文件上传的请求 返回空
         if (RequestUtil.isUploadRequest(request)) {
-            return STRING_EMPTY;
+            return "";
         }
         try {
             BufferedReader reader = request.getReader();
@@ -178,6 +177,6 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
         }
-        return STRING_EMPTY;
+        return "";
     }
 }

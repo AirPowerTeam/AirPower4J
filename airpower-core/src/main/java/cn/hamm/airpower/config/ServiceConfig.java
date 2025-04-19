@@ -22,11 +22,6 @@ import static cn.hamm.airpower.root.RootEntity.STRING_CREATE_TIME;
 @ConfigurationProperties("airpower")
 public class ServiceConfig {
     /**
-     * <h3>多数据源数据库前缀</h3>
-     */
-    private String databasePrefix = "tenant_";
-
-    /**
      * <h3>{@code AccessToken} 的密钥</h3>
      */
     private String accessTokenSecret;
@@ -40,11 +35,6 @@ public class ServiceConfig {
      * <h3>服务全局拦截</h3>
      */
     private boolean isServiceRunning = true;
-
-    /**
-     * <h3>是否开启缓存</h3>
-     */
-    private boolean cache = false;
 
     /**
      * <h3>缓存过期时间</h3>

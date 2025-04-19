@@ -7,8 +7,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.stream.IntStream;
 
-import static cn.hamm.airpower.config.Constant.*;
-
 /**
  * <h1>字符串脱敏处理工具类</h1>
  *
@@ -19,6 +17,16 @@ public class DesensitizeUtil {
      * <h3>{@code IPV4} 的块长度</h3>
      */
     private static final int IPV4_PART_COUNT = 4;
+
+    /**
+     * <h3>默认符号</h3>
+     */
+    private static final String DEFAULT_SYMBOL = "*";
+
+    /**
+     * <h3>{@code IPv4} 地址分隔符</h3>
+     */
+    private static final String IP_DELIMITER = ".";
 
     /**
      * <h3>禁止外部实例化</h3>
@@ -60,15 +68,15 @@ public class DesensitizeUtil {
      */
     public static @NotNull String desensitizeIpv4Address(@NotNull String ipv4, String symbol) {
         if (!StringUtils.hasText(symbol)) {
-            symbol = STRING_ASTERISK;
+            symbol = DEFAULT_SYMBOL;
         }
-        String[] strings = ipv4.split(REGEX_DOT);
+        String[] strings = ipv4.split("\\" + IP_DELIMITER);
         if (strings.length != IPV4_PART_COUNT) {
             return ipv4;
         }
         strings[1] = symbol + symbol + symbol;
         strings[2] = strings[1];
-        return String.join(STRING_DOT, strings);
+        return String.join(IP_DELIMITER, strings);
     }
 
     /**
@@ -78,7 +86,7 @@ public class DesensitizeUtil {
      * @return 脱敏后的 {@code IPv4} 地址
      */
     public static @NotNull String desensitizeIpv4Address(@NotNull String ipv4) {
-        return desensitizeIpv4Address(ipv4, STRING_ASTERISK);
+        return desensitizeIpv4Address(ipv4, DEFAULT_SYMBOL);
     }
 
     /**
@@ -92,7 +100,7 @@ public class DesensitizeUtil {
      */
     @Contract(pure = true)
     public static @NotNull String desensitize(@NotNull String text, Desensitize.Type type, int head, int tail) {
-        return desensitize(text, type, head, tail, STRING_ASTERISK);
+        return desensitize(text, type, head, tail, DEFAULT_SYMBOL);
     }
 
     /**

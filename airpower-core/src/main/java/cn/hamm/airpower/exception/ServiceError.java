@@ -111,6 +111,6 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
     @Contract(" -> new")
     @Override
     public @NotNull ServiceException get() {
-        return new ServiceException(this);
+        return new ServiceException();
     }
 }

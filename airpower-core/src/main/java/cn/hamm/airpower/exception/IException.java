@@ -2,7 +2,6 @@ package cn.hamm.airpower.exception;
 
 import cn.hamm.airpower.config.Constant;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -26,16 +25,6 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
      * @return 返回信息
      */
     String getMessage();
-
-    /**
-     * <h3>创建一个自定义异常</h3>
-     *
-     * @return 异常
-     */
-    @Contract(" -> new")
-    private @NotNull ServiceException create() {
-        return new ServiceException(getCode(), getMessage());
-    }
 
     /**
      * <h3>抛出异常</h3>
@@ -71,7 +60,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
      * @param data    返回数据
      */
     default void show(String message, Object data) {
-        throw create().setMessage(message).setData(data);
+        throw new ServiceException(message, data);
     }
 
     /**

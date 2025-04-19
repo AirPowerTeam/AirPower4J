@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
-import static cn.hamm.airpower.config.Constant.STRING_EMPTY;
 import static cn.hamm.airpower.util.RequestUtil.LOCAL_IP_ADDRESS;
 
 /**
@@ -23,12 +22,12 @@ public class MqttConfig {
     /**
      * <h3>用户</h3>
      */
-    private String user = STRING_EMPTY;
+    private String user = "";
 
     /**
      * <h3>密码</h3>
      */
-    private String pass = STRING_EMPTY;
+    private String pass = "";
 
     /**
      * <h3>地址</h3>

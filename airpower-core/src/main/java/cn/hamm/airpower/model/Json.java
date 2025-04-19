@@ -24,7 +24,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 import static com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS;
 
 /**
- * <h1>简单 {@code JSON} 对象</h1>
+ * <h1>简单 JSON 对象</h1>
  *
  * @author Hamm.cn
  */
@@ -33,30 +33,30 @@ import static com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_
 @Slf4j
 public class Json {
     /**
-     * <h3>{@code ObjectMapper}</h3>
+     * {@code ObjectMapper}
      */
     private static ObjectMapper objectMapper = null;
 
     /**
-     * <h3>错误代码</h3>
+     * 错误代码
      */
     @Description("错误代码")
     private int code = HttpStatus.OK.value();
 
     /**
-     * <h3>错误信息</h3>
+     * 错误信息
      */
     @Description("错误信息")
     private String message = "";
 
     /**
-     * <h3>返回数据</h3>
+     * 返回数据
      */
     @Description("返回数据")
     private Object data;
 
     /**
-     * <h3>请求ID</h3>
+     * 请求ID
      */
     @Description("请求ID")
     private String requestId;
@@ -67,114 +67,114 @@ public class Json {
     }
 
     /**
-     * <h3>输出提示信息</h3>
+     * 输出提示信息
      *
      * @param message 提示信息
-     * @return {@code Json}
+     * @return JSON
      */
     public static Json success(String message) {
         return create().setMessage(message);
     }
 
     /**
-     * <h3>输出数据</h3>
+     * 输出数据
      *
      * @param data 数据
-     * @return {@code Json}
+     * @return JSON
      */
     public static Json data(Object data) {
         return data(data, "获取成功");
     }
 
     /**
-     * <h3>输出实体</h3>
+     * 输出实体
      *
      * @param id 实体 {@code ID}
-     * @return {@code Json}
+     * @return JSON
      */
     public static <E extends RootEntity<E>> Json entity(@NotNull Long id) {
         return data(new RootEntity<E>().setId(id));
     }
 
     /**
-     * <h3>输出实体</h3>
+     * 输出实体
      *
-     * @param id      实体 {@code Json}
+     * @param id      实体 JSON
      * @param message 提示信息
-     * @return {@code Json}
+     * @return JSON
      */
     public static Json entity(@NotNull Long id, @NotNull String message) {
         return entity(id).setMessage(message);
     }
 
     /**
-     * <h3>输出数据</h3>
+     * 输出数据
      *
      * @param data    数据
      * @param message 提示信息
-     * @return {@code Json}
+     * @return JSON
      */
     public static Json data(Object data, String message) {
         return create().setData(data).setMessage(message);
     }
 
     /**
-     * <h3>输出错误</h3>
+     * 输出错误
      *
      * @param error 错误枚举
-     * @return {@code Json}
+     * @return JSON
      */
     public static Json error(IException<?> error) {
         return error(error, error.getMessage());
     }
 
     /**
-     * <h3>输出错误</h3>
+     * 输出错误
      *
      * @param error   错误枚举
      * @param message 错误信息
-     * @return {@code Json}
+     * @return JSON
      */
     public static Json error(@NotNull IException<?> error, String message) {
         return error(error, message, null);
     }
 
     /**
-     * <h3>输出错误</h3>
+     * 输出错误
      *
      * @param error   错误枚举
      * @param message 错误信息
      * @param data    错误数据
-     * @return {@code Json}
+     * @return JSON
      */
     public static Json error(@NotNull IException<?> error, String message, Object data) {
         return show(error.getCode(), message, data);
     }
 
     /**
-     * <h3>输出错误</h3>
+     * 输出错误
      *
      * @param message 错误信息
-     * @return {@code Json}
+     * @return JSON
      */
     public static Json error(String message) {
         return error(SERVICE_ERROR, message);
     }
 
     /**
-     * <h3>输出 {@code Json}</h3>
+     * 输出 JSON
      *
      * @param code    错误代码
      * @param message 提示信息
      * @param data    输出数据
-     * @return {@code Json}
+     * @return JSON
      */
     public static Json show(int code, String message, Object data) {
         return create().setCode(code).setMessage(message).setData(data);
     }
 
     /**
-     * <h3>{@code Json} 反序列化到指定类</h3>
+     * JSON 反序列化到指定类
      *
      * @param json  字符串
      * @param clazz 目标类
@@ -190,7 +190,7 @@ public class Json {
     }
 
     /**
-     * <h3>{@code Json} 反序列化为数组</h3>
+     * JSON 反序列化为数组
      *
      * @param json  字符串
      * @param clazz 目标数组类
@@ -206,7 +206,7 @@ public class Json {
     }
 
     /**
-     * <h3>{@code Json} 反序列化为 {@code Map}</h3>
+     * JSON 反序列化为 {@code Map}
      *
      * @param json 字符串
      * @return {@code Map}
@@ -222,7 +222,7 @@ public class Json {
     }
 
     /**
-     * <h3>{@code Json} 反序列化为 {@code ListMap}</h3>
+     * JSON 反序列化为 {@code ListMap}
      *
      * @param json 字符串
      * @return {@code List<Map>}
@@ -238,7 +238,7 @@ public class Json {
     }
 
     /**
-     * <h3>{@code Json} 序列化到字符串</h3>
+     * JSON 序列化到字符串
      *
      * @param object 对象
      * @return 字符串
@@ -252,7 +252,7 @@ public class Json {
     }
 
     /**
-     * <h3>获取一个配置后的 {@code ObjectMapper}</h3>
+     * 获取一个配置后的 {@code ObjectMapper}
      *
      * @return {@code ObjectMapper}
      */
@@ -270,9 +270,9 @@ public class Json {
     }
 
     /**
-     * <h3>初始化一个新的 {@code JSON} 对象</h3>
+     * 初始化一个新的 JSON 对象
      *
-     * @return {@code JSON} 对象
+     * @return JSON 对象
      */
     @Contract(" -> new")
     public static @NotNull Json create() {

@@ -15,17 +15,17 @@ import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 @Getter
 public class ServiceException extends RuntimeException implements IException<ServiceException> {
     /**
-     * <h3>错误代码</h3>
+     * 错误代码
      */
     private int code = SERVICE_ERROR.getCode();
 
     /**
-     * <h3>错误数据</h3>
+     * 错误数据
      */
     private Object data = null;
 
     /**
-     * <h3>抛出一个自定义错误信息的默认异常</h3>
+     * 抛出一个自定义错误信息的默认异常
      *
      * @param message 错误信息
      */
@@ -34,7 +34,7 @@ public class ServiceException extends RuntimeException implements IException<Ser
     }
 
     /**
-     * <h3>抛出一个自定义错误信息的默认异常</h3>
+     * 抛出一个自定义错误信息的默认异常
      *
      * @param message 错误信息
      * @param data    错误数据
@@ -45,7 +45,7 @@ public class ServiceException extends RuntimeException implements IException<Ser
     }
 
     /**
-     * <h3>直接抛出一个异常</h3>
+     * 直接抛出一个异常
      *
      * @param exception 异常
      * @param message   错误信息
@@ -56,7 +56,7 @@ public class ServiceException extends RuntimeException implements IException<Ser
     }
 
     /**
-     * <h3>直接抛出一个异常</h3>
+     * 直接抛出一个异常
      *
      * @param exception 异常
      */
@@ -66,7 +66,7 @@ public class ServiceException extends RuntimeException implements IException<Ser
     }
 
     /**
-     * <h3>直接抛出一个异常</h3>
+     * 直接抛出一个异常
      *
      * @param exception 异常
      */

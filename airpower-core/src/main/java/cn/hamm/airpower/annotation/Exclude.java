@@ -19,7 +19,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface Exclude {
     /**
-     * <h3>过滤器列表</h3>
+     * 过滤器列表
      */
     Class<?>[] filters() default {};
 }

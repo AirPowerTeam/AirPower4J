@@ -32,7 +32,7 @@ public class WebsocketHelper {
     private MqttHelper mqttHelper;
 
     /**
-     * <h3>发布事件负载</h3>
+     * 发布事件负载
      *
      * @param payload 事件负载
      */
@@ -41,7 +41,7 @@ public class WebsocketHelper {
     }
 
     /**
-     * <h3>发布事件负载到指定的用户</h3>
+     * 发布事件负载到指定的用户
      *
      * @param userId  目标用户 {@code ID}
      * @param payload 事件负载
@@ -51,7 +51,7 @@ public class WebsocketHelper {
     }
 
     /**
-     * <h3>发布事件负载到指定的频道</h3>
+     * 发布事件负载到指定的频道
      *
      * @param channel 频道
      * @param payload 负载

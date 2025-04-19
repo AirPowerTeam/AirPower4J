@@ -13,28 +13,28 @@ import java.util.function.Supplier;
  */
 public interface IException<T extends IException<T>> extends Supplier<T> {
     /**
-     * <h3>获取错误代码</h3>
+     * 获取错误代码
      *
      * @return 错误代码
      */
     int getCode();
 
     /**
-     * <h3>获取返回信息</h3>
+     * 获取返回信息
      *
      * @return 返回信息
      */
     String getMessage();
 
     /**
-     * <h3>抛出异常</h3>
+     * 抛出异常
      */
     default void show() {
         show(getMessage());
     }
 
     /**
-     * <h3>抛出异常</h3>
+     * 抛出异常
      *
      * @param message 返回信息
      */
@@ -43,7 +43,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>获取一个异常实例</h3>
+     * 获取一个异常实例
      *
      * @return 异常实例
      */
@@ -54,7 +54,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>抛出异常</h3>
+     * 抛出异常
      *
      * @param message 返回信息
      * @param data    返回数据
@@ -64,7 +64,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 {@code 满足条件} 时抛出异常</h3>
+     * 当 <b>满足条件</b> 时抛出异常
      *
      * @param condition 条件
      */
@@ -73,7 +73,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 {@code 满足条件} 时抛出异常</h3>
+     * 当 <b>满足条件</b> 时抛出异常
      *
      * @param condition 条件
      * @param message   返回信息
@@ -85,7 +85,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 {@code 满足条件} 时抛出异常</h3>
+     * 当 <b>满足条件</b> 时抛出异常
      *
      * @param condition 条件
      * @param message   返回信息
@@ -98,7 +98,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当为 {@code null} 时抛出异常</h3>
+     * 当为 {@code null} 时抛出异常
      *
      * @param obj 被验证的数据
      */
@@ -108,7 +108,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当为 {@code null} 时抛出异常</h3>
+     * 当为 {@code null} 时抛出异常
      *
      * @param obj     被验证的数据
      * @param message 返回信息
@@ -119,7 +119,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 {@code 两者相同} 时抛出异常</h3>
+     * 当 <b>两者相同</b> 时抛出异常
      *
      * @param obj1 被验证的数据
      * @param obj2 被验证的数据
@@ -129,7 +129,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 {@code 两者相同} 时抛出异常</h3>
+     * 当 <b>两者相同</b> 时抛出异常
      *
      * @param obj1    被验证的数据
      * @param obj2    被验证的数据
@@ -140,7 +140,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 {@code 两个字符串相同} 时抛出异常</h3>
+     * 当 <b>两个字符串相同</b> 时抛出异常
      *
      * @param str1 被验证的数据
      * @param str2 被验证的数据
@@ -150,7 +150,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 {@code 两个字符串相同} 时抛出异常</h3>
+     * 当 <b>两个字符串相同</b> 时抛出异常
      *
      * @param str1    被验证的数据
      * @param str2    被验证的数据
@@ -161,7 +161,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 {@code 两个字符串忽略大小写相同} 时抛出异常</h3>
+     * 当 <b>两个字符串忽略大小写相同</b> 时抛出异常
      *
      * @param str1 被验证的数据
      * @param str2 被验证的数据
@@ -171,7 +171,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 {@code 两个字符串忽略大小写相同} 时抛出异常</h3>
+     * 当 <b>两个字符串忽略大小写相同</b> 时抛出异常
      *
      * @param str1    被验证的数据
      * @param str2    被验证的数据
@@ -185,7 +185,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 <s>{@code 两者不相同}</s> 时抛出异常</h3>
+     * 当 <s><b>两者不相同</b></s> 时抛出异常
      *
      * @param obj1 被验证的数据
      * @param obj2 被验证的数据
@@ -195,7 +195,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 <s>{@code 两者不相同}</s> 时抛出异常</h3>
+     * 当 <s><b>两者不相同</b></s> 时抛出异常
      *
      * @param obj1    被验证的数据
      * @param obj2    被验证的数据
@@ -206,7 +206,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 <s>{@code 两个字符串不相同}</s> 时抛出异常</h3>
+     * 当 <s><b>两个字符串不相同</b></s> 时抛出异常
      *
      * @param str1 被验证的数据
      * @param str2 被验证的数据
@@ -216,7 +216,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 <s>{@code 两个字符串不相同}</s> 时抛出异常</h3>
+     * 当 <s><b>两个字符串不相同</b></s> 时抛出异常
      *
      * @param str1    被验证的数据
      * @param str2    被验证的数据
@@ -227,7 +227,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 <s>{@code 两个字符串忽略大小写还不相同}</s> 时抛出异常</h3>
+     * 当 <s><b>两个字符串忽略大小写还不相同</b></s> 时抛出异常
      *
      * @param str1 被验证的数据
      * @param str2 被验证的数据
@@ -237,7 +237,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 <s>{@code 两个字符串忽略大小写还不相同}</s> 时抛出异常</h3>
+     * 当 <s><b>两个字符串忽略大小写还不相同</b></s> 时抛出异常
      *
      * @param str1    被验证的数据
      * @param str2    被验证的数据
@@ -251,7 +251,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当为 {@code null或空字符串} 时抛出异常</h3>
+     * 当为 <b>null 或 空字符串</b> 时抛出异常
      *
      * @param obj 被验证的数据
      */
@@ -261,7 +261,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当为 {@code null或空字符串} 时抛出异常</h3>
+     * 当为 <b>null 或 空字符串</b> 时抛出异常
      *
      * @param obj     被验证的数据
      * @param message 返回信息
@@ -272,7 +272,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 <s>{@code 不为null}</s> 时抛出异常</h3>
+     * 当 <s><b>不为 null</b></s> 时抛出异常
      *
      * @param obj 被验证的数据
      */
@@ -281,7 +281,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
     }
 
     /**
-     * <h3>当 <s>{@code 不为null}</s> 时抛出异常</h3>
+     * 当 <s><b>不为 null</b></s> 时抛出异常
      *
      * @param obj     被验证的数据
      * @param message 返回信息

@@ -12,12 +12,12 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class McpJson {
     /**
-     * <h3>JSONRPC版本</h3>
+     * <b>JSONRPC</b> 版本
      */
     private String jsonrpc = "2.0";
 
     /**
-     * <h3>ID</h3>
+     * ID
      */
     private Long id = 0L;
 }

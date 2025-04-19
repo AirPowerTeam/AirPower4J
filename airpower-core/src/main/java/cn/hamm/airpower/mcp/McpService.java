@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * <h1>McpService</h1>
+ * <h1>MCP 服务</h1>
  *
  * @author Hamm.cn
  */
@@ -36,12 +36,12 @@ import java.util.stream.IntStream;
 @Service
 public class McpService {
     /**
-     * <h3>方法列表</h3>
+     * 方法列表
      */
-    public final static ConcurrentMap<String, Method> METHOD_MAP = new ConcurrentHashMap<>();
+    private final static ConcurrentMap<String, Method> METHOD_MAP = new ConcurrentHashMap<>();
 
     /**
-     * <h3>工具列表</h3>
+     * 工具列表
      */
     public static List<McpTool> tools = new ArrayList<>();
 
@@ -49,7 +49,7 @@ public class McpService {
     private BeanFactory beanFactory;
 
     /**
-     * <h3>扫描Mcp方法</h3>
+     * 扫描 MCP 方法
      *
      * @param packages 包名
      */
@@ -67,14 +67,14 @@ public class McpService {
                 }
             });
         }
-        log.info("扫描到 {} 个Mcp方法", tools.size());
+        log.info("扫描到 {} 个 MCP 方法", tools.size());
     }
 
     /**
-     * <h3>获取McpTool</h3>
+     * 获取 MCP 工具
      *
      * @param method 方法
-     * @return McpTool
+     * @return MCP 工具
      */
     private static @Nullable McpTool getTool(@NotNull Method method) {
         McpMethod annotation = method.getAnnotation(McpMethod.class);
@@ -124,7 +124,7 @@ public class McpService {
     }
 
     /**
-     * <h3>获取访问指定工具需要的权限</h3>
+     * 获取访问指定工具需要的权限
      *
      * @param mcpTool 工具
      * @return 权限标识
@@ -134,7 +134,7 @@ public class McpService {
     }
 
     /**
-     * <h3>运行Mcp方法</h3>
+     * 运行 MCP 服务
      *
      * @param mcpRequest      请求
      * @param checkPermission 检查权限
@@ -148,7 +148,7 @@ public class McpService {
                 .filter(value -> value.getLabel().equals(mcpRequest.getMethod()))
                 .findFirst()
                 .orElse(null);
-        log.info("Mcp请求方法: {}，参数: {}", mcpRequest.getMethod(), mcpRequest.getParams());
+        log.info("MCP 请求方法: {}，参数: {}", mcpRequest.getMethod(), mcpRequest.getParams());
         McpErrorCode.MethodNotFound.whenNull(mcpMethods);
         switch (mcpMethods) {
             case INITIALIZE:

@@ -12,12 +12,12 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class Access {
     /**
-     * <h3>需要登录</h3>
+     * 需要登录
      */
     private boolean login = false;
 
     /**
-     * <h3>需要授权访问</h3>
+     * 需要授权访问
      */
     private boolean authorize = false;
 }

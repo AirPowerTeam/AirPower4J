@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.UUID;
 
 /**
- * <h1>{@code MQTT} 助手类</h1>
+ * <h1>MQTT 助手类</h1>
  *
  * @author Hamm.cn
  */
@@ -22,7 +22,7 @@ public class MqttHelper {
     private MqttConfig mqttConfig;
 
     /**
-     * <h3>创建 {@code MQTT} 客户端</h3>
+     * 创建 MQTT 客户端
      *
      * @return 配置
      * @throws MqttException 异常
@@ -32,7 +32,7 @@ public class MqttHelper {
     }
 
     /**
-     * <h3>创建 {@code MQTT} 客户端</h3>
+     * 创建 MQTT 客户端
      *
      * @param id 客户端 {@code ID}
      * @return 配置
@@ -47,7 +47,7 @@ public class MqttHelper {
     }
 
     /**
-     * <h3>创建配置</h3>
+     * 创建配置
      *
      * @return 配置
      */
@@ -62,7 +62,7 @@ public class MqttHelper {
     }
 
     /**
-     * <h3>发送消息</h3>
+     * 发送消息
      *
      * @param topic   主题
      * @param message 消息内容

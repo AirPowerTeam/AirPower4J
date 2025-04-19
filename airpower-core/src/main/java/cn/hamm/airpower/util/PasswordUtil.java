@@ -13,14 +13,14 @@ import static cn.hamm.airpower.exception.ServiceError.PARAM_MISSING;
  */
 public class PasswordUtil {
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private PasswordUtil() {
     }
 
     /**
-     * <h3>密码和盐获取密码的散列摘要</h3>
+     * 密码和盐获取密码的散列摘要
      *
      * @param password 明文密码
      * @param salt     盐

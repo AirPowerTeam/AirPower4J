@@ -7,7 +7,7 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>标记是MCP可选属性</h1>
+ * <h1>标记是 MCP 可选属性</h1>
  *
  * @author Hamm.cn
  */

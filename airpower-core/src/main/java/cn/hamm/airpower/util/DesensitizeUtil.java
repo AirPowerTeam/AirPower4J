@@ -14,29 +14,29 @@ import java.util.stream.IntStream;
  */
 public class DesensitizeUtil {
     /**
-     * <h3>{@code IPV4} 的块长度</h3>
+     * IPv4 的块长度
      */
     private static final int IPV4_PART_COUNT = 4;
 
     /**
-     * <h3>默认符号</h3>
+     * 默认符号
      */
     private static final String DEFAULT_SYMBOL = "*";
 
     /**
-     * <h3>{@code IPv4} 地址分隔符</h3>
+     * IPv4 地址分隔符
      */
     private static final String IP_DELIMITER = ".";
 
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private DesensitizeUtil() {
     }
 
     /**
-     * <h3>字符串替换</h3>
+     * 字符串替换
      *
      * @param text   原始字符串
      * @param head   头部保留长度
@@ -60,11 +60,11 @@ public class DesensitizeUtil {
     }
 
     /**
-     * <h3>{@code IPv4} 地址脱敏</h3>
+     * IPv4 地址脱敏
      *
-     * @param ipv4   {@code IPv4} 地址
+     * @param ipv4   IPv4 地址
      * @param symbol 符号
-     * @return 脱敏后的 {@code IPv4} 地址
+     * @return 脱敏后的 IPv4 地址
      */
     public static @NotNull String desensitizeIpv4Address(@NotNull String ipv4, String symbol) {
         if (!StringUtils.hasText(symbol)) {
@@ -80,17 +80,17 @@ public class DesensitizeUtil {
     }
 
     /**
-     * <h3>{@code IPv4} 地址脱敏</h3>
+     * IPv4 地址脱敏
      *
-     * @param ipv4 {@code IPv4} 地址
-     * @return 脱敏后的 {@code IPv4} 地址
+     * @param ipv4 IPv4 地址
+     * @return 脱敏后的 IPv4 地址
      */
     public static @NotNull String desensitizeIpv4Address(@NotNull String ipv4) {
         return desensitizeIpv4Address(ipv4, DEFAULT_SYMBOL);
     }
 
     /**
-     * <h3>文本脱敏</h3>
+     * 文本脱敏
      *
      * @param text 原始文本
      * @param type 脱敏类型
@@ -104,7 +104,7 @@ public class DesensitizeUtil {
     }
 
     /**
-     * <h3>文本脱敏</h3>
+     * 文本脱敏
      *
      * @param valueString 原始文本
      * @param type        脱敏类型

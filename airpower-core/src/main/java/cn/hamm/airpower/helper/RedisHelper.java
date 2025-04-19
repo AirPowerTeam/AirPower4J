@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import static cn.hamm.airpower.exception.ServiceError.REDIS_ERROR;
 
 /**
- * <h1>{@code Redis} 封装类</h1>
+ * <h1>Redis 封装类</h1>
  *
  * @author Hamm.cn
  */
@@ -35,20 +35,20 @@ public class RedisHelper {
     private ServiceConfig serviceConfig;
 
     /**
-     * <h3>从缓存中获取实体</h3>
+     * 从缓存中获取实体
      *
      * @param entityClass 实体类
      * @return 缓存实体
-     * @apiNote 默认使用内置的 {@code key} 规则
+     * @apiNote 默认使用内置的 key 规则
      */
     public final @Nullable <E extends RootEntity<E>> E getEntity(Class<E> entityClass, Long id) {
         return getEntity(getCacheKey(entityClass, id), entityClass);
     }
 
     /**
-     * <h3>从缓存中获取实体</h3>
+     * 从缓存中获取实体
      *
-     * @param key   缓存的 {@code Key}
+     * @param key   缓存的 key
      * @param clazz 实体类
      * @return 缓存的实体
      */
@@ -65,7 +65,7 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>删除指定的实体缓存</h3>
+     * 删除指定的实体缓存
      *
      * @param entity 实体
      */
@@ -74,7 +74,7 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>缓存实体</h3>
+     * 缓存实体
      *
      * @param entity 实体
      */
@@ -83,7 +83,7 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>缓存实体</h3>
+     * 缓存实体
      *
      * @param entity 实体
      * @param second 缓存时间(秒)
@@ -94,9 +94,9 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>缓存实体</h3>
+     * 缓存实体
      *
-     * @param key    缓存的 {@code Key}
+     * @param key    缓存的 Key
      * @param entity 实体
      */
     public final <E extends RootEntity<E>> void saveEntity(String key, E entity) {
@@ -104,9 +104,9 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>缓存实体</h3>
+     * 缓存实体
      *
-     * @param key    缓存的 {@code Key}
+     * @param key    缓存的 Key
      * @param entity 实体
      * @param second 缓存时间(秒)
      */
@@ -115,9 +115,9 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>指定缓存失效时间</h3>
+     * 指定缓存失效时间
      *
-     * @param key    缓存的 {@code Key}
+     * @param key    缓存的 Key
      * @param second 缓存时间(秒)
      */
     public final void setExpireSecond(String key, long second) {
@@ -132,7 +132,7 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>删除所有满足条件的数据</h3>
+     * 删除所有满足条件的数据
      *
      * @param pattern 正则
      */
@@ -147,9 +147,9 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>获取过期时间</h3>
+     * 获取过期时间
      *
-     * @param key 缓存的 {@code Key}
+     * @param key 缓存的 Key
      * @return 过期时间
      */
     public final long getExpireSecond(String key) {
@@ -163,9 +163,9 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>判断key是否存在</h3>
+     * 判断 key 是否存在
      *
-     * @param key 缓存的 {@code Key}
+     * @param key 缓存的 Key
      * @return {@code true} 存在; {@code false} 不存在
      */
     public final boolean hasKey(String key) {
@@ -177,9 +177,9 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>删除缓存</h3>
+     * 删除缓存
      *
-     * @param key 缓存的 {@code Key}
+     * @param key 缓存的 Key
      */
     public final void del(String key) {
         try {
@@ -191,9 +191,9 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>普通缓存获取</h3>
+     * 普通缓存获取
      *
-     * @param key 缓存的 {@code Key}
+     * @param key 缓存的 Key
      * @return 值
      */
     public final @Nullable Object get(String key) {
@@ -207,9 +207,9 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>普通缓存放入</h3>
+     * 普通缓存放入
      *
-     * @param key   缓存的 {@code Key}
+     * @param key   缓存的 Key
      * @param value 值
      */
     public final void set(String key, Object value) {
@@ -217,9 +217,9 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>普通缓存放入并设置时间</h3>
+     * 普通缓存放入并设置时间
      *
-     * @param key    缓存的 {@code Key}
+     * @param key    缓存的 Key
      * @param value  缓存的值
      * @param second 缓存时间(秒)
      * @apiNote <code>如果time小于等于0 将设置无限期</code>
@@ -238,7 +238,7 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>发布到 {@code channel} 的消息</h3>
+     * 发布到 {@code channel} 的消息
      *
      * @param channel 频道
      * @param message 消息
@@ -250,7 +250,7 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>获取缓存 {@code 模型} 的 {@code cacheKey}</h3>
+     * 获取缓存 <b>模型</b> 的 cacheKey
      *
      * @param clazz 模型类
      * @param id    ID
@@ -262,7 +262,7 @@ public class RedisHelper {
     }
 
     /**
-     * <h3>获取缓存 {@code 实体} 的 {@code cacheKey}</h3>
+     * 获取缓存 <b>实体</b> 的 cacheKey
      *
      * @param entity 实体
      * @return key

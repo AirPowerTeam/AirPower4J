@@ -31,7 +31,7 @@ import java.util.function.BiConsumer;
 @SuppressWarnings("unchecked")
 public class RootModel<M extends RootModel<M>> {
     /**
-     * <h3>忽略只读字段</h3>
+     * 忽略只读字段
      */
     public final void ignoreReadOnlyFields() {
         ReflectUtil.getFieldList(getClass()).stream()
@@ -40,7 +40,7 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * <h3>复制一个新对象</h3>
+     * 复制一个新对象
      *
      * @return 返回实例
      */
@@ -56,7 +56,7 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * <h3>过滤和脱敏</h3>
+     * 过滤和脱敏
      *
      * @param filterClass   过滤器类
      * @param isDesensitize 是否需要脱敏
@@ -85,7 +85,7 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * <h3>过滤字段</h3>
+     * 过滤字段
      *
      * @param filterClass 过滤器
      * @return 实体
@@ -98,7 +98,7 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * <h3>过滤和脱敏</h3>
+     * 过滤和脱敏
      *
      * @param filter        过滤器注解
      * @param isDesensitize 是否需要脱敏
@@ -115,7 +115,7 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * <h3>通过指定的过滤器排除字段</h3>
+     * 通过指定的过滤器排除字段
      *
      * @param field       字段
      * @param filterClass 过滤器
@@ -153,7 +153,7 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * <h3>通过指定的过滤器暴露字段</h3>
+     * 通过指定的过滤器暴露字段
      *
      * @param field       字段
      * @param filterClass 过滤器
@@ -193,7 +193,7 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * <h3>递归过滤和脱敏</h3>
+     * 递归过滤和脱敏
      *
      * @param field         字段
      * @param isDesensitize 是否需要脱敏
@@ -224,7 +224,7 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * <h3>字段脱敏</h3>
+     * 字段脱敏
      *
      * @param field 字段
      */

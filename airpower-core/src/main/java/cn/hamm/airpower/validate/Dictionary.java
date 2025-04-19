@@ -30,38 +30,36 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface Dictionary {
     /**
-     * <h3>错误信息</h3>
+     * 错误信息
      */
     String message() default "不允许的枚举字典值";
 
     /**
-     * <h3>使用的枚举类</h3>
+     * 使用的枚举类
      *
      * @see IDictionary
      */
     Class<? extends IDictionary> value();
 
     /**
-     * <h3>验证组</h3>
+     * 验证组
      */
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
 
     /**
-     * <h1>字典验证实现类</h1>
-     *
-     * @author Hamm.cn
+     * 字典验证实现类
      */
     @Component
     class DictionaryValidator implements ConstraintValidator<Dictionary, Integer> {
         /**
-         * <h3>标记的枚举类</h3>
+         * 标记的枚举类
          */
         private Class<? extends IDictionary> enumClazz = null;
 
         /**
-         * <h3>验证</h3>
+         * 验证
          *
          * @param value   验证的值
          * @param context 验证器会话
@@ -82,7 +80,7 @@ public @interface Dictionary {
         }
 
         /**
-         * <h3>初始化</h3>
+         * 初始化
          *
          * @param dictionary 字典类
          */

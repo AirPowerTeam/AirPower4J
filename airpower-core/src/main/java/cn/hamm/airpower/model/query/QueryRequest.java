@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
 @Description("查询请求")
 public class QueryRequest<M extends RootModel<M>> {
     /**
-     * <h3>搜索过滤器</h3>
+     * 搜索过滤器
      */
     @Description("过滤器")
     private M filter = null;

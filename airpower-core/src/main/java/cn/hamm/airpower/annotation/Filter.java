@@ -18,7 +18,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Inherited
 public @interface Filter {
     /**
-     * <h3>使用的过滤器</h3>
+     * 使用的过滤器
      */
     Class<?> value();
 }

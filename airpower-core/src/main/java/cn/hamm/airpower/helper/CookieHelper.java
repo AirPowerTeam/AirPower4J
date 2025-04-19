@@ -7,36 +7,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * <h1>{@code Cookie} 助手</h1>
+ * <h1> Cookie 助手</h1>
  *
  * @author Hamm.cn
  */
 @Component
 public class CookieHelper {
     /**
-     * <h3>{@code Cookie}</h3>
-     */
-    public static final String COOKIE = "Cookie";
-
-    /**
-     * <h3>默认路径</h3>
+     * 默认路径
      */
     public static final String DEFAULT_PATH = "/";
-
-    /**
-     * <h3>{@code Cookie} 值分隔符</h3>
-     */
-    public static final CharSequence COOKIE_VALUE_DELIMITER = "; ";
 
     @Autowired
     private CookieConfig cookieConfig;
 
     /**
-     * <h3>获取一个 {@code Cookie}</h3>
+     * 获取一个  Cookie
      *
-     * @param key   {@code Cookie} 键
-     * @param value {@code Cookie} 值
-     * @return {@code Cookie}
+     * @param key   Cookie 键
+     * @param value Cookie 值
+     * @return Cookie
      * @see CookieConfig
      */
     public final @NotNull Cookie getCookie(String key, String value) {
@@ -44,15 +34,15 @@ public class CookieHelper {
         cookie.setHttpOnly(cookieConfig.isCookieHttpOnly());
         cookie.setMaxAge(cookieConfig.getCookieMaxAge());
         cookie.setSecure(cookieConfig.isCookieSecurity());
-        cookie.setPath(cookie.getPath());
+        cookie.setPath(cookieConfig.getCookiePath());
         return cookie;
     }
 
     /**
-     * <h3>获取一个身份验证的 {@code Cookie}</h3>
+     * 获取一个身份验证的  Cookie
      *
      * @param value 身份串的值
-     * @return {@code Cookie}
+     * @return Cookie
      * @see CookieConfig
      */
     public final @NotNull Cookie getAuthorizeCookie(String value) {

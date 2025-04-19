@@ -19,24 +19,24 @@ import static java.math.RoundingMode.*;
  */
 public class NumberUtil {
     /**
-     * <h3>计算的最大精度保留</h3>
+     * 计算的最大精度保留
      */
     private static final int DEFAULT_SCALE = 8;
 
     /**
-     * <h3>默认除法的保留方式</h3>
+     * 默认除法的保留方式
      */
     private static final RoundingMode DEFAULT_ROUNDING_MODE = HALF_UP;
 
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private NumberUtil() {
     }
 
     /**
-     * <h3>多个数求和</h3>
+     * 多个数求和
      *
      * @param first  加数
      * @param second 被加数
@@ -50,7 +50,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数求和</h3>
+     * 多个数求和
      *
      * @param first  加数
      * @param second 被加数
@@ -64,7 +64,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相减</h3>
+     * 多个数相减
      *
      * @param first  被减数
      * @param second 减数
@@ -78,7 +78,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相减</h3>
+     * 多个数相减
      *
      * @param first  被减数
      * @param second 减数
@@ -92,7 +92,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相乘</h3>
+     * 多个数相乘
      *
      * @param first  乘数
      * @param second 被乘数
@@ -106,7 +106,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相乘</h3>
+     * 多个数相乘
      *
      * @param first  乘数
      * @param second 被乘数
@@ -120,7 +120,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相除</h3>
+     * 多个数相除
      *
      * @param first  被除数
      * @param second 除数
@@ -131,7 +131,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相除</h3>
+     * 多个数相除
      *
      * @param first  被除数
      * @param second 除数
@@ -144,7 +144,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相除</h3>
+     * 多个数相除
      *
      * @param first        被除数
      * @param second       除数
@@ -158,7 +158,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相除</h3>
+     * 多个数相除
      *
      * @param first  被除数
      * @param second 除数
@@ -169,7 +169,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相除</h3>
+     * 多个数相除
      *
      * @param first  被除数
      * @param second 除数
@@ -182,7 +182,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相除</h3>
+     * 多个数相除
      *
      * @param first        被除数
      * @param second       除数
@@ -196,7 +196,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>计算的业务逻辑</h3>
+     * 计算的业务逻辑
      *
      * @param function 计算执行方法
      * @param first    第一个数据
@@ -216,7 +216,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>多个数相除</h3>
+     * 多个数相除
      *
      * @param first        被除数
      * @param second       除数
@@ -236,7 +236,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>向下省略</h3>
+     * 向下省略
      *
      * @param value 数字
      * @param scale 位数
@@ -247,7 +247,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>向上省略</h3>
+     * 向上省略
      *
      * @param value 数字
      * @param scale 位数
@@ -258,7 +258,7 @@ public class NumberUtil {
     }
 
     /**
-     * <h3>保留固定位数小数</h3>
+     * 保留固定位数小数
      *
      * @param number       数字值
      * @param scale        保留小数位数

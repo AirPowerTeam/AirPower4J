@@ -14,13 +14,13 @@ import lombok.experimental.Accessors;
 @Description("分页类")
 public class Page {
     /**
-     * <h3>当前页码</h3>
+     * 当前页码
      */
     @Description("当前页码")
     private Integer pageNum = 1;
 
     /**
-     * <h3>分页条数</h3>
+     * 分页条数
      */
     @Description("分页条数")
     private Integer pageSize;

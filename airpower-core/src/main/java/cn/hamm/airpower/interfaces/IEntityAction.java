@@ -7,37 +7,37 @@ package cn.hamm.airpower.interfaces;
  */
 public interface IEntityAction {
     /**
-     * <h3>{@code ID} 必须传入的场景</h3>
+     * ID 必须传入的场景
      */
     interface WhenIdRequired {
     }
 
     /**
-     * <h3>当添加时</h3>
+     * 当添加时
      */
     interface WhenAdd {
     }
 
     /**
-     * <h3>当更新时</h3>
+     * 当更新时
      */
     interface WhenUpdate {
     }
 
     /**
-     * <h3>当查询详情时</h3>
+     * 当查询详情时
      */
     interface WhenGetDetail {
     }
 
     /**
-     * <h3>分页查询</h3>
+     * 分页查询
      */
     interface WhenGetPage {
     }
 
     /**
-     * <h3>不分页查询</h3>
+     * 不分页查询
      */
     interface WhenGetList {
     }

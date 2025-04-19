@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <h1>Mcp响应结果</h1>
+ * <h1>Mcp 响应结果</h1>
  *
  * @author Hamm.cn
  */
@@ -16,17 +16,17 @@ import java.util.List;
 @Accessors(chain = true)
 public class McpResponseResult {
     /**
-     * <h3>内容</h3>
+     * 内容
      */
     private List<McpResponseContent> content = new ArrayList<>();
 
     /**
-     * <h3>是否错误</h3>
+     * 是否错误
      */
     private Boolean isError = false;
 
     /**
-     * <h3>添加文本内容</h3>
+     * 添加文本内容
      *
      * @param text 文本
      * @return this
@@ -38,7 +38,7 @@ public class McpResponseResult {
     }
 
     /**
-     * <h3>添加图片内容</h3>
+     * 添加图片内容
      */
     @Contract("_ -> this")
     public final McpResponseResult addImageContent(String base64Image) {
@@ -51,28 +51,28 @@ public class McpResponseResult {
     }
 
     /**
-     * <h3>Mcp响应内容</h3>
+     * Mcp 响应内容
      */
     @Data
     @Accessors(chain = true)
     static class McpResponseContent {
         /**
-         * <h3>类型</h3>
+         * 类型
          */
         private String type = "text";
 
         /**
-         * <h3>文本内容</h3>
+         * 文本内容
          */
         private String text;
 
         /**
-         * <h3>图片内容</h3>
+         * 图片内容
          */
         private String data;
 
         /**
-         * <h3>图片类型</h3>
+         * 图片类型
          */
         private String mimeType;
     }

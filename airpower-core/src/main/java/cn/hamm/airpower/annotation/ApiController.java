@@ -25,7 +25,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @RequestMapping
 public @interface ApiController {
     /**
-     * <h3>API 的路径</h3>
+     * API 的路径
+     *
+     * @see RequestMapping#path()
      */
     @AliasFor(annotation = RequestMapping.class, attribute = "path")
     String value();

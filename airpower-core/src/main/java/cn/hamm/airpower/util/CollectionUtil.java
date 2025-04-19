@@ -23,31 +23,29 @@ import java.util.*;
 @Slf4j
 public class CollectionUtil {
     /**
-     * <h3>CSV 缩进符号</h3>
+     * CSV 缩进符号
      */
     private static final String INDENT = "\t";
 
     /**
-     * <h3>CSV 列分隔符</h3>
+     * CSV 列分隔符
      */
     private static final String CSV_COLUMN_DELIMITER = ",";
 
-
     /**
-     * <h3>CSV 行分隔符</h3>
+     * CSV 行分隔符
      */
     private static final String CSV_ROW_DELIMITER = "\n";
 
-
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private CollectionUtil() {
     }
 
     /**
-     * <h3>获取集合中的 {@code 非null} 元素</h3>
+     * 获取集合中的 {@code 非null} 元素
      *
      * @param list       原始集合
      * @param fieldClass 数据类型
@@ -62,7 +60,7 @@ public class CollectionUtil {
     }
 
     /**
-     * <h3>将集合转换为CSV文件</h3>
+     * 将集合转换为 CSV 文件
      *
      * @param list      集合
      * @param itemClass 元素的类名
@@ -102,7 +100,7 @@ public class CollectionUtil {
     }
 
     /**
-     * <h3>准备导出列</h3>
+     * 准备导出列
      *
      * @param fieldName 字段名
      * @param value     当前值

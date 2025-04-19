@@ -80,7 +80,7 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
     private String message;
 
     /**
-     * <h3>设置错误信息</h3>
+     * 设置错误信息
      *
      * @param message 错误信息
      * @return 当前异常

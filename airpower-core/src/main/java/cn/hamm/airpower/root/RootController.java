@@ -25,9 +25,9 @@ public class RootController {
     protected HttpServletRequest request;
 
     /**
-     * <h3>获取当前登录用户的信息</h3>
+     * 获取当前登录用户的信息
      *
-     * @return 用户 {@code ID}
+     * @return 用户 ID
      */
     protected final long getCurrentUserId() {
         try {

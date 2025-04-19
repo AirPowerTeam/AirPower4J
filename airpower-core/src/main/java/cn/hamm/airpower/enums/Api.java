@@ -23,52 +23,52 @@ import static cn.hamm.airpower.exception.ServiceError.API_SERVICE_UNSUPPORTED;
 @AllArgsConstructor
 public enum Api implements IDictionary {
     /**
-     * <h3>添加</h3>
+     * 添加
      */
     Add(1, "添加", "add"),
 
     /**
-     * <h3>删除</h3>
+     * 删除
      */
     Delete(2, "删除", "delete"),
 
     /**
-     * <h3>禁用</h3>
+     * 禁用
      */
     Disable(3, "禁用", "disable"),
 
     /**
-     * <h3>启用</h3>
+     * 启用
      */
     Enable(4, "启用", "enable"),
 
     /**
-     * <h3>查询详情</h3>
+     * 查询详情
      */
     GetDetail(5, "查询详情", "getDetail"),
 
     /**
-     * <h3>列表查询</h3>
+     * 列表查询
      */
     GetList(6, "列表查询", "getList"),
 
     /**
-     * <h3>分页查询</h3>
+     * 分页查询
      */
     GetPage(7, "分页查询", "getPage"),
 
     /**
-     * <h3>修改</h3>
+     * 修改
      */
     Update(8, "修改", "update"),
 
     /**
-     * <h3>创建导出任务</h3>
+     * 创建导出任务
      */
     Export(9, "创建导出任务", "export"),
 
     /**
-     * <h3>查询异步导出结果</h3>
+     * 查询异步导出结果
      */
     QueryExport(10, "查询异步导出结果", "queryExport");
 
@@ -76,12 +76,12 @@ public enum Api implements IDictionary {
     private final String label;
 
     /**
-     * <h3>绑定方法的名称</h3>
+     * 绑定方法的名称
      */
     private final String methodName;
 
     /**
-     * <h3>检查接口是否可用</h3>
+     * 检查接口是否可用
      *
      * @param controller 控制器类
      * @param <T>        泛型

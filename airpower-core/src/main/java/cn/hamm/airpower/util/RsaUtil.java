@@ -17,7 +17,7 @@ import java.util.Base64;
 import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 
 /**
- * <h1>{@code RSA} 加解密工具类</h1>
+ * <h1>RSA 加解密工具类</h1>
  *
  * @author Hamm.cn
  */
@@ -25,36 +25,36 @@ import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 @Accessors(chain = true)
 public class RsaUtil {
     /**
-     * <h3>加密方式</h3>
+     * 加密方式
      */
     private static final String CRYPT_METHOD = "RSA";
 
     /**
-     * <h3>加密算法 {@code KEY} 长度</h3>
+     * 加密算法 KEY 长度
      */
     private final int CRYPT_KEY_SIZE = 2048;
 
     /**
-     * <h3>公钥</h3>
+     * 公钥
      */
     @Setter
     private String publicKey;
 
     /**
-     * <h3>私钥</h3>
+     * 私钥
      */
     @Setter
     private String privateKey;
 
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private RsaUtil() {
     }
 
     /**
-     * <h3>创建实例</h3>
+     * 创建实例
      *
      * @return 实例
      */
@@ -64,7 +64,7 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>获取一个公钥</h3>
+     * 获取一个公钥
      *
      * @param publicKeyString 公钥字符串
      * @return 公钥
@@ -77,7 +77,7 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>生成 {@code RSA} 密钥对</h3>
+     * 生成 RSA 密钥对
      *
      * @return {@code KeyPair}
      */
@@ -88,10 +88,10 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>将公钥转换为 {@code PEM} 格式</h3>
+     * 将公钥转换为 PEM 格式
      *
      * @param publicKey 公钥
-     * @return {@code PEM}
+     * @return PEM
      */
     public static @NotNull String convertPublicKeyToPem(@NotNull PublicKey publicKey) {
         String base64Encoded = Base64.getEncoder().encodeToString(publicKey.getEncoded());
@@ -101,10 +101,10 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>将私钥转换为 {@code PEM} 格式</h3>
+     * 将私钥转换为 PEM 格式
      *
      * @param privateKey 私钥
-     * @return {@code PEM}
+     * @return PEM
      */
     public static @NotNull String convertPrivateKeyToPem(@NotNull PrivateKey privateKey) {
         String base64Encoded = Base64.getEncoder().encodeToString(privateKey.getEncoded());
@@ -114,7 +114,7 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>将 {@code Base64} 编码的文本换行</h3>
+     * 将 {@code Base64} 编码的文本换行
      *
      * @param base64Text 原始 {@code Base64}
      * @return 换行后的
@@ -132,7 +132,7 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>获取一个私钥</h3>
+     * 获取一个私钥
      *
      * @param privateKeyString 私钥字符串
      * @return 私钥
@@ -146,7 +146,7 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>公钥加密</h3>
+     * 公钥加密
      *
      * @param sourceContent 原文
      * @return 密文
@@ -162,7 +162,7 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>私钥解密</h3>
+     * 私钥解密
      *
      * @param encryptedContent 密文
      * @return 原文
@@ -178,7 +178,7 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>私钥加密</h3>
+     * 私钥加密
      *
      * @param sourceContent 原文
      * @return 密文
@@ -194,7 +194,7 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>公钥解密</h3>
+     * 公钥解密
      *
      * @param encryptedContent 密文
      * @return 原文
@@ -210,7 +210,7 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>公私钥解密</h3>
+     * 公私钥解密
      *
      * @param encryptedContent 密文
      * @param key              公私钥
@@ -226,7 +226,7 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>公私钥加密</h3>
+     * 公私钥加密
      *
      * @param sourceContent 明文
      * @param key           公私钥
@@ -241,9 +241,9 @@ public class RsaUtil {
     }
 
     /**
-     * <h3>{@code RSA} 处理方法</h3>
+     * RSA 处理方法
      *
-     * @param cipher      {@code RSA} 实例
+     * @param cipher      RSA 实例
      * @param sourceBytes 加解密原始数据
      * @param blockSize   分片大小
      * @return 加解密结果

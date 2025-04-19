@@ -22,12 +22,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface Extends {
     /**
-     * <h3>排除父类接口但需要继承这些接口</h3>
+     * 排除父类接口但需要继承这些接口
      */
     Api[] value() default {};
 
     /**
-     * <h3>继承父类接口但排除这些接口</h3>
+     * 继承父类接口但排除这些接口
      */
     Api[] exclude() default {};
 }

@@ -27,16 +27,15 @@ import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 @Component
 @Slf4j
 public class ExportHelper {
-    private static final String EXPORT_DIR = "export";
     /**
-     * <h3>导出文件夹前缀</h3>
+     * 导出文件夹
      */
-    private static final String EXPORT_CACHE_PREFIX = EXPORT_DIR + "_";
+    private static final String EXPORT_DIR = "export";
 
     /**
-     * <h3>导出文件后缀</h3>
+     * 导出文件夹前缀
      */
-    private static final String EXPORT_FILE_CSV = "csv";
+    private static final String EXPORT_CACHE_PREFIX = EXPORT_DIR + "_";
 
     @Autowired
     private RedisHelper redisHelper;
@@ -45,7 +44,7 @@ public class ExportHelper {
     private ServiceConfig serviceConfig;
 
     /**
-     * <h3>创建异步任务</h3>
+     * 创建异步任务
      *
      * @param supplier 上报任务结果
      * @return 文件编码
@@ -63,10 +62,10 @@ public class ExportHelper {
     }
 
     /**
-     * <h3>获取导出文件URL</h3>
+     * 获取导出文件 URL
      *
      * @param fileCode 文件编码
-     * @return 文件URL
+     * @return 文件 URL
      */
     public final String getExportFileUrl(String fileCode) {
         Object object = redisHelper.get(EXPORT_CACHE_PREFIX + fileCode);
@@ -75,17 +74,17 @@ public class ExportHelper {
     }
 
     /**
-     * <h3>保存导出文件流为CSV</h3>
+     * 保存导出文件流为 CSV
      *
      * @param inputStream 文件流
      * @return 保存后的文件名
      */
     public final @NotNull String saveExportFileStream(InputStream inputStream) {
-        return saveExportFileStream(inputStream, EXPORT_FILE_CSV);
+        return saveExportFileStream(inputStream, "csv");
     }
 
     /**
-     * <h3>保存导出文件流为CSV</h3>
+     * 保存导出文件流为 CSV
      *
      * @param inputStream 文件流
      * @param extension   文件后缀

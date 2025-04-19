@@ -48,12 +48,12 @@ import static cn.hamm.airpower.exception.ServiceError.*;
 @Slf4j
 public class ExceptionInterceptor {
     /**
-     * <h3>错误信息和描述</h3>
+     * 错误信息和描述
      */
     private static final String MESSAGE_AND_DESCRIPTION = "%s (%s)";
 
     /**
-     * <h3>参数验证失败</h3>
+     * 参数验证失败
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Json badRequestHandle(@NotNull MethodArgumentNotValidException exception) {
@@ -74,7 +74,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>参数校验失败</h3>
+     * 参数校验失败
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public Json badRequestHandle(@NotNull ConstraintViolationException exception) {
@@ -88,7 +88,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>删除时的数据关联校验异常</h3>
+     * 删除时的数据关联校验异常
      */
     @ExceptionHandler({SQLIntegrityConstraintViolationException.class, DataIntegrityViolationException.class})
     public Json deleteUsingDataException(@NotNull Exception exception) {
@@ -97,7 +97,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>访问的接口没有实现</h3>
+     * 访问的接口没有实现
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     public Json notFoundHandle(@NotNull NoHandlerFoundException exception) {
@@ -106,7 +106,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>请求的数据不是标准 {@code JSON}</h3>
+     * 请求的数据不是标准 JSON
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public Json dataExceptionHandle(@NotNull HttpMessageNotReadableException exception) {
@@ -116,7 +116,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>不支持的请求方法</h3>
+     * 不支持的请求方法
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public Json methodExceptionHandle(@NotNull HttpRequestMethodNotSupportedException exception) {
@@ -128,7 +128,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>不支持的文件上传</h3>
+     * 不支持的文件上传
      */
     @ExceptionHandler(MultipartException.class)
     public Json multipartExceptionHandle(@NotNull MultipartException exception) {
@@ -137,7 +137,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>未选择上传文件</h3>
+     * 未选择上传文件
      */
     @ExceptionHandler(MissingServletRequestPartException.class)
     public Json missingServletRequestPartExceptionHandle(@NotNull MissingServletRequestPartException exception) {
@@ -149,7 +149,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>未提交必要参数</h3>
+     * 未提交必要参数
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public Json missingServletRequestParameterExceptionHandle(@NotNull MissingServletRequestParameterException exception) {
@@ -161,7 +161,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>不支持的数据类型</h3>
+     * 不支持的数据类型
      */
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public Json httpMediaTypeNotSupportedExceptionHandle(@NotNull HttpMediaTypeNotSupportedException exception) {
@@ -173,7 +173,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>数据库连接发生错误</h3>
+     * 数据库连接发生错误
      */
     @ExceptionHandler(CannotCreateTransactionException.class)
     public Json databaseExceptionHandle(@NotNull CannotCreateTransactionException exception) {
@@ -182,7 +182,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>{@code Redis} 连接发生错误</h3>
+     * Redis 连接发生错误
      */
     @ExceptionHandler(RedisConnectionFailureException.class)
     public Json redisExceptionHandle(@NotNull RedisConnectionFailureException exception) {
@@ -191,7 +191,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>系统自定义异常</h3>
+     * 系统自定义异常
      */
     @ExceptionHandler(ServiceException.class)
     public Json systemExceptionHandle(@NotNull ServiceException exception) {
@@ -200,7 +200,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>数据字段不存在</h3>
+     * 数据字段不存在
      */
     @ExceptionHandler(value = PropertyReferenceException.class)
     public Json propertyReferenceExceptionHandle(@NotNull PropertyReferenceException exception) {
@@ -211,7 +211,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>数据表或字段异常</h3>
+     * 数据表或字段异常
      */
     @ExceptionHandler(value = InvalidDataAccessResourceUsageException.class)
     public Json invalidDataAccessResourceUsageExceptionHandle(
@@ -222,7 +222,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>数据表或字段异常</h3>
+     * 数据表或字段异常
      */
     @ExceptionHandler(value = MaxUploadSizeExceededException.class)
     public Json maxUploadSizeExceededExceptionHandle(@NotNull MaxUploadSizeExceededException exception) {
@@ -231,7 +231,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>其他异常</h3>
+     * 其他异常
      */
     @ExceptionHandler(value = {Exception.class, RuntimeException.class})
     public Object otherExceptionHandle(@NotNull Exception exception) {
@@ -240,7 +240,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>记录异常信息</h3>
+     * 记录异常信息
      *
      * @param exception 异常
      */
@@ -253,7 +253,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>返回错误信息</h3>
+     * 返回错误信息
      *
      * @param serviceError 错误信息
      * @return Json
@@ -263,7 +263,7 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * <h3>返回错误信息</h3>
+     * 返回错误信息
      *
      * @param serviceError 错误信息
      * @param message      错误信息

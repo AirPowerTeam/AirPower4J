@@ -21,27 +21,27 @@ import static cn.hamm.airpower.enums.DateTimeFormatter.FULL_DATE;
 @Slf4j
 public class FileUtil {
     /**
-     * <h3>文件大小进制</h3>
+     * 文件大小进制
      */
     public static final long FILE_SCALE = 1024L;
 
     /**
-     * <h3>文件单位</h3>
+     * 文件单位
      */
     public static final String[] UNITS = {"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
 
     /**
-     * <h3>文件名分隔符</h3>
+     * 文件名分隔符
      */
     public static final String EXTENSION_SEPARATOR = ".";
 
     /**
-     * <h3>未知文件大小</h3>
+     * 未知文件大小
      */
     private static final String UNKNOWN_FILE_SIZE = "-";
 
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private FileUtil() {
@@ -49,7 +49,7 @@ public class FileUtil {
     }
 
     /**
-     * <h3>获取文件名后缀</h3>
+     * 获取文件名后缀
      *
      * @param fileName 文件名
      * @return 后缀
@@ -59,7 +59,7 @@ public class FileUtil {
     }
 
     /**
-     * <h3>格式化文件大小</h3>
+     * 格式化文件大小
      *
      * @param size 文件大小
      * @return 格式化后的文件大小
@@ -81,7 +81,7 @@ public class FileUtil {
     }
 
     /**
-     * <h3>创建文件夹</h3>
+     * 创建文件夹
      *
      * @param pathString 文件夹路径
      */
@@ -98,7 +98,7 @@ public class FileUtil {
     }
 
     /**
-     * <h3>获取今日文件夹</h3>
+     * 获取今日文件夹
      *
      * @param directory 文件夹路径
      * @return 今日文件夹路径
@@ -110,7 +110,7 @@ public class FileUtil {
     }
 
     /**
-     * <h3>格式化文件夹</h3>
+     * 格式化文件夹
      *
      * @param directory 文件夹
      * @return 格式化后的文件夹
@@ -124,7 +124,7 @@ public class FileUtil {
     }
 
     /**
-     * <h3>保存文件</h3>
+     * 保存文件
      *
      * @param absoluteDirectory 目录绝对路径
      * @param fileName          文件名

@@ -22,7 +22,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface Description {
     /**
-     * <h3>描述文案</h3>
+     * 描述文案
      *
      * @apiNote 将显示在错误信息、验证信息、文档等处
      */

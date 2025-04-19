@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import static cn.hamm.airpower.websocket.WebSocketSupport.NO;
 
 /**
- * <h1>{@code WebSocket} 配置</h1>
+ * <h1>WebSocket 配置</h1>
  *
  * @author Hamm
  */
@@ -21,32 +21,32 @@ import static cn.hamm.airpower.websocket.WebSocketSupport.NO;
 @ConfigurationProperties("airpower.websocket")
 public class WebSocketConfig {
     /**
-     * <h3>{@code PING}</h3>
+     * PING
      */
     private String ping = "PING";
 
     /**
-     * <h3>{@code PONG}</h3>
+     * PONG
      */
     private String pong = "PONG";
 
     /**
-     * <h3>{@code WebSocket} 路径</h3>
+     * WebSocket 路径
      */
     private String path = "/websocket";
 
     /**
-     * <h3>{@code WebSocket} 支持方式</h3>
+     * WebSocket 支持方式
      */
     private WebSocketSupport support = NO;
 
     /**
-     * <h3>发布订阅的频道前缀</h3>
+     * 发布订阅的频道前缀
      */
     private String channelPrefix;
 
     /**
-     * <h3>{@code WebSocket} 允许的跨域</h3>
+     * WebSocket 允许的跨域
      */
     private String allowedOrigins = "*";
 }

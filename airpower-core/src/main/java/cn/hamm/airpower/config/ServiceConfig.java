@@ -22,42 +22,42 @@ import static cn.hamm.airpower.root.RootEntity.STRING_CREATE_TIME;
 @ConfigurationProperties("airpower")
 public class ServiceConfig {
     /**
-     * <h3>{@code AccessToken} 的密钥</h3>
+     * {@code AccessToken} 的密钥
      */
     private String accessTokenSecret;
 
     /**
-     * <h3>默认分页条数</h3>
+     * 默认分页条数
      */
     private int defaultPageSize = 20;
 
     /**
-     * <h3>服务全局拦截</h3>
+     * 服务全局拦截
      */
     private boolean isServiceRunning = true;
 
     /**
-     * <h3>缓存过期时间</h3>
+     * 缓存过期时间
      */
     private int cacheExpireSecond = DateTimeUtil.SECOND_PER_MINUTE;
 
     /**
-     * <h3>默认排序字段</h3>
+     * 默认排序字段
      */
     private String defaultSortField = STRING_CREATE_TIME;
 
     /**
-     * <h3>身份令牌 {@code header} 的 {@code key}</h3>
+     * 身份令牌 header 的 key
      */
     private String authorizeHeader = HttpHeaders.AUTHORIZATION;
 
     /**
-     * <h3>身份令牌有效期</h3>
+     * 身份令牌有效期
      */
     private long authorizeExpireSecond = DateTimeUtil.SECOND_PER_DAY;
 
     /**
-     * <h3>生成文件的目录</h3>
+     * 生成文件的目录
      */
     private String saveFilePath = "";
 }

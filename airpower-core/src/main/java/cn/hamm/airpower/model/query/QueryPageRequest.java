@@ -17,7 +17,7 @@ import lombok.EqualsAndHashCode;
 @Description("查询分页请求")
 public class QueryPageRequest<M extends RootModel<M>> extends QueryListRequest<M> {
     /**
-     * <h3>分页信息</h3>
+     * 分页信息
      */
     @Description("分页信息")
     private Page page = new Page();

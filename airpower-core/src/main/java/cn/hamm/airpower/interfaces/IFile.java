@@ -7,16 +7,16 @@ package cn.hamm.airpower.interfaces;
  */
 public interface IFile<E extends IFile<E>> extends IEntity<E> {
     /**
-     * <h3>获取文件的 {@code URL}</h3>
+     * 获取文件的 URL
      *
-     * @return {@code URL}
+     * @return URL
      */
     String getUrl();
 
     /**
-     * <h3>设置文件的 {@code URL}</h3>
+     * 设置文件的 URL
      *
-     * @param url {@code URL}
+     * @param url URL
      * @return 实体
      */
     E setUrl(String url);

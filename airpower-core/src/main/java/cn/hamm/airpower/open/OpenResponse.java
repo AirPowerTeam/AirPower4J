@@ -12,13 +12,13 @@ import java.util.Objects;
 import static cn.hamm.airpower.exception.ServiceError.ENCRYPT_DATA_FAIL;
 
 /**
- * <h1>{@code OpenApi} 响应对象</h1>
+ * <h1>Open API 响应对象</h1>
  *
  * @author Hamm.cn
  */
 public class OpenResponse {
     /**
-     * <h3>加密响应数据</h3>
+     * 加密响应数据
      *
      * @param openApp 应用
      * @param data    数据

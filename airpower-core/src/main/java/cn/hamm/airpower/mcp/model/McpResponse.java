@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 /**
- * <h1>MCP响应</h1>
+ * <h1>MCP 响应</h1>
  *
  * @author Hamm.cn
  */
@@ -21,33 +21,33 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_NULL)
 public class McpResponse extends McpJson {
     /**
-     * <h3>结果</h3>
+     * 结果
      */
     private Object result;
 
     /**
-     * <h3>错误</h3>
+     * 错误
      */
     private McpError error;
 
     /**
-     * <h3>错误</h3>
+     * 错误
      */
     @Data
     @Accessors(chain = true)
     public static class McpError {
         /**
-         * <h3>错误码</h3>
+         * 错误码
          */
         private Integer code;
 
         /**
-         * <h3>错误信息</h3>
+         * 错误信息
          */
         private String message;
 
         /**
-         * <h3>构造函数</h3>
+         * 构造函数
          *
          * @param exception 异常
          */

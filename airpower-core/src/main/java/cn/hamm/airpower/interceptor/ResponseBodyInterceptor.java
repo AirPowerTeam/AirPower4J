@@ -38,7 +38,7 @@ import static cn.hamm.airpower.interceptor.AbstractRequestInterceptor.REQUEST_ME
 @Slf4j
 public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
     /**
-     * <h3>是否支持</h3>
+     * 是否支持
      *
      * @param returnType    请求方法
      * @param converterType 转换器
@@ -53,7 +53,7 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
     }
 
     /**
-     * <h3>响应结果处理前置</h3>
+     * 响应结果处理前置
      *
      * @param body                  输出数据
      * @param returnType            请求方法
@@ -80,7 +80,7 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
     }
 
     /**
-     * <h3>获取响应结果</h3>
+     * 获取响应结果
      *
      * @param result 响应结果
      * @param method 请求的方法
@@ -135,11 +135,11 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
     }
 
     /**
-     * <h3>响应结束前置方法</h3>
+     * 响应结束前置方法
      *
      * @param body 响应体
      * @return 响应体
-     * @apiNote 如无其他操作，请直接返回{@code body}参数即可
+     * @apiNote 如无其他操作，请直接返回 body 参数即可
      */
     @SuppressWarnings("unused")
     protected Object beforeResponseFinished(Object body, ServerHttpRequest request, ServerHttpResponse response) {
@@ -147,7 +147,7 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
     }
 
     /**
-     * <h3>获取共享数据</h3>
+     * 获取共享数据
      *
      * @param key KEY
      * @return VALUE

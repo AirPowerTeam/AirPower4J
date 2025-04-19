@@ -19,47 +19,47 @@ import static cn.hamm.airpower.enums.DateTimeFormatter.FULL_DATETIME;
 @Slf4j
 public class DateTimeUtil {
     /**
-     * <h3>一天 {@code 24} 小时</h3>
+     * 一天 {@code 24} 小时
      */
     public static final int HOUR_PER_DAY = 24;
 
     /**
-     * <h3>毫秒转秒</h3>
+     * 毫秒转秒
      */
     public static final int MILLISECONDS_PER_SECOND = 1000;
 
     /**
-     * <h3>一年 {@code 365} 天</h3>
+     * 一年 {@code 365} 天
      */
     public static final int DAY_PER_YEAR = 365;
 
     /**
-     * <h3>一个月 {@code 30} 天</h3>
+     * 一个月 {@code 30} 天
      */
     public static final int DAY_PER_MONTH = 30;
 
     /**
-     * <h3>一周 {@code 7} 天</h3>
+     * 一周 {@code 7} 天
      */
     public static final int DAY_PER_WEEK = 7;
 
     /**
-     * <h3>一分钟 {@code 60} 秒</h3>
+     * 一分钟 {@code 60} 秒
      */
     public static final int SECOND_PER_MINUTE = 60;
 
     /**
-     * <h3>一小时的秒数</h3>
+     * 一小时的秒数
      */
     public static final int SECOND_PER_HOUR = SECOND_PER_MINUTE * SECOND_PER_MINUTE;
 
     /**
-     * <h3>一天的秒数</h3>
+     * 一天的秒数
      */
     public static final int SECOND_PER_DAY = SECOND_PER_HOUR * HOUR_PER_DAY;
 
     /**
-     * <h3>时间步长</h3>
+     * 时间步长
      */
     private static final long[] STEP_SECONDS = {
             0,
@@ -71,12 +71,12 @@ public class DateTimeUtil {
             SECOND_PER_DAY * DAY_PER_YEAR
     };
     /**
-     * <h3>默认时区</h3>
+     * 默认时区
      */
     private static final String ASIA_CHONGQING = "Asia/Chongqing";
 
     /**
-     * <h3>时间步长标签</h3>
+     * 时间步长标签
      */
     private static final String[] STEP_LABELS = {
             "秒",
@@ -89,14 +89,14 @@ public class DateTimeUtil {
     };
 
     /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private DateTimeUtil() {
     }
 
     /**
-     * <h3>格式化时间</h3>
+     * 格式化时间
      *
      * @param milliSecond 毫秒
      * @return 格式化后的时间
@@ -106,7 +106,7 @@ public class DateTimeUtil {
     }
 
     /**
-     * <h3>格式化时间</h3>
+     * 格式化时间
      *
      * @param milliSecond 毫秒
      * @param formatter   格式化模板
@@ -117,7 +117,7 @@ public class DateTimeUtil {
     }
 
     /**
-     * <h3>格式化时间</h3>
+     * 格式化时间
      *
      * @param milliSecond 毫秒
      * @param formatter   格式化模板
@@ -128,7 +128,7 @@ public class DateTimeUtil {
     }
 
     /**
-     * <h3>格式化时间</h3>
+     * 格式化时间
      *
      * @param milliSecond 毫秒
      * @param formatter   格式化模板
@@ -142,7 +142,7 @@ public class DateTimeUtil {
     }
 
     /**
-     * <h3>友好格式化时间</h3>
+     * 友好格式化时间
      *
      * @param milliSecond 毫秒时间戳
      * @return 友好格式化后的时间
@@ -153,7 +153,7 @@ public class DateTimeUtil {
     }
 
     /**
-     * <h3>友好格式化时间</h3>
+     * 友好格式化时间
      *
      * @param second {@code Unix}秒时间戳
      * @return 友好格式化后的时间

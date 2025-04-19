@@ -26,7 +26,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Slf4j
 public class RequestCacheFilter implements Filter {
     /**
-     * <h3>过滤器</h3>
+     * 过滤器
      *
      * @param servletRequest  请求
      * @param servletResponse 响应
@@ -54,7 +54,7 @@ public class RequestCacheFilter implements Filter {
     }
 
     /**
-     * <h3>判断是否需要缓存</h3>
+     * 判断是否需要缓存
      *
      * @param request 请求
      * @return 是否需要缓存

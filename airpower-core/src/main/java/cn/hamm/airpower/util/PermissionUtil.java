@@ -38,17 +38,12 @@ import static org.springframework.core.io.support.ResourcePatternResolver.CLASSP
 @Slf4j
 public class PermissionUtil {
     /**
-     * <h3>控制器后缀 {@code Controller}</h3>
+     * {@code Controller}
      */
     private static final String CONTROLLER = "Controller";
 
     /**
-     * <h3>控制器字节码文件路径</h3>
-     */
-    private static final String CONTROLLER_CLASS_PATH = "/**/*" + CONTROLLER + ".class";
-
-    /**
-     * <h3>禁止外部实例化</h3>
+     * 禁止外部实例化
      */
     @Contract(pure = true)
     private PermissionUtil() {
@@ -56,7 +51,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>获取需要被授权的类型</h3>
+     * 获取需要被授权的类型
      *
      * @param clazz  类
      * @param method 方法
@@ -86,7 +81,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>获取权限标识</h3>
+     * 获取权限标识
      *
      * @param clazz  类
      * @param method 方法
@@ -99,7 +94,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>扫描并返回权限列表</h3>
+     * 扫描并返回权限列表
      *
      * @param clazz           入口类
      * @param permissionClass 权限类
@@ -113,7 +108,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>扫描并返回权限列表</h3>
+     * 扫描并返回权限列表
      *
      * @param packageName     包名
      * @param permissionClass 权限类
@@ -127,7 +122,7 @@ public class PermissionUtil {
         try {
             ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
             String pattern = CLASSPATH_ALL_URL_PREFIX +
-                    ClassUtils.convertClassNameToResourcePath(packageName) + CONTROLLER_CLASS_PATH;
+                    ClassUtils.convertClassNameToResourcePath(packageName) + "/**/*" + CONTROLLER + ".class";
             Resource[] resources = resourcePatternResolver.getResources(pattern);
             MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory(resourcePatternResolver);
 
@@ -191,7 +186,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>检查Api是否在子控制器中被排除</h3>
+     * 检查Api是否在子控制器中被排除
      *
      * @param api    Api
      * @param extend 注解
@@ -210,7 +205,7 @@ public class PermissionUtil {
     }
 
     /**
-     * <h3>获取方法权限标识</h3>
+     * 获取方法权限标识
      *
      * @param method 方法
      * @return 权限标识

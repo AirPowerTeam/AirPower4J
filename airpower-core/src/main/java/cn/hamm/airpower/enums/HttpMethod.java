@@ -1,28 +1,33 @@
 package cn.hamm.airpower.enums;
 
 /**
- * <h1>{@code HTTP} 请求方式</h1>
+ * <h1>HTTP 请求方式</h1>
  *
  * @author Hamm.cn
  */
 public enum HttpMethod {
     /**
-     * <h3>{@code GET}</h3>
+     * GET
      */
     GET,
 
     /**
-     * <h3>{@code POST}</h3>
+     * POST
      */
     POST,
 
     /**
-     * <h3>{@code PUT}</h3>
+     * PUT
      */
     PUT,
 
     /**
-     * <h3>{@code DELETE}</h3>
+     * DELETE
      */
     DELETE,
+
+    /**
+     * PATCH
+     */
+    PATCH,
 }

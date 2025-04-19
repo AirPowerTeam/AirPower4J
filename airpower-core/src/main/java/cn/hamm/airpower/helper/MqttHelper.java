@@ -1,6 +1,5 @@
 package cn.hamm.airpower.helper;
 
-import cn.hamm.airpower.config.Constant;
 import cn.hamm.airpower.config.MqttConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.*;
@@ -41,7 +40,7 @@ public class MqttHelper {
      */
     public @NotNull MqttClient createClient(String id) throws MqttException {
         return new MqttClient(
-                "tcp://" + mqttConfig.getHost() + Constant.STRING_COLON + mqttConfig.getPort(),
+                "tcp://" + mqttConfig.getHost() + ":" + mqttConfig.getPort(),
                 id,
                 new MemoryPersistence()
         );

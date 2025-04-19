@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static cn.hamm.airpower.config.Constant.STRING_COMMA;
-import static cn.hamm.airpower.config.Constant.STRING_UNKNOWN;
 import static cn.hamm.airpower.exception.ServiceError.FORBIDDEN;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
@@ -27,6 +26,11 @@ public class RequestUtil {
      * <h3>本机 {@code IP} 地址</h3>
      */
     public static final String LOCAL_IP_ADDRESS = "127.0.0.1";
+
+    /**
+     * <h3>{@code unknown}</h3>
+     */
+    public static final String STRING_UNKNOWN = "unknown";
 
     /**
      * <h3>获取IP地址异常</h3>

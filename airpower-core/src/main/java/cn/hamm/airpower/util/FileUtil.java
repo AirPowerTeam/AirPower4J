@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 
-import static cn.hamm.airpower.config.Constant.*;
 import static cn.hamm.airpower.enums.DateTimeFormatter.FULL_DATE;
 
 /**
@@ -32,6 +31,16 @@ public class FileUtil {
     public static final String[] UNITS = {"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
 
     /**
+     * <h3>文件名分隔符</h3>
+     */
+    public static final String EXTENSION_SEPARATOR = ".";
+
+    /**
+     * <h3>未知文件大小</h3>
+     */
+    private static final String UNKNOWN_FILE_SIZE = "-";
+
+    /**
      * <h3>禁止外部实例化</h3>
      */
     @Contract(pure = true)
@@ -46,7 +55,7 @@ public class FileUtil {
      * @return 后缀
      */
     public static @NotNull String getExtension(@NotNull String fileName) {
-        return fileName.substring(fileName.lastIndexOf(STRING_DOT) + 1).toLowerCase();
+        return fileName.substring(fileName.lastIndexOf(EXTENSION_SEPARATOR) + 1).toLowerCase();
     }
 
     /**
@@ -58,7 +67,7 @@ public class FileUtil {
     public static String formatSize(long size) {
         if (size <= 0) {
             log.error("错误的文件大小: {}", size);
-            return STRING_LINE;
+            return UNKNOWN_FILE_SIZE;
         }
         double fileSize = size;
         DecimalFormat decimalFormat = new DecimalFormat("#.00");
@@ -68,7 +77,7 @@ public class FileUtil {
             }
             fileSize /= FILE_SCALE;
         }
-        return STRING_LINE;
+        return UNKNOWN_FILE_SIZE;
     }
 
     /**
@@ -95,7 +104,7 @@ public class FileUtil {
      * @return 今日文件夹路径
      */
     public static @NotNull String getTodayDirectory(String directory) {
-        String todayDirectory = FULL_DATE.formatCurrent().replaceAll(STRING_LINE, STRING_EMPTY);
+        String todayDirectory = FULL_DATE.formatCurrent().replaceAll("-", "");
         directory = formatDirectory(directory);
         return directory + todayDirectory + File.separator;
     }

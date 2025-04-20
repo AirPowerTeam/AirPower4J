@@ -1,10 +1,11 @@
 package cn.hamm.airpower.interceptor;
 
-import cn.hamm.airpower.config.ServiceConfig;
-import cn.hamm.airpower.model.Access;
-import cn.hamm.airpower.util.AccessTokenUtil;
-import cn.hamm.airpower.util.PermissionUtil;
-import cn.hamm.airpower.util.RequestUtil;
+import cn.hamm.airpower.ServiceConfig;
+import cn.hamm.airpower.access.Access;
+import cn.hamm.airpower.access.AccessConfig;
+import cn.hamm.airpower.access.AccessTokenUtil;
+import cn.hamm.airpower.access.PermissionUtil;
+import cn.hamm.airpower.request.RequestUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,9 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
 
     @Autowired
     protected ServiceConfig serviceConfig;
+
+    @Autowired
+    protected AccessConfig accessConfig;
 
     /**
      * 拦截器
@@ -90,10 +94,10 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
             return;
         }
         //需要登录
-        String accessToken = request.getHeader(serviceConfig.getAuthorizeHeader());
+        String accessToken = request.getHeader(accessConfig.getAuthorizeHeader());
 
         // 优先使用 Get 参数传入的身份
-        String accessTokenFromParam = request.getParameter(serviceConfig.getAuthorizeHeader());
+        String accessTokenFromParam = request.getParameter(accessConfig.getAuthorizeHeader());
         if (StringUtils.hasText(accessTokenFromParam)) {
             accessToken = accessTokenFromParam;
         }
@@ -116,7 +120,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
      * @apiNote 如需前置验证令牌，可重写此方法
      */
     public AccessTokenUtil.VerifiedToken getVerifiedToken(String accessToken) {
-        return AccessTokenUtil.create().verify(accessToken, serviceConfig.getAccessTokenSecret());
+        return AccessTokenUtil.create().verify(accessToken, accessConfig.getAccessTokenSecret());
     }
 
     /**

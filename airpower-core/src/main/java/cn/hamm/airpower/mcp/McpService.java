@@ -6,7 +6,7 @@ import cn.hamm.airpower.mcp.method.McpMethod;
 import cn.hamm.airpower.mcp.method.McpMethods;
 import cn.hamm.airpower.mcp.method.McpOptional;
 import cn.hamm.airpower.mcp.model.*;
-import cn.hamm.airpower.util.ReflectUtil;
+import cn.hamm.airpower.reflect.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;

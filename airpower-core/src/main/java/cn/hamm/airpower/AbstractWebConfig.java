@@ -1,8 +1,8 @@
 package cn.hamm.airpower;
 
-import cn.hamm.airpower.config.WebSocketConfig;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.interceptor.cache.RequestCacheFilter;
+import cn.hamm.airpower.websocket.WebSocketConfig;
 import cn.hamm.airpower.websocket.WebSocketHandler;
 import cn.hamm.airpower.websocket.WebSocketSupport;
 import org.jetbrains.annotations.NotNull;

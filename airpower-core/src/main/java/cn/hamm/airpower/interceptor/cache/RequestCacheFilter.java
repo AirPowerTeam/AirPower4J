@@ -1,6 +1,6 @@
 package cn.hamm.airpower.interceptor.cache;
 
-import cn.hamm.airpower.util.RequestUtil;
+import cn.hamm.airpower.request.RequestUtil;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;

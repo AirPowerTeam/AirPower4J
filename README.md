@@ -57,9 +57,9 @@
 
 我们提供了一系列的注解：
 
-#### 3.1 ``@ApiController``
+#### 3.1 ``@Api``
 
-标记为控制器方法，等同于 `@RequestMapping` + `@RestController` 的整合。
+标记为 API 控制器方法，等同于 `@RequestMapping` + `@RestController` 的整合。
 
 #### 3.2 `@Description`
 
@@ -97,23 +97,27 @@
 
 枚举字典需要实现 `IDictionary` 接口，即可使用 `3.9` 中的注解对属性进行标记，会自动进行判断和翻译。
 
-### 5. `Root` 系类超类
+### 5. `RootModel` 超类模型
 
 所有参与API数据交互的部分都需要继承 `RootModel`, 一切需要入库的数据都需要继承 `RootEntity`。
 
-所有控制器均需要继承 `RootController`，其中，如果是数据库相关的控制器，需要继承 `RootEntityController`。
+### 6. `API` 控制器超类 和 `CURD` 控制器
 
-### 6. 自定义异常
+所有控制器均需要继承 `ApiController`，其中，如果是数据库相关的控制器，需要继承 `CurdController`。
+
+同时，如果是 `Curd` 相关业务的业务，可以继承和实现 `CurdService` 和 `ICurdRepository`
+
+### 7. 自定义异常
 
 自定义异常需要实现 `IException` 接口，即可使用异常的快捷抛出等方法。
 
-### 7. 标准树
+### 8. 标准树
 
 实现了 `ITree` 的类都可实现标准的树结构，可使用 `TreeUtil` 的一系列方法。
 
-### 8. 系统配置
+### 9. 系统配置
 
-`ServiceConfig`、`CookieConfig`、`WebSocketConfig` 等可以保存一些基础的服务配置，可通过环境变量注入。
+所有的服务配置都可通过环境变量注入，只需要在配置文件 `application-xxx.yml` 中根配置 `airpower.` 就可以全看到啦。
 
 ### 9. `Utils`
 

@@ -1,6 +1,5 @@
 package cn.hamm.airpower.validate;
 
-import cn.hamm.airpower.util.ValidateUtil;
 import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

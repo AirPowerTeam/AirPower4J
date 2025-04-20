@@ -1,6 +1,6 @@
 package cn.hamm.airpower.annotation;
 
-import cn.hamm.airpower.util.ReflectUtil;
+import cn.hamm.airpower.reflect.ReflectUtil;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;

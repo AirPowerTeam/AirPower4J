@@ -1,11 +1,11 @@
 package cn.hamm.airpower.websocket;
 
-import cn.hamm.airpower.config.ServiceConfig;
-import cn.hamm.airpower.config.WebSocketConfig;
+import cn.hamm.airpower.ServiceConfig;
+import cn.hamm.airpower.access.AccessConfig;
+import cn.hamm.airpower.access.AccessTokenUtil;
+import cn.hamm.airpower.api.Json;
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.helper.MqttHelper;
-import cn.hamm.airpower.model.Json;
-import cn.hamm.airpower.util.AccessTokenUtil;
+import cn.hamm.airpower.mqtt.MqttHelper;
 import cn.hamm.airpower.util.TaskUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.*;
@@ -78,6 +78,8 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
 
     @Autowired
     private ServiceConfig serviceConfig;
+    @Autowired
+    private AccessConfig accessConfig;
 
     /**
      * 收到 Websocket 消息时
@@ -141,7 +143,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             return;
         }
         AccessTokenUtil.VerifiedToken verifiedToken = AccessTokenUtil.create()
-                .verify(accessToken, serviceConfig.getAccessTokenSecret());
+                .verify(accessToken, accessConfig.getAccessTokenSecret());
         long userId = verifiedToken.getPayloadId();
         switch (webSocketConfig.getSupport()) {
             case REDIS -> startRedisListener(session, userId);

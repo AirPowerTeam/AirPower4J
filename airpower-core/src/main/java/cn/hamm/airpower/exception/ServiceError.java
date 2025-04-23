@@ -1,6 +1,6 @@
 package cn.hamm.airpower.exception;
 
-import cn.hamm.airpower.interfaces.IDictionary;
+import cn.hamm.airpower.dictionary.IDictionary;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
@@ -80,7 +80,7 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
     private String message;
 
     /**
-     * <h3>设置错误信息</h3>
+     * 设置错误信息
      *
      * @param message 错误信息
      * @return 当前异常
@@ -111,6 +111,6 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
     @Contract(" -> new")
     @Override
     public @NotNull ServiceException get() {
-        return new ServiceException(this);
+        return new ServiceException();
     }
 }

@@ -20,26 +20,26 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface Search {
     /**
-     * <h3>搜索方式</h3>
+     * 搜索方式
      */
     Mode value() default LIKE;
 
     /**
-     * <h3>搜索类型</h3>
+     * 搜索类型
      */
     enum Mode {
         /**
-         * <h3>相等</h3>
+         * 相等
          */
         EQUALS,
 
         /**
-         * <h3>字符串模糊匹配</h3>
+         * 字符串模糊匹配
          */
         LIKE,
 
         /**
-         * <h3>{@code JOIN} 查询</h3>
+         * {@code JOIN} 查询
          */
         JOIN,
     }

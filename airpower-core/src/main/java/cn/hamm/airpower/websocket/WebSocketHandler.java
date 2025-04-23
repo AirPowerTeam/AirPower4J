@@ -1,11 +1,11 @@
 package cn.hamm.airpower.websocket;
 
-import cn.hamm.airpower.config.ServiceConfig;
-import cn.hamm.airpower.config.WebSocketConfig;
+import cn.hamm.airpower.ServiceConfig;
+import cn.hamm.airpower.access.AccessConfig;
+import cn.hamm.airpower.access.AccessTokenUtil;
+import cn.hamm.airpower.api.Json;
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.helper.MqttHelper;
-import cn.hamm.airpower.model.Json;
-import cn.hamm.airpower.util.AccessTokenUtil;
+import cn.hamm.airpower.mqtt.MqttHelper;
 import cn.hamm.airpower.util.TaskUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.*;
@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static cn.hamm.airpower.config.Constant.STRING_UNDERLINE;
 import static cn.hamm.airpower.exception.ServiceError.WEBSOCKET_ERROR;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -38,36 +37,38 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Slf4j
 public class WebSocketHandler extends TextWebSocketHandler implements MessageListener {
     /**
-     * <h3>订阅全频道</h3>
-     */
-    public static final String CHANNEL_ALL = "WEBSOCKET_ALL";
-
-    /**
-     * <h3>订阅用户频道前缀</h3>
+     * 订阅用户频道前缀
      */
     public static final String CHANNEL_USER_PREFIX = "WEBSOCKET_USER_";
 
     /**
-     * <h3>{@code Redis} 连接列表</h3>
+     * 订阅全频道
+     */
+    public static final String CHANNEL_ALL = "WEBSOCKET_ALL";
+
+    /**
+     * Redis 连接列表
      */
     protected final ConcurrentHashMap<String, RedisConnection> redisConnectionHashMap = new ConcurrentHashMap<>();
 
     /**
-     * <h3>{@code MQTT} 客户端列表</h3>
+     * MQTT 客户端列表
      */
     protected final ConcurrentHashMap<String, MqttClient> mqttClientHashMap = new ConcurrentHashMap<>();
 
     /**
-     * <h3>用户 {@code ID} 列表</h3>
+     * 用户 ID 列表
      */
     protected final ConcurrentHashMap<String, Long> userIdHashMap = new ConcurrentHashMap<>();
+
     /**
-     * <h3>{@code WebSocket}配置</h3>
+     * WebSocket 配置
      */
     @Autowired
     protected WebSocketConfig webSocketConfig;
+
     /**
-     * <h3>{@code Redis} 连接工厂</h3>
+     * Redis 连接工厂
      */
     @Autowired
     protected RedisConnectionFactory redisConnectionFactory;
@@ -77,9 +78,11 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
 
     @Autowired
     private ServiceConfig serviceConfig;
+    @Autowired
+    private AccessConfig accessConfig;
 
     /**
-     * <h3>收到 {@code Websocket} 消息时</h3>
+     * 收到 Websocket 消息时
      *
      * @param session     会话
      * @param textMessage 文本消息
@@ -91,7 +94,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             try {
                 session.sendMessage(new TextMessage(webSocketConfig.getPong()));
             } catch (Exception e) {
-                log.error("发送Websocket消息失败: {}", e.getMessage());
+                log.error("发送 Websocket 消息失败: {}", e.getMessage());
             }
             return;
         }
@@ -100,7 +103,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>发送 {@code Websocket} 事件负载</h3>
+     * 发送 {@code } 事件负载
      *
      * @param session          会话
      * @param webSocketPayload 事件负载
@@ -115,7 +118,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>当 {@code WebSocket} 负载到达时</h3>
+     * 当 WebSocket 负载到达时
      *
      * @param webSocketPayload 负载对象
      */
@@ -124,7 +127,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>连接就绪后监听队列</h3>
+     * 连接就绪后监听队列
      *
      * @param session 会话
      */
@@ -140,7 +143,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             return;
         }
         AccessTokenUtil.VerifiedToken verifiedToken = AccessTokenUtil.create()
-                .verify(accessToken, serviceConfig.getAccessTokenSecret());
+                .verify(accessToken, accessConfig.getAccessTokenSecret());
         long userId = verifiedToken.getPayloadId();
         switch (webSocketConfig.getSupport()) {
             case REDIS -> startRedisListener(session, userId);
@@ -154,16 +157,17 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>连接成功后置方法</h3>
+     * 连接成功后置方法
      *
      * @param session 会话
      */
+    @SuppressWarnings("EmptyMethod")
     protected void afterConnectSuccess(@NonNull WebSocketSession session) {
 
     }
 
     /**
-     * <h3>处理监听到的频道消息</h3>
+     * 处理监听到的频道消息
      *
      * @param message 消息
      * @param session 连接
@@ -177,10 +181,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>开始监听 {@code Redis} 消息</h3>
+     * 开始监听 Redis 消息
      *
-     * @param session {@code WebSocket} 会话
-     * @param userId  用户 {@code ID}
+     * @param session WebSocket 会话
+     * @param userId  用户 ID
      */
     private void startRedisListener(@NotNull WebSocketSession session, long userId) {
         final String personalChannel = getRealChannel(CHANNEL_USER_PREFIX + userId);
@@ -197,10 +201,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>开始监听 {@code MQTT} 消息</h3>
+     * 开始监听 MQTT 消息
      *
-     * @param session {@code WebSocket} 会话
-     * @param userId  用户 {@code ID}
+     * @param session WebSocket 会话
+     * @param userId  用户 ID
      */
     private void startMqttListener(@NotNull WebSocketSession session, long userId) {
         try (MqttClient mqttClient = mqttHelper.createClient()) {
@@ -232,7 +236,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>关闭连接</h3>
+     * 关闭连接
      *
      * @param session 会话
      */
@@ -266,10 +270,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>断开连接后置方法</h3>
+     * 断开连接后置方法
      *
      * @param session 会话
-     * @param userId  用户 {@code ID}
+     * @param userId  用户 ID
      */
     protected void afterDisconnect(@NonNull WebSocketSession session, @Nullable Long userId) {
 
@@ -281,10 +285,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>{@code REDIS} 订阅</h3>
+     * Redis 订阅
      *
      * @param channel 传入的频道
-     * @param session {@code WebSocket} 会话
+     * @param session WebSocket 会话
      */
     protected final void redisSubscribe(@NotNull String channel, WebSocketSession session) {
         log.info("REDIS开始订阅频道: {}", getRealChannel(channel));
@@ -292,10 +296,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>{@code MQTT} 订阅</h3>
+     * MQTT 订阅
      *
      * @param channel 传入的频道
-     * @param session {@code WebSocket} 会话
+     * @param session WebSocket 会话
      */
     protected final void mqttSubscribe(String channel, WebSocketSession session) {
         log.info("MQTT开始订阅频道: {}", getRealChannel(channel));
@@ -307,21 +311,21 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>获取真实的频道</h3>
+     * 获取真实的频道
      *
      * @param channel 传入的频道
      * @return 带前缀的真实频道
      */
     @Contract(pure = true)
     protected final @NotNull String getRealChannel(String channel) {
-        return webSocketConfig.getChannelPrefix() + STRING_UNDERLINE + channel;
+        return webSocketConfig.getChannelPrefix() + "_" + channel;
     }
 
     /**
-     * <h3>{@code Redis} 取消订阅</h3>
+     * Redis 取消订阅
      *
      * @param channel 传入的频道
-     * @param session {@code WebSocket} 会话
+     * @param session WebSocket 会话
      */
     protected final void redisUnSubscribe(@NotNull String channel, WebSocketSession session) {
         log.info("REDIS取消订阅频道: {}", getRealChannel(channel));
@@ -329,10 +333,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>{@code MQTT} 取消订阅</h3>
+     * MQTT 取消订阅
      *
      * @param channel 传入的频道
-     * @param session {@code WebSocket} 会话
+     * @param session WebSocket 会话
      */
     protected final void mqttUnSubscribe(String channel, WebSocketSession session) {
         log.info("MQTT取消订阅频道: {}", getRealChannel(channel));
@@ -344,10 +348,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>获取 {@code MQTT} 客户端</h3>
+     * 获取 MQTT 客户端
      *
-     * @param session {@code WebSocket} 会话
-     * @return {@code MQTT} 客户端
+     * @param session WebSocket 会话
+     * @return MQTT 客户端
      */
     protected final MqttClient getMqttClient(@NotNull WebSocketSession session) {
         MqttClient mqttClient = mqttClientHashMap.get(session.getId());
@@ -356,10 +360,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h3>获取 {@code Redis} 订阅</h3>
+     * 获取 Redis 订阅
      *
-     * @param session {@code WebSocket} 会话
-     * @return {@code Redis} 订阅
+     * @param session WebSocket 会话
+     * @return Redis 订阅
      */
     protected final Subscription getRedisSubscription(@NotNull WebSocketSession session) {
         RedisConnection redisConnection = redisConnectionHashMap.get(session.getId());
@@ -370,10 +374,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h1>订阅</h1>
+     * 订阅
      *
      * @param channel 频道
-     * @param session WebSocket会话
+     * @param session WebSocket 会话
      */
     protected final void subscribe(String channel, WebSocketSession session) {
         switch (webSocketConfig.getSupport()) {
@@ -389,10 +393,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * <h1>取消订阅</h1>
+     * 取消订阅
      *
      * @param channel 频道
-     * @param session WebSocket会话
+     * @param session WebSocket 会话
      */
     protected final void unsubscribe(String channel, WebSocketSession session) {
         switch (webSocketConfig.getSupport()) {

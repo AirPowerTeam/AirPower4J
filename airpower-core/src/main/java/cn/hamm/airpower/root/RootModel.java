@@ -1,18 +1,20 @@
 package cn.hamm.airpower.root;
 
-import cn.hamm.airpower.annotation.*;
+import cn.hamm.airpower.annotation.ReadOnly;
+import cn.hamm.airpower.api.fiter.Exclude;
+import cn.hamm.airpower.api.fiter.Expose;
+import cn.hamm.airpower.api.fiter.Filter;
+import cn.hamm.airpower.desensitize.Desensitize;
+import cn.hamm.airpower.desensitize.DesensitizeUtil;
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.interfaces.IAction;
+import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.util.CollectionUtil;
-import cn.hamm.airpower.util.DesensitizeUtil;
-import cn.hamm.airpower.util.ReflectUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -21,8 +23,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
-
-import static cn.hamm.airpower.config.Constant.STRING_GET;
 
 /**
  * <h1>数据根模型</h1>
@@ -33,9 +33,9 @@ import static cn.hamm.airpower.config.Constant.STRING_GET;
 @Slf4j
 @EqualsAndHashCode
 @SuppressWarnings("unchecked")
-public class RootModel<M extends RootModel<M>> implements IAction {
+public class RootModel<M extends RootModel<M>> {
     /**
-     * <h3>忽略只读字段</h3>
+     * 忽略只读字段
      */
     public final void ignoreReadOnlyFields() {
         ReflectUtil.getFieldList(getClass()).stream()
@@ -44,7 +44,7 @@ public class RootModel<M extends RootModel<M>> implements IAction {
     }
 
     /**
-     * <h3>复制一个新对象</h3>
+     * 复制一个新对象
      *
      * @return 返回实例
      */
@@ -60,7 +60,7 @@ public class RootModel<M extends RootModel<M>> implements IAction {
     }
 
     /**
-     * <h3>过滤和脱敏</h3>
+     * 过滤和脱敏
      *
      * @param filterClass   过滤器类
      * @param isDesensitize 是否需要脱敏
@@ -89,19 +89,7 @@ public class RootModel<M extends RootModel<M>> implements IAction {
     }
 
     /**
-     * <h3>脱敏字段</h3>
-     *
-     * @return 实体
-     * @see #filterAndDesensitize(Class, boolean)
-     * @see #filterAndDesensitize(Filter, boolean)
-     * @see #filter(Class)
-     */
-    public final M deserialize() {
-        return filterAndDesensitize(Void.class, true);
-    }
-
-    /**
-     * <h3>过滤字段</h3>
+     * 过滤字段
      *
      * @param filterClass 过滤器
      * @return 实体
@@ -114,7 +102,7 @@ public class RootModel<M extends RootModel<M>> implements IAction {
     }
 
     /**
-     * <h3>过滤和脱敏</h3>
+     * 过滤和脱敏
      *
      * @param filter        过滤器注解
      * @param isDesensitize 是否需要脱敏
@@ -131,14 +119,14 @@ public class RootModel<M extends RootModel<M>> implements IAction {
     }
 
     /**
-     * <h3>通过指定的过滤器排除字段</h3>
+     * 通过指定的过滤器排除字段
      *
      * @param field       字段
      * @param filterClass 过滤器
      */
     private void excludeBy(@NotNull Field field, @NotNull Class<?> filterClass) {
         Class<?>[] excludeClasses = null;
-        final String fieldGetter = STRING_GET + StringUtils.capitalize(field.getName());
+        final String fieldGetter = ReflectUtil.getFieldGetter(field);
         try {
             Method getMethod = getClass().getMethod(fieldGetter);
             Exclude methodExclude = ReflectUtil.getAnnotation(Exclude.class, getMethod);
@@ -169,13 +157,13 @@ public class RootModel<M extends RootModel<M>> implements IAction {
     }
 
     /**
-     * <h3>通过指定的过滤器暴露字段</h3>
+     * 通过指定的过滤器暴露字段
      *
      * @param field       字段
      * @param filterClass 过滤器
      */
     private void exposeBy(@NotNull Field field, @NotNull Class<?> filterClass) {
-        final String fieldGetter = STRING_GET + StringUtils.capitalize(field.getName());
+        final String fieldGetter = ReflectUtil.getFieldGetter(field);
         Class<?>[] exposeClasses = null;
         try {
             Method getMethod = getClass().getMethod(fieldGetter);
@@ -209,7 +197,7 @@ public class RootModel<M extends RootModel<M>> implements IAction {
     }
 
     /**
-     * <h3>递归过滤和脱敏</h3>
+     * 递归过滤和脱敏
      *
      * @param field         字段
      * @param isDesensitize 是否需要脱敏
@@ -240,7 +228,7 @@ public class RootModel<M extends RootModel<M>> implements IAction {
     }
 
     /**
-     * <h3>字段脱敏</h3>
+     * 字段脱敏
      *
      * @param field 字段
      */

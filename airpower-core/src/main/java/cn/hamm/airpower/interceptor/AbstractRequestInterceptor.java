@@ -1,10 +1,11 @@
 package cn.hamm.airpower.interceptor;
 
-import cn.hamm.airpower.config.ServiceConfig;
-import cn.hamm.airpower.model.Access;
-import cn.hamm.airpower.util.AccessTokenUtil;
-import cn.hamm.airpower.util.PermissionUtil;
-import cn.hamm.airpower.util.RequestUtil;
+import cn.hamm.airpower.ServiceConfig;
+import cn.hamm.airpower.access.Access;
+import cn.hamm.airpower.access.AccessConfig;
+import cn.hamm.airpower.access.AccessTokenUtil;
+import cn.hamm.airpower.access.PermissionUtil;
+import cn.hamm.airpower.request.RequestUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,6 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static cn.hamm.airpower.config.Constant.STRING_EMPTY;
 import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
 
@@ -39,15 +39,18 @@ import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
 @Slf4j
 public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
     /**
-     * <h3>缓存的 {@code REQUEST_METHOD_KEY}</h3>
+     * 缓存的 {@code REQUEST_METHOD_KEY}
      */
     protected static final String REQUEST_METHOD_KEY = "REQUEST_METHOD_KEY";
 
     @Autowired
     protected ServiceConfig serviceConfig;
 
+    @Autowired
+    protected AccessConfig accessConfig;
+
     /**
-     * <h3>拦截器</h3>
+     * 拦截器
      *
      * @param request  请求
      * @param response 响应
@@ -72,7 +75,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * <h3>请求拦截器</h3>
+     * 请求拦截器
      *
      * @param request  请求
      * @param response 响应
@@ -91,10 +94,10 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
             return;
         }
         //需要登录
-        String accessToken = request.getHeader(serviceConfig.getAuthorizeHeader());
+        String accessToken = request.getHeader(accessConfig.getAuthorizeHeader());
 
         // 优先使用 Get 参数传入的身份
-        String accessTokenFromParam = request.getParameter(serviceConfig.getAuthorizeHeader());
+        String accessTokenFromParam = request.getParameter(accessConfig.getAuthorizeHeader());
         if (StringUtils.hasText(accessTokenFromParam)) {
             accessToken = accessTokenFromParam;
         }
@@ -110,18 +113,18 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * <h3>获取验证后的令牌</h3>
+     * 获取验证后的令牌
      *
      * @param accessToken 访问令牌
      * @return 验证后的令牌
      * @apiNote 如需前置验证令牌，可重写此方法
      */
     public AccessTokenUtil.VerifiedToken getVerifiedToken(String accessToken) {
-        return AccessTokenUtil.create().verify(accessToken, serviceConfig.getAccessTokenSecret());
+        return AccessTokenUtil.create().verify(accessToken, accessConfig.getAccessTokenSecret());
     }
 
     /**
-     * <h3>验证指定的用户是否有指定权限标识的权限</h3>
+     * 验证指定的用户是否有指定权限标识的权限
      *
      * @param userId             用户 {@code ID}
      * @param permissionIdentity 权限标识
@@ -134,7 +137,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * <h3>拦截请求</h3>
+     * 拦截请求
      *
      * @param request  请求对象
      * @param response 响应对象
@@ -149,7 +152,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * <h3>设置共享数据</h3>
+     * 设置共享数据
      *
      * @param key   KEY
      * @param value VALUE
@@ -162,7 +165,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * <h3>从请求中获取请求的包体</h3>
+     * 从请求中获取请求的包体
      *
      * @param request 请求
      * @return 包体字符串
@@ -170,7 +173,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
     protected final @NotNull String getRequestBody(HttpServletRequest request) {
         // 文件上传的请求 返回空
         if (RequestUtil.isUploadRequest(request)) {
-            return STRING_EMPTY;
+            return "";
         }
         try {
             BufferedReader reader = request.getReader();
@@ -178,6 +181,6 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
         }
-        return STRING_EMPTY;
+        return "";
     }
 }

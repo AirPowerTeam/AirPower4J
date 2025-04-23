@@ -1,7 +1,6 @@
 package cn.hamm.airpower.interceptor.cache;
 
-import cn.hamm.airpower.config.Constant;
-import cn.hamm.airpower.util.RequestUtil;
+import cn.hamm.airpower.request.RequestUtil;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
@@ -27,7 +26,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Slf4j
 public class RequestCacheFilter implements Filter {
     /**
-     * <h3>过滤器</h3>
+     * 过滤器
      *
      * @param servletRequest  请求
      * @param servletResponse 响应
@@ -38,7 +37,7 @@ public class RequestCacheFilter implements Filter {
             ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain
     ) {
         try {
-            MDC.put(Constant.REQUEST_ID, String.valueOf(UUID.randomUUID()));
+            MDC.put(RequestUtil.REQUEST_ID, String.valueOf(UUID.randomUUID()));
             HttpServletRequest request = ((HttpServletRequest) servletRequest);
             // 如果是上传 不做任何缓存
             if (!requestCacheRequired(request)) {
@@ -50,12 +49,12 @@ public class RequestCacheFilter implements Filter {
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
         } finally {
-            MDC.remove(Constant.REQUEST_ID);
+            MDC.remove(RequestUtil.REQUEST_ID);
         }
     }
 
     /**
-     * <h3>判断是否需要缓存</h3>
+     * 判断是否需要缓存
      *
      * @param request 请求
      * @return 是否需要缓存

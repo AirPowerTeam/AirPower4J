@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * <h1>MCP初始化数据</h1>
+ * <h1>MCP 初始化数据</h1>
  *
  * @author Hamm.cn
  */
@@ -12,26 +12,41 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class McpInitializeData {
     /**
-     * <h3>服务器信息</h3>
+     * 服务器信息
      */
     private McpServerInfo serverInfo = new McpServerInfo();
 
     /**
-     * <h3>协议版本</h3>
+     * 协议版本
      */
     private String protocolVersion = "2024-11-05";
 
     /**
-     * <h3>能力</h3>
+     * 服务能力
      */
-    private Capabilities capabilities = new Capabilities();
+    private McpCapability capabilities = new McpCapability();
 
+    /**
+     * 服务能力
+     */
     @Data
-    @Accessors(chain = true)
-    public static class Capabilities {
+    @Accessors
+    static class McpCapability {
         /**
-         * <h3>工具</h3>
+         * 工具能力
          */
-        private McpTool tools = new McpTool();
+        private McpToolCapability tools = new McpToolCapability();
+
+        /**
+         * 工具能力
+         */
+        @Data
+        @Accessors
+        static class McpToolCapability {
+            /**
+             * 是否通知客户端更新
+             */
+            private Boolean listChanged = false;
+        }
     }
 }

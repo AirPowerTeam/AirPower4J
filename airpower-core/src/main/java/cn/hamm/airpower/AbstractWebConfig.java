@@ -1,8 +1,8 @@
 package cn.hamm.airpower;
 
-import cn.hamm.airpower.config.WebSocketConfig;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.interceptor.cache.RequestCacheFilter;
+import cn.hamm.airpower.websocket.WebSocketConfig;
 import cn.hamm.airpower.websocket.WebSocketHandler;
 import cn.hamm.airpower.websocket.WebSocketSupport;
 import org.jetbrains.annotations.NotNull;
@@ -31,9 +31,9 @@ public abstract class AbstractWebConfig implements WebMvcConfigurer, WebSocketCo
     protected WebSocketHandler webSocketHandler;
 
     /**
-     * <h3>获取一个 {@code WebSocketHandler}</h3>
+     * 获取一个 WebSocketHandler
      *
-     * @return {@code WebSocketHandler}
+     * @return WebSocketHandler
      */
     @Bean
     public WebSocketHandler getWebsocketHandler() {
@@ -41,7 +41,7 @@ public abstract class AbstractWebConfig implements WebMvcConfigurer, WebSocketCo
     }
 
     /**
-     * <h3>添加缓存过滤器</h3>
+     * 添加缓存过滤器
      *
      * @return 过滤器对象
      */
@@ -54,9 +54,9 @@ public abstract class AbstractWebConfig implements WebMvcConfigurer, WebSocketCo
     }
 
     /**
-     * <h3>添加 {@code WebSocket} 服务监听</h3>
+     * 添加 WebSocket 服务监听
      *
-     * @param registry {@code WebSocketHandlerRegistry}
+     * @param registry WebSocketHandlerRegistry
      */
     @Override
     public final void registerWebSocketHandlers(@NotNull WebSocketHandlerRegistry registry) {

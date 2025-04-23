@@ -1,10 +1,10 @@
 package cn.hamm.airpower.open;
 
+import cn.hamm.airpower.api.Json;
+import cn.hamm.airpower.crypto.AesUtil;
+import cn.hamm.airpower.crypto.RsaUtil;
+import cn.hamm.airpower.dictionary.DictionaryUtil;
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.model.Json;
-import cn.hamm.airpower.util.AesUtil;
-import cn.hamm.airpower.util.DictionaryUtil;
-import cn.hamm.airpower.util.RsaUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -12,13 +12,13 @@ import java.util.Objects;
 import static cn.hamm.airpower.exception.ServiceError.ENCRYPT_DATA_FAIL;
 
 /**
- * <h1>{@code OpenApi} 响应对象</h1>
+ * <h1>Open API 响应对象</h1>
  *
  * @author Hamm.cn
  */
 public class OpenResponse {
     /**
-     * <h3>加密响应数据</h3>
+     * 加密响应数据
      *
      * @param openApp 应用
      * @param data    数据

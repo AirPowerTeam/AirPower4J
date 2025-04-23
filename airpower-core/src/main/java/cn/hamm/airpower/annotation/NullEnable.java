@@ -20,7 +20,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface NullEnable {
     /**
-     * <h3>{@code true}时，则将保存 {@code null}到数据库</h3>
+     * {@code true} 时，则将保存 {@code null} 到数据库
      */
     boolean value() default true;
 }

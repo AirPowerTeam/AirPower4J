@@ -8,7 +8,7 @@ package cn.hamm.airpower.open;
  */
 public interface IOpenLogService {
     /**
-     * <h3>添加一个请求日志</h3>
+     * 添加一个请求日志
      *
      * @param openApp     开放应用
      * @param url         请求地址
@@ -18,7 +18,7 @@ public interface IOpenLogService {
     Long addRequest(IOpenApp openApp, String url, String requestBody);
 
     /**
-     * <h3>更新请求日志</h3>
+     * 更新请求日志
      *
      * @param openLogId    请求日志 {@code ID}
      * @param responseBody 响应体

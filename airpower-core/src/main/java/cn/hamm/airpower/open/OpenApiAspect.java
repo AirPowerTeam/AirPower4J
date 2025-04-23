@@ -1,10 +1,10 @@
 package cn.hamm.airpower.open;
 
+import cn.hamm.airpower.api.Json;
+import cn.hamm.airpower.datetime.DateTimeUtil;
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.helper.RedisHelper;
-import cn.hamm.airpower.model.Json;
-import cn.hamm.airpower.util.DateTimeUtil;
-import cn.hamm.airpower.util.RequestUtil;
+import cn.hamm.airpower.redis.RedisHelper;
+import cn.hamm.airpower.request.RequestUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
@@ -22,11 +22,10 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static cn.hamm.airpower.config.Constant.*;
 import static cn.hamm.airpower.exception.ServiceError.*;
 
 /**
- * <h1>{@code OpenApi} 切面</h1>
+ * <h1>Open API 切面</h1>
  *
  * @author Hamm.cn
  */
@@ -34,12 +33,12 @@ import static cn.hamm.airpower.exception.ServiceError.*;
 @Component
 public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService> {
     /**
-     * <h3>防重放时长</h3>
+     * 防重放时长
      */
     private static final int NONCE_CACHE_SECOND = 300;
 
     /**
-     * <h3>防重放缓存前缀</h3>
+     * 防重放缓存前缀
      */
     private static final String NONCE_CACHE_PREFIX = "NONCE_";
 
@@ -62,7 +61,7 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * <h3>{@code OpenApi} 切面</h3>
+     * Open API 切面
      */
     @Around("pointCut()")
     public Object openApi(@NotNull ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
@@ -98,7 +97,7 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * <h3>验证切面点是否支持OpenApi</h3>
+     * 验证切面点是否支持 Open API
      *
      * @param proceedingJoinPoint {@code ProceedingJoinPoint}
      */
@@ -111,7 +110,7 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * <h3>获取OpenApi请求参数</h3>
+     * 获取 Open API 请求参数
      *
      * @param proceedingJoinPoint {@code ProceedingJoinPoint}
      * @return {@code OpenRequest}
@@ -128,7 +127,7 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * <h3>时间戳检测</h3>
+     * 时间戳检测
      *
      * @param timestamp 时间戳
      */
@@ -142,7 +141,7 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * <h3>获取请求的应用</h3>
+     * 获取请求的应用
      *
      * @param openRequest {@code OpenRequest}
      * @return {@code OpenApp}
@@ -157,7 +156,7 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * <h3>验证IP白名单</h3>
+     * 验证 IP 白名单
      */
     private void checkIpWhiteList(@NotNull IOpenApp openApp) {
         final String ipStr = openApp.getIpWhiteList();
@@ -165,21 +164,19 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
             // 未配置IP白名单
             return;
         }
-        String[] ipList = ipStr
-                .replaceAll(STRING_BLANK, STRING_EMPTY)
-                .split(REGEX_LINE_BREAK);
+        final String[] ipList = ipStr.split("\n");
         final String ip = RequestUtil.getIpAddress(request);
         if (!StringUtils.hasText(ip)) {
             MISSING_REQUEST_ADDRESS.show();
         }
-        if (Arrays.stream(ipList).toList().contains(ip)) {
+        if (Arrays.stream(ipList).map(String::trim).toList().contains(ip)) {
             return;
         }
         INVALID_REQUEST_ADDRESS.show();
     }
 
     /**
-     * <h3>添加日志</h3>
+     * 添加日志
      *
      * @param openApp     {@code OpenApp}
      * @param url         请求 {@code URL}
@@ -194,7 +191,7 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * <h3>防重放检测</h3>
+     * 防重放检测
      */
     private void checkNonce(String nonce) {
         String cacheKey = NONCE_CACHE_PREFIX + nonce;
@@ -204,9 +201,9 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * <h3>更新日志返回数据</h3>
+     * 更新日志返回数据
      *
-     * @param openLogId    日志 {@code ID}
+     * @param openLogId    日志 ID
      * @param responseBody 返回值
      */
     private void updateLogResponse(Long openLogId, String responseBody) {
@@ -217,9 +214,9 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * <h3>更新日志异常</h3>
+     * 更新日志异常
      *
-     * @param openLogId        日志 {@code ID}
+     * @param openLogId        日志 ID
      * @param serviceException 异常
      */
     private void updateLogResponse(Long openLogId, @NotNull ServiceException serviceException) {
@@ -230,9 +227,9 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * <h3>更新日志异常</h3>
+     * 更新日志异常
      *
-     * @param openLogId 日志 {@code ID}
+     * @param openLogId 日志 ID
      * @param exception 异常
      */
     private void updateLogResponse(Long openLogId, @NotNull Exception exception) {

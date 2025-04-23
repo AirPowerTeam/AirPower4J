@@ -9,7 +9,7 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>{@code OpenApi}</h1>
+ * <h1>Open API</h1>
  *
  * @author Hamm.cn
  */

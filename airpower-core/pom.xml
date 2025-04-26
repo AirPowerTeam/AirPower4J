@@ -5,7 +5,7 @@
     <parent>
         <groupId>cn.hamm</groupId>
         <artifactId>airpower</artifactId>
-        <version>3.3.3</version>
+        <version>3.3.4</version>
     </parent>
     <artifactId>airpower-core</artifactId>
     <name>airpower-core</name>

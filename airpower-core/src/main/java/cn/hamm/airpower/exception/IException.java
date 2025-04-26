@@ -60,7 +60,7 @@ public interface IException<T extends IException<T>> extends Supplier<T> {
      * @param data    返回数据
      */
     default void show(String message, Object data) {
-        throw new ServiceException(message, data);
+        throw new ServiceException(this.getCode(), message, data);
     }
 
     /**

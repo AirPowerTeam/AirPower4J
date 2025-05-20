@@ -132,9 +132,7 @@ public class ReflectUtil {
      * @return 判断结果
      */
     public static boolean isTheRootClass(@NotNull Class<?> clazz) {
-        return Objects.equals(clazz.getName(), ApiController.class.getName()) ||
-                Objects.equals(clazz.getName(), CurdEntity.class.getName()) ||
-                Objects.equals(clazz.getName(), Object.class.getName());
+        return clazz.equals(ApiController.class) || clazz.equals(CurdEntity.class) || clazz.equals(Object.class);
     }
 
     /**
@@ -239,7 +237,7 @@ public class ReflectUtil {
         if (Objects.isNull(clazz)) {
             return false;
         }
-        if (clazz.getName().equalsIgnoreCase(RootModel.class.getName())) {
+        if (RootModel.class.equals(clazz)) {
             return true;
         }
         return isModel(clazz.getSuperclass());
@@ -344,7 +342,7 @@ public class ReflectUtil {
         }
         List<Method> superMethods = Arrays.stream(superClass.getMethods()).toList();
         Method superMethod = superMethods.stream()
-                .filter(m -> Objects.equals(m.getName(), method.getName()))
+                .filter(m -> Objects.equals(m, method))
                 .findFirst()
                 .orElse(null);
         if (Objects.isNull(superMethod)) {
@@ -361,7 +359,7 @@ public class ReflectUtil {
      * @return 字段
      */
     public static @Nullable Field getField(String fieldName, Class<?> clazz) {
-        if (Objects.isNull(clazz) || Objects.equals(Object.class, clazz)) {
+        if (Objects.isNull(clazz) || Object.class.equals(clazz)) {
             return null;
         }
         try {

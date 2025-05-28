@@ -31,9 +31,22 @@
 
 ## 🔑 二、如何使用(初始化)?
 
-通过我们提供的另一个开源的 ```SPMS-Server``` 项目来完成 **AirPower4J** 宿主项目的初始化:
+你可以使用 `maven` 来引入这个依赖包：
 
-> [GitHub](https://github.com/s-pms/SPMS-Server/blob/main/README.md) / [Gitee](https://gitee.com/air-power/AirPowerJavaStarter/blob/main/README.md)
+```xml
+<!-- 指定你的项目的父级 pom 文件 -->
+<parent>
+    <groupId>cn.hamm</groupId>
+    <artifactId>airpower</artifactId>
+    <version>3.3.4</version>
+</parent>
+<dependencies>
+<dependency>
+    <groupId>cn.hamm</groupId>
+    <artifactId>airpower-core</artifactId>
+</dependency>
+</dependencies>
+```
 
 ## 💐 三、项目架构
 

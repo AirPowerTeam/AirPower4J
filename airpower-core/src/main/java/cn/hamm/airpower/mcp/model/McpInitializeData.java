@@ -14,7 +14,7 @@ public class McpInitializeData {
     /**
      * 服务器信息
      */
-    private McpServerInfo serverInfo = new McpServerInfo();
+    private McpServerInfo serverInfo;
 
     /**
      * 协议版本
@@ -25,6 +25,15 @@ public class McpInitializeData {
      * 服务能力
      */
     private McpCapability capabilities = new McpCapability();
+
+    /**
+     * 构造函数
+     *
+     * @param mcpServerInfo 服务器信息
+     */
+    public McpInitializeData(McpServerInfo mcpServerInfo) {
+        this.serverInfo = mcpServerInfo;
+    }
 
     /**
      * 服务能力

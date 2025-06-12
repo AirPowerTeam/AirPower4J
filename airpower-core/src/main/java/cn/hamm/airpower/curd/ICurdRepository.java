@@ -24,5 +24,5 @@ public interface ICurdRepository<E extends CurdEntity<E>> extends JpaRepository<
      */
     @Transactional(rollbackFor = Exception.class)
     @Lock(PESSIMISTIC_WRITE)
-    E getWidthLockById(Long id);
+    E getByIdForUpdate(Long id);
 }

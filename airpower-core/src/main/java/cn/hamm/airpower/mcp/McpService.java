@@ -39,14 +39,16 @@ public class McpService {
      * 方法列表
      */
     private final static ConcurrentMap<String, Method> METHOD_MAP = new ConcurrentHashMap<>();
-
     /**
      * 工具列表
      */
     public static List<McpTool> tools = new ArrayList<>();
-
     @Autowired
     private BeanFactory beanFactory;
+
+    public static void setServerName(String serverName) {
+
+    }
 
     /**
      * 扫描 MCP 方法
@@ -138,10 +140,23 @@ public class McpService {
      *
      * @param mcpRequest      请求
      * @param checkPermission 检查权限
-     * @return McpResponse
+     * @return McpResponse 响应
      * @throws ServiceException ServiceException
      */
     public final @Nullable McpResponse run(@NotNull McpRequest mcpRequest, Consumer<McpTool> checkPermission) throws ServiceException {
+        return this.run(mcpRequest, checkPermission, new McpServerInfo());
+    }
+
+    /**
+     * 运行 MCP 服务
+     *
+     * @param mcpRequest      请求
+     * @param checkPermission 检查权限
+     * @param mcpServerInfo   服务信息
+     * @return McpResponse 响应
+     * @throws ServiceException ServiceException
+     */
+    public final @Nullable McpResponse run(@NotNull McpRequest mcpRequest, Consumer<McpTool> checkPermission, McpServerInfo mcpServerInfo) throws ServiceException {
         McpResponse responseData = new McpResponse();
         responseData.setId(mcpRequest.getId());
         McpMethods mcpMethods = Arrays.stream(McpMethods.values())
@@ -152,7 +167,7 @@ public class McpService {
         McpErrorCode.MethodNotFound.whenNull(mcpMethods);
         switch (mcpMethods) {
             case INITIALIZE:
-                return responseData.setResult(new McpInitializeData());
+                return responseData.setResult(new McpInitializeData(mcpServerInfo));
             case TOOLS_CALL:
                 @SuppressWarnings("unchecked")
                 Map<String, Object> params = (Map<String, Object>) mcpRequest.getParams();

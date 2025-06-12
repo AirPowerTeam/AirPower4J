@@ -39,16 +39,14 @@ public class McpService {
      * 方法列表
      */
     private final static ConcurrentMap<String, Method> METHOD_MAP = new ConcurrentHashMap<>();
+
     /**
      * 工具列表
      */
     public static List<McpTool> tools = new ArrayList<>();
+
     @Autowired
     private BeanFactory beanFactory;
-
-    public static void setServerName(String serverName) {
-
-    }
 
     /**
      * 扫描 MCP 方法

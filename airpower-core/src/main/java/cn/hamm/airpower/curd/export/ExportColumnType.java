@@ -3,7 +3,9 @@ package cn.hamm.airpower.curd.export;
 import cn.hamm.airpower.dictionary.Dictionary;
 
 /**
- * 列数据类型
+ * <h1>列数据类型</h1>
+ *
+ * @author Hamm.cn
  */
 public enum ExportColumnType {
     /**

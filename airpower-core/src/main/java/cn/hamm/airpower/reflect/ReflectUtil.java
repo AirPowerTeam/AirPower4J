@@ -143,8 +143,8 @@ public class ReflectUtil {
      * @param <A>             泛型
      * @return 注解
      */
-    public static <A extends Annotation> @Nullable A getAnnotation(Class<A> annotationClass, Method method) {
-        return getAnnotation(annotationClass, method, method.getDeclaringClass());
+    public static <A extends Annotation> @Nullable A getAnnotation(Class<A> annotationClass, @NotNull Method method) {
+        return getAnnotation(annotationClass, method.getDeclaringClass(), method.getName(), method.getParameterTypes());
     }
 
     /**
@@ -200,7 +200,7 @@ public class ReflectUtil {
      * @see Description
      */
     public static String getDescription(Method method) {
-        Description description = getAnnotation(Description.class, method, method.getDeclaringClass());
+        Description description = getAnnotation(Description.class, method);
         return Objects.isNull(description) ? method.getName() : description.value();
     }
 
@@ -320,35 +320,37 @@ public class ReflectUtil {
     /**
      * 递归获取方法的注解
      *
-     * @param <A>             注解泛型
-     * @param annotationClass 注解类
-     * @param method          方法
-     * @param currentClass    所在类
-     * @return 装配的注解
+     * @param annotationClass 要查找的注解类型
+     * @param currentClass    当前类
+     * @param methodName      方法名
+     * @param paramTypes      方法参数类型数组
+     * @return 如果找到注解则返回该注解实例，否则返回 null
      */
-    private static <A extends Annotation> @Nullable A getAnnotation(
-            Class<A> annotationClass, @NotNull Method method, Class<?> currentClass
+    public static <T extends java.lang.annotation.Annotation> @Nullable T getAnnotation(
+            Class<T> annotationClass,
+            @NotNull Class<?> currentClass,
+            String methodName,
+            Class<?>[] paramTypes
     ) {
-        A annotation = method.getAnnotation(annotationClass);
-        if (Objects.nonNull(annotation)) {
-            return annotation;
-        }
-        if (isTheRootClass(currentClass)) {
+        try {
+            // 获取当前类中的方法
+            Method method = currentClass.getDeclaredMethod(methodName, paramTypes);
+            // 如果当前方法有该注解，直接返回
+            if (method.isAnnotationPresent(annotationClass)) {
+                return method.getAnnotation(annotationClass);
+            }
+            // 如果当前类没有该方法（可能被父类声明），尝试从父类查找
+            Class<?> superClass = currentClass.getSuperclass();
+            if (superClass != null) {
+                // 递归查找父类
+                return getAnnotation(annotationClass, superClass, methodName, paramTypes);
+            }
+            // 如果一直到 Object 都没找到，返回 null
+            return null;
+        } catch (NoSuchMethodException e) {
+            // 当前类或父类中不存在这个方法，返回 null
             return null;
         }
-        Class<?> superClass = currentClass.getSuperclass();
-        if (Objects.isNull(superClass)) {
-            return null;
-        }
-        List<Method> superMethods = Arrays.stream(superClass.getMethods()).toList();
-        Method superMethod = superMethods.stream()
-                .filter(m -> Objects.equals(m, method))
-                .findFirst()
-                .orElse(null);
-        if (Objects.isNull(superMethod)) {
-            return null;
-        }
-        return getAnnotation(annotationClass, superMethod, superClass);
     }
 
     /**

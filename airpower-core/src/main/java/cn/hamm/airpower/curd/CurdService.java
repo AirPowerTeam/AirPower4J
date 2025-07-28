@@ -8,6 +8,7 @@ import cn.hamm.airpower.curd.query.QueryListRequest;
 import cn.hamm.airpower.curd.query.QueryPageRequest;
 import cn.hamm.airpower.curd.query.QueryPageResponse;
 import cn.hamm.airpower.desensitize.Desensitize;
+import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.redis.RedisHelper;
 import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.util.CollectionUtil;
@@ -668,9 +669,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                 "查询失败，请传入%s的ID！",
                 ReflectUtil.getDescription(getEntityClass())
         ));
-        return repository.findById(id).orElseThrow(DATA_NOT_FOUND.setMessage(
-                String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getEntityClass()))
-        ));
+        Optional<E> optional = repository.findById(id);
+        if (optional.isEmpty()) {
+            throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getEntityClass())));
+        }
+        return optional.get();
     }
 
     /**

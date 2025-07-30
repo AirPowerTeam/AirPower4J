@@ -6,6 +6,7 @@ import cn.hamm.airpower.crypto.RsaUtil;
 import cn.hamm.airpower.dictionary.DictionaryUtil;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.root.RootModel;
+import cn.hamm.airpower.validate.ValidateUtil;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -35,14 +36,14 @@ public class OpenRequest {
      */
     @NotNull(message = "版本号不能为空")
     @Getter
-    private int version;
+    private Integer version;
 
     /**
      * 请求毫秒时间戳
      */
     @NotNull(message = "请求毫秒时间戳不能为空")
     @Getter
-    private long timestamp;
+    private Long timestamp;
 
     /**
      * 加密后的业务数据
@@ -76,12 +77,15 @@ public class OpenRequest {
      */
     public final <T extends RootModel<T>> T parse(Class<T> clazz) {
         String json = decodeContent();
+        T model;
         try {
-            return Json.parse(json, clazz);
+            model = Json.parse(json, clazz);
         } catch (Exception e) {
             JSON_DECODE_FAIL.show();
             throw new ServiceException(e);
         }
+        ValidateUtil.valid(model);
+        return model;
     }
 
     /**
@@ -119,7 +123,10 @@ public class OpenRequest {
      */
     final void checkSignature(IOpenApp openApp) {
         this.openApp = openApp;
-        SIGNATURE_INVALID.whenNotEquals(signature, sign());
+        log.info("签名传入 {}", signature);
+        String sign = sign();
+        log.info("签名计算 {}", sign);
+        SIGNATURE_INVALID.whenNotEquals(signature, sign);
     }
 
     /**

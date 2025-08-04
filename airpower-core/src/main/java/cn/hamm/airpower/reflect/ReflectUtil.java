@@ -335,23 +335,23 @@ public class ReflectUtil {
         try {
             // 获取当前类中的方法
             Method method = currentClass.getDeclaredMethod(methodName, paramTypes);
-            // 如果当前方法有该注解，直接返回
-            if (method.isAnnotationPresent(annotationClass)) {
-                return method.getAnnotation(annotationClass);
+            // 获取注解，避免重复调用 getAnnotation
+            T annotation = method.getAnnotation(annotationClass);
+            if (annotation != null) {
+                return annotation;
             }
-            // 如果当前类没有该方法（可能被父类声明），尝试从父类查找
-            Class<?> superClass = currentClass.getSuperclass();
-            if (superClass != null) {
-                // 递归查找父类
-                return getAnnotation(annotationClass, superClass, methodName, paramTypes);
-            }
-            // 如果一直到 Object 都没找到，返回 null
-            return null;
-        } catch (NoSuchMethodException e) {
-            // 当前类或父类中不存在这个方法，返回 null
-            return null;
+        } catch (NoSuchMethodException ignored) {
+            // 忽略，继续查找父类或接口
         }
+
+        // 查找父类
+        Class<?> superClass = currentClass.getSuperclass();
+        if (superClass != null) {
+            return getAnnotation(annotationClass, superClass, methodName, paramTypes);
+        }
+        return null;
     }
+
 
     /**
      * 递归获取字段

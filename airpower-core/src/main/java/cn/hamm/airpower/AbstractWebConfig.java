@@ -1,7 +1,7 @@
 package cn.hamm.airpower;
 
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.interceptor.cache.RequestCacheFilter;
+import cn.hamm.airpower.interceptor.filter.RequestFilter;
 import cn.hamm.airpower.websocket.WebSocketConfig;
 import cn.hamm.airpower.websocket.WebSocketHandler;
 import cn.hamm.airpower.websocket.WebSocketSupport;
@@ -46,9 +46,9 @@ public abstract class AbstractWebConfig implements WebMvcConfigurer, WebSocketCo
      * @return 过滤器对象
      */
     @Bean
-    public FilterRegistrationBean<RequestCacheFilter> bodyCachingFilterRegistration() {
-        FilterRegistrationBean<RequestCacheFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new RequestCacheFilter());
+    public FilterRegistrationBean<RequestFilter> bodyCachingFilterRegistration() {
+        FilterRegistrationBean<RequestFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new RequestFilter());
         registration.addUrlPatterns("/*");
         return registration;
     }

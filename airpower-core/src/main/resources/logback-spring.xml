@@ -1,6 +1,6 @@
 <configuration>
     <property name="pattern"
-              value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [REQUEST_ID=%X{REQUEST_ID}] - %msg%n"/>
+              value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [REQUEST_ID=%X{REQUEST_ID}] %logger{36} - %msg%n"/>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${pattern}</pattern>

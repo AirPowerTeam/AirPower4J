@@ -362,25 +362,34 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 过滤数据
+     * 全匹配查询数据
      *
-     * @param filter 全匹配过滤器
+     * @param filter 过滤器
      * @return List数据
+     * @see #filter(CurdEntity)
+     * @see #filter(CurdEntity, Sort)
+     * @see #query(CurdEntity)
+     * @see #query(CurdEntity, Sort)
+     * @see #query(QueryListRequest)
      */
     public final @NotNull List<E> filter(@Nullable E filter) {
         return filter(filter, null);
     }
 
     /**
-     * 过滤数据
+     * 全匹配查询数据
      *
-     * @param filter 全匹配过滤器
+     * @param filter 过滤器
      * @param sort   排序
      * @return List数据
+     * @see #filter(CurdEntity)
+     * @see #filter(CurdEntity, Sort)
+     * @see #query(CurdEntity)
+     * @see #query(CurdEntity, Sort)
+     * @see #query(QueryListRequest)
      */
     public final @NotNull List<E> filter(@Nullable E filter, @Nullable Sort sort) {
-        filter = Objects.requireNonNullElse(filter, ReflectUtil.newInstance(getEntityClass()));
-        return repository.findAll(createSpecification(filter, true), createSort(sort));
+        return find(filter, sort, true);
     }
 
     /**
@@ -612,15 +621,69 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 查询数据
+     * 模糊匹配查询数据
      *
      * @param queryListRequest 查询请求
      * @return 查询结果数据列表
+     * @see #filter(CurdEntity)
+     * @see #filter(CurdEntity, Sort)
+     * @see #query(CurdEntity)
+     * @see #query(CurdEntity, Sort)
+     * @see #query(QueryListRequest)
      */
-    private @NotNull List<E> query(@NotNull QueryListRequest<E> queryListRequest) {
+    public final @NotNull List<E> query(@NotNull QueryListRequest<E> queryListRequest) {
+        return find(queryListRequest.getFilter(), queryListRequest.getSort(), false);
+    }
+
+    /**
+     * 模糊匹配查询数据
+     *
+     * @param filter 过滤条件
+     * @return 查询结果数据列表
+     * @see #filter(CurdEntity)
+     * @see #filter(CurdEntity, Sort)
+     * @see #query(CurdEntity)
+     * @see #query(CurdEntity, Sort)
+     * @see #query(QueryListRequest)
+     */
+    public final @NotNull List<E> query(@Nullable E filter) {
+        return query(filter, null);
+    }
+
+    /**
+     * 模糊匹配查询数据
+     *
+     * @param filter 过滤条件
+     * @param sort   排序
+     * @return 查询结果数据列表
+     * @see #filter(CurdEntity)
+     * @see #filter(CurdEntity, Sort)
+     * @see #query(CurdEntity)
+     * @see #query(CurdEntity, Sort)
+     * @see #query(QueryListRequest)
+     */
+    public final @NotNull List<E> query(@Nullable E filter, @Nullable Sort sort) {
+        return find(filter, sort, false);
+    }
+
+    /**
+     * 查询数据
+     *
+     * @param filter   过滤条件
+     * @param sort     排序
+     * @param isEquals 是否全匹配
+     * @return 查询结果数据列表
+     * @see #filter(CurdEntity)
+     * @see #filter(CurdEntity, Sort)
+     * @see #query(CurdEntity)
+     * @see #query(CurdEntity, Sort)
+     * @see #query(QueryListRequest)
+     */
+    private @NotNull List<E> find(@Nullable E filter, @Nullable Sort sort, boolean isEquals) {
+        filter = Objects.requireNonNullElse(filter, ReflectUtil.newInstance(getEntityClass()));
         return repository.findAll(
-                createSpecification(queryListRequest.getFilter(), false),
-                createSort(queryListRequest.getSort())
+                createSpecification(filter, isEquals),
+                createSort(sort)
         );
     }
 

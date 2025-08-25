@@ -86,18 +86,6 @@ public class AccessTokenUtil {
     /**
      * 创建一个 AccessToken
      *
-     * @param id           TokenID
-     * @param expireSecond 有效期（秒）
-     * @return AccessTokenUtil 实例
-     */
-    public AccessTokenUtil setPayloadId(Long id, long expireSecond) {
-        return addPayload(CurdEntity.STRING_ID, id)
-                .setExpireMillisecond(expireSecond * DateTimeUtil.MILLISECONDS_PER_SECOND);
-    }
-
-    /**
-     * 创建一个 AccessToken
-     *
      * @param id TokenID
      * @return AccessTokenUtil 实例
      * @apiNote 不设置令牌过期时间
@@ -165,6 +153,18 @@ public class AccessTokenUtil {
         PARAM_INVALID.when(millisecond <= 0, "过期毫秒数必须大于0");
         verifiedToken.setExpireTimestamps(System.currentTimeMillis() + millisecond);
         return this;
+    }
+
+    /**
+     * 设置过期时间 {@code 秒}
+     *
+     * @param second 秒数
+     * @return AccessTokenUtil 实例
+     */
+    @Contract("_ -> this")
+    public final AccessTokenUtil setExpireSecond(long second) {
+        PARAM_INVALID.when(second <= 0, "过期秒数必须大于0");
+        return setExpireMillisecond(second * DateTimeUtil.MILLISECONDS_PER_SECOND);
     }
 
     /**

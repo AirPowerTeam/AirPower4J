@@ -38,7 +38,7 @@
 <parent>
     <groupId>cn.hamm</groupId>
     <artifactId>airpower</artifactId>
-    <version>3.3.4</version>
+    <version>3.5.2</version>
 </parent>
 <dependencies>
 <dependency>

@@ -5,30 +5,26 @@ import cn.hamm.airpower.access.Access;
 import cn.hamm.airpower.access.AccessConfig;
 import cn.hamm.airpower.access.AccessTokenUtil;
 import cn.hamm.airpower.access.PermissionUtil;
-import cn.hamm.airpower.request.RequestUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.lang.reflect.Method;
-import java.util.Objects;
 
 import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * <h1>全局权限拦截器抽象类</h1>
  *
  * @author Hamm.cn
- * @see #checkUserPermission(long, String, HttpServletRequest)
+ * @see #checkUserPermission(AccessTokenUtil.VerifiedToken, String, HttpServletRequest)
  * @see #interceptRequest(HttpServletRequest, HttpServletResponse, Class, Method)
  */
 @Component
@@ -44,27 +40,6 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
 
     @Autowired
     protected AccessConfig accessConfig;
-
-    /**
-     * 判断是否需要缓存
-     *
-     * @param request 请求
-     * @return 是否需要缓存
-     */
-    public static boolean requestCacheRequired(@NotNull HttpServletRequest request) {
-        // GET请求不缓存
-        if (HttpMethod.GET.name().equalsIgnoreCase(request.getMethod())) {
-            return false;
-        }
-
-        // 空ContentType或者非JSON不缓存
-        String contentType = request.getContentType();
-        if (Objects.isNull(contentType) || !contentType.contains(APPLICATION_JSON_VALUE)) {
-            return false;
-        }
-        // 上传请求不缓存
-        return !RequestUtil.isUploadRequest(request);
-    }
 
     /**
      * 拦截器
@@ -119,7 +94,6 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
         UNAUTHORIZED.whenEmpty(accessToken);
         AccessTokenUtil.VerifiedToken verifiedToken = getVerifiedToken(accessToken);
 
-        long userId = verifiedToken.getPayloadId();
         //需要RBAC
         if (access.isAuthorize()) {
             //验证用户是否有接口的访问权限
@@ -141,7 +115,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
     /**
      * 验证指定的用户是否有指定权限标识的权限
      *
-     * @param userId             用户 {@code ID}
+     * @param verifiedToken      合法令牌
      * @param permissionIdentity 权限标识
      * @param request            请求对象
      * @apiNote 抛出异常则为拦截

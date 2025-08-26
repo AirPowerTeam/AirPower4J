@@ -123,7 +123,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
         //需要RBAC
         if (access.isAuthorize()) {
             //验证用户是否有接口的访问权限
-            checkUserPermission(userId, PermissionUtil.getPermissionIdentity(clazz, method), request);
+            checkUserPermission(verifiedToken, PermissionUtil.getPermissionIdentity(clazz, method), request);
         }
     }
 
@@ -147,7 +147,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
      * @apiNote 抛出异常则为拦截
      */
     public void checkUserPermission(
-            long userId, String permissionIdentity, HttpServletRequest request
+            AccessTokenUtil.@NotNull VerifiedToken verifiedToken, String permissionIdentity, HttpServletRequest request
     ) {
     }
 

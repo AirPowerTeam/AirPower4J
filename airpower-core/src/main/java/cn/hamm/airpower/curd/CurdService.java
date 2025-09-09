@@ -818,7 +818,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 目标实体
      */
     @Contract("_, _ -> param2")
-    private @NotNull E getEntityForUpdate(@NotNull E sourceEntity, @NotNull E exist) {
+    protected @NotNull E getEntityForUpdate(@NotNull E sourceEntity, @NotNull E exist) {
         String[] updateFieldNames = getUpdateFieldNames(sourceEntity);
         BeanUtils.copyProperties(sourceEntity, exist, updateFieldNames);
         return desensitize(exist);

@@ -1,6 +1,5 @@
 package cn.hamm.airpower.interceptor;
 
-import cn.hamm.airpower.ServiceConfig;
 import cn.hamm.airpower.access.Access;
 import cn.hamm.airpower.access.AccessConfig;
 import cn.hamm.airpower.access.AccessTokenUtil;
@@ -20,7 +19,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
 
 /**
@@ -39,9 +37,6 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
     protected static final String REQUEST_METHOD_KEY = "REQUEST_METHOD_KEY";
 
     @Autowired
-    protected ServiceConfig serviceConfig;
-
-    @Autowired
     protected AccessConfig accessConfig;
 
     /**
@@ -58,7 +53,6 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
             @NotNull HttpServletResponse response,
             @NotNull Object object
     ) {
-        SERVICE_ERROR.when(!serviceConfig.isServiceRunning(), "服务短暂维护中,请稍后再试：）");
         HandlerMethod handlerMethod = (HandlerMethod) object;
         //取出控制器和方法
         Class<?> clazz = handlerMethod.getBeanType();

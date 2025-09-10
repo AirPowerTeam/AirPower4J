@@ -26,6 +26,22 @@ import java.util.Objects;
 @SuppressWarnings("unchecked")
 public class RootModel<M extends RootModel<M>> {
     /**
+     * 是否是继承自 RootModel
+     *
+     * @param clazz 类
+     * @return 布尔
+     */
+    public static boolean isModel(Class<?> clazz) {
+        if (Objects.isNull(clazz)) {
+            return false;
+        }
+        if (RootModel.class.equals(clazz)) {
+            return true;
+        }
+        return isModel(clazz.getSuperclass());
+    }
+
+    /**
      * 忽略只读字段
      */
     public final void ignoreReadOnlyFields() {
@@ -72,7 +88,7 @@ public class RootModel<M extends RootModel<M>> {
         if (Objects.isNull(value)) {
             return;
         }
-        if (ReflectUtil.isModel(value.getClass())) {
+        if (isModel(value.getClass())) {
             // 如果是模型，则递归脱敏
             ((RootModel<?>) value).desensitize();
             return;

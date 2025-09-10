@@ -1,6 +1,5 @@
 package cn.hamm.airpower.websocket;
 
-import cn.hamm.airpower.ServiceConfig;
 import cn.hamm.airpower.access.AccessConfig;
 import cn.hamm.airpower.access.AccessTokenUtil;
 import cn.hamm.airpower.api.Json;
@@ -61,23 +60,15 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
      */
     protected final ConcurrentHashMap<String, Long> userIdHashMap = new ConcurrentHashMap<>();
 
-    /**
-     * WebSocket 配置
-     */
     @Autowired
     protected WebSocketConfig webSocketConfig;
 
-    /**
-     * Redis 连接工厂
-     */
     @Autowired
     protected RedisConnectionFactory redisConnectionFactory;
 
     @Autowired
     protected MqttHelper mqttHelper;
 
-    @Autowired
-    private ServiceConfig serviceConfig;
     @Autowired
     private AccessConfig accessConfig;
 
@@ -163,7 +154,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
      */
     @SuppressWarnings("EmptyMethod")
     protected void afterConnectSuccess(@NonNull WebSocketSession session) {
-
+        log.info("连接成功 会话ID: {}", session.getId());
     }
 
     /**

@@ -41,15 +41,15 @@ public abstract class AbstractWebConfig implements WebMvcConfigurer, WebSocketCo
     }
 
     /**
-     * 添加缓存过滤器
+     * 注册过滤器
      *
      * @return 过滤器对象
      */
     @Bean
-    public FilterRegistrationBean<RequestFilter> bodyCachingFilterRegistration() {
+    public FilterRegistrationBean<RequestFilter> getFilterRegistration() {
         FilterRegistrationBean<RequestFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new RequestFilter());
-        registration.addUrlPatterns("/*");
+        registration.addUrlPatterns("/**");
         return registration;
     }
 

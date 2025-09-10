@@ -228,22 +228,6 @@ public class ReflectUtil {
     }
 
     /**
-     * 是否是继承自 RootModel
-     *
-     * @param clazz 类
-     * @return 布尔
-     */
-    public static boolean isModel(Class<?> clazz) {
-        if (Objects.isNull(clazz)) {
-            return false;
-        }
-        if (RootModel.class.equals(clazz)) {
-            return true;
-        }
-        return isModel(clazz.getSuperclass());
-    }
-
-    /**
      * 获取指定类的字段列表
      *
      * @param clazz 类

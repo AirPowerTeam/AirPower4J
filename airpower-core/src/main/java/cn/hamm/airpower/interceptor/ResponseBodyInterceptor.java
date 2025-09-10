@@ -119,13 +119,13 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             collection.stream()
                     .toList()
                     .forEach(item -> {
-                        if (ReflectUtil.isModel(item.getClass())) {
+                        if (RootModel.isModel(item.getClass())) {
                             ((M) item).desensitize();
                         }
                     });
             return json.setData(collection);
         }
-        if (ReflectUtil.isModel(dataCls)) {
+        if (RootModel.isModel(dataCls)) {
             // 如果 data 是 Model
             return json.setData(((M) data).desensitize());
         }

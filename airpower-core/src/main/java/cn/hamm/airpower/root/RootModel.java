@@ -68,29 +68,36 @@ public class RootModel<M extends RootModel<M>> {
      * @param field 字段
      */
     private void desensitize(@NotNull Field field) {
-        Desensitize desensitize = ReflectUtil.getAnnotation(Desensitize.class, field);
-        if (Objects.isNull(desensitize)) {
-            return;
-        }
         Object value = ReflectUtil.getFieldValue(this, field);
         if (Objects.isNull(value)) {
             return;
         }
-        if (!(value instanceof String valueString)) {
+        if (ReflectUtil.isModel(value.getClass())) {
+            // 如果是模型，则递归脱敏
+            ((RootModel<?>) value).desensitize();
             return;
         }
-        if (desensitize.replace()) {
-            ReflectUtil.setFieldValue(this, field, desensitize.symbol());
+        Desensitize desensitize = ReflectUtil.getAnnotation(Desensitize.class, field);
+        if (Objects.isNull(desensitize)) {
             return;
         }
-        ReflectUtil.setFieldValue(this, field,
-                DesensitizeUtil.desensitize(
-                        valueString,
-                        desensitize.value(),
-                        desensitize.head(),
-                        desensitize.tail(),
-                        desensitize.symbol()
-                )
-        );
+        if ((value instanceof String valueString)) {
+            if (desensitize.replace()) {
+                ReflectUtil.setFieldValue(this, field, desensitize.symbol());
+                return;
+            }
+            // 如果不是字符串，则置空
+            ReflectUtil.setFieldValue(this, field,
+                    DesensitizeUtil.desensitize(
+                            valueString,
+                            desensitize.value(),
+                            desensitize.head(),
+                            desensitize.tail(),
+                            desensitize.symbol()
+                    )
+            );
+            return;
+        }
+        ReflectUtil.setFieldValue(this, field, null);
     }
 }

@@ -99,19 +99,20 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             return json;
         }
         DesensitizeIgnore desensitizeIgnore = ReflectUtil.getAnnotation(DesensitizeIgnore.class, method);
-        if (Objects.isNull(desensitizeIgnore)) {
+        if (Objects.nonNull(desensitizeIgnore)) {
             // 无需脱敏
             return json;
         }
         if (data instanceof QueryPageResponse) {
-            QueryPageResponse<M> queryPageResponse = (QueryPageResponse<M>) json.getData();
             // 如果 data 分页对象
+            QueryPageResponse<M> queryPageResponse = (QueryPageResponse<M>) json.getData();
             queryPageResponse.getList().forEach(RootModel::desensitize);
             return json.setData(queryPageResponse);
         }
 
         Class<?> dataCls = data.getClass();
         if (data instanceof Collection) {
+            // 如果是集合
             Collection<?> collection = CollectionUtil.getCollectWithoutNull(
                     (Collection<?>) data, dataCls
             );
@@ -128,7 +129,6 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             // 如果 data 是 Model
             return json.setData(((M) data).desensitize());
         }
-
         // 其他数据 原样返回
         return json;
     }

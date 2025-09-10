@@ -38,7 +38,7 @@
 <parent>
     <groupId>cn.hamm</groupId>
     <artifactId>airpower</artifactId>
-    <version>3.5.2</version>
+    <version>${VERSION}</version>
 </parent>
 <dependencies>
 <dependency>
@@ -78,7 +78,7 @@
 
 类或属性的文案，将显示在错误信息、验证信息等处。
 
-#### 3.3 `@Desensitize` 与 `@DesensitizeExclude`
+#### 3.3 `@Desensitize` 与 `@DesensitizeIgnore`
 
 标记脱敏字段和不脱敏的接口。
 
@@ -86,23 +86,19 @@
 
 标记为Excel导出列，可配置导出列的数据类型。
 
-#### 3.5 `@ReadOnly`、`@Exclude` 和 `@Expose`
+#### 3.5 `@ReadOnly
 
-标记列在指定的过滤器下暴露或者过滤。可为属性标记 `@ReadOnly` 表示该属性不参与控制器修改。
+可为属性标记 `@ReadOnly` 表示该属性不参与控制器修改。
 
-#### 3.6 `@Filter`
-
-标记过滤器，`3.5` 中的规则可使用此类过滤器进行过滤或者暴露。
-
-#### 3.7 `@Extends`
+#### 3.6 `@Extends`
 
 标记控制器需要从父类控制器中继承或排除哪些方法。
 
-#### 3.8 `@Search`
+#### 3.7 `@Search`
 
 标记属性参与搜索，可配置为模糊匹配、精确匹配、相等。
 
-#### 3.9 `@Dictionary`
+#### 3.8 `@Dictionary`
 
 标记为字典属性，可使用下方 `4` 中的枚举字典接口的实现类。
 

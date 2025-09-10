@@ -3,7 +3,6 @@ package cn.hamm.airpower.curd;
 import cn.hamm.airpower.annotation.Description;
 import cn.hamm.airpower.annotation.ReadOnly;
 import cn.hamm.airpower.annotation.Search;
-import cn.hamm.airpower.api.fiter.Expose;
 import cn.hamm.airpower.curd.export.ExcelColumn;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.root.RootModel;
@@ -66,7 +65,6 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
     @Min(value = 0, message = "ID必须大于{value}")
     @ExcelColumn(NUMBER)
     @NotNull(groups = {WhenUpdate.class, WhenIdRequired.class}, message = "ID不能为空")
-    @Expose
     private Long id;
 
     @Description("是否禁用")
@@ -74,21 +72,18 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
     @Search(EQUALS)
     @Column(columnDefinition = "tinyint UNSIGNED default 0 comment '是否禁用'")
     @ExcelColumn(BOOLEAN)
-    @Expose
     private Boolean isDisabled;
 
     @Description("创建时间")
     @ReadOnly
     @Column(columnDefinition = "bigint UNSIGNED default 0 comment '创建时间'")
     @ExcelColumn(DATETIME)
-    @Expose
     private Long createTime;
 
     @Description("修改时间")
     @ReadOnly
     @Column(columnDefinition = "bigint UNSIGNED default 0 comment '修改时间'")
     @ExcelColumn(DATETIME)
-    @Expose
     private Long updateTime;
 
     @Transient

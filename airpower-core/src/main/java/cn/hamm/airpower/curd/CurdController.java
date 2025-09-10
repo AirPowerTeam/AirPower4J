@@ -5,7 +5,6 @@ import cn.hamm.airpower.annotation.Description;
 import cn.hamm.airpower.api.ApiController;
 import cn.hamm.airpower.api.Extends;
 import cn.hamm.airpower.api.Json;
-import cn.hamm.airpower.api.fiter.Filter;
 import cn.hamm.airpower.curd.query.QueryExport;
 import cn.hamm.airpower.curd.query.QueryListRequest;
 import cn.hamm.airpower.curd.query.QueryPageRequest;
@@ -72,7 +71,6 @@ public class CurdController<
      */
     @Description("添加")
     @PostMapping("add")
-    @Filter(WhenGetDetail.class)
     public Json add(@RequestBody @Validated(WhenAdd.class) E source) {
         Add.checkApiAvailable(this);
         source.ignoreReadOnlyFields();
@@ -96,7 +94,6 @@ public class CurdController<
      */
     @Description("修改")
     @PostMapping("update")
-    @Filter(WhenGetDetail.class)
     public Json update(@RequestBody @Validated(WhenUpdate.class) @NotNull E source) {
         Update.checkApiAvailable(this);
         long id = source.getId();
@@ -137,7 +134,6 @@ public class CurdController<
      */
     @Description("查询详情")
     @PostMapping("getDetail")
-    @Filter(WhenGetDetail.class)
     public Json getDetail(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
         GetDetail.checkApiAvailable(this);
         return Json.data(afterGetDetail(service.get(source.getId())));
@@ -188,7 +184,6 @@ public class CurdController<
      */
     @Description("不分页查询")
     @PostMapping("getList")
-    @Filter(WhenGetList.class)
     public Json getList(@RequestBody QueryListRequest<E> queryListRequest) {
         GetList.checkApiAvailable(this);
         queryListRequest = requireQueryAndFilterNonNullElse(queryListRequest, new QueryListRequest<>());
@@ -205,7 +200,6 @@ public class CurdController<
      */
     @Description("分页查询")
     @PostMapping("getPage")
-    @Filter(WhenGetPage.class)
     public Json getPage(@RequestBody QueryPageRequest<E> queryPageRequest) {
         GetPage.checkApiAvailable(this);
         queryPageRequest = requireQueryAndFilterNonNullElse(queryPageRequest, new QueryPageRequest<>());

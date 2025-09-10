@@ -16,5 +16,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(METHOD)
 @Retention(RUNTIME)
 @Inherited
-public @interface DesensitizeExclude {
+public @interface DesensitizeIgnore {
 }

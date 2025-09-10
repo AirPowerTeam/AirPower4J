@@ -23,22 +23,4 @@ public interface ICurdAction {
      */
     interface WhenUpdate {
     }
-
-    /**
-     * 当查询详情时
-     */
-    interface WhenGetDetail {
-    }
-
-    /**
-     * 分页查询
-     */
-    interface WhenGetPage {
-    }
-
-    /**
-     * 不分页查询
-     */
-    interface WhenGetList {
-    }
 }

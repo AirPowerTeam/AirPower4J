@@ -1,28 +1,19 @@
 package cn.hamm.airpower.root;
 
 import cn.hamm.airpower.annotation.ReadOnly;
-import cn.hamm.airpower.api.fiter.Exclude;
-import cn.hamm.airpower.api.fiter.Expose;
-import cn.hamm.airpower.api.fiter.Filter;
 import cn.hamm.airpower.desensitize.Desensitize;
 import cn.hamm.airpower.desensitize.DesensitizeUtil;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.reflect.ReflectUtil;
-import cn.hamm.airpower.util.CollectionUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 
 /**
  * <h1>数据根模型</h1>
@@ -60,171 +51,15 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * 过滤和脱敏
+     * 脱敏
      *
-     * @param filterClass   过滤器类
-     * @param isDesensitize 是否需要脱敏
      * @return 实体
-     * @see #filterAndDesensitize(Filter, boolean)
-     * @see #desensitize(Field)
-     * @see #filter(Class)
      */
-    public final M filterAndDesensitize(@NotNull Class<?> filterClass, boolean isDesensitize) {
+    public final M desensitize() {
         Class<M> clazz = (Class<M>) getClass();
-        Exclude exclude = clazz.getAnnotation(Exclude.class);
-        // 类中没有标排除 则所有字段全暴露 走黑名单
-        boolean isExpose = Objects.nonNull(exclude) && (Arrays.asList(exclude.filters()).contains(filterClass) || exclude.filters().length == 0);
-        BiConsumer<@NotNull Field, @NotNull Class<?>> task = isExpose ? this::exposeBy : this::excludeBy;
         List<Field> allFields = ReflectUtil.getFieldList(clazz);
-        allFields.forEach(field -> {
-            if (!Objects.equals(Void.class, filterClass)) {
-                task.accept(field, filterClass);
-                filterField(field, filterClass, isDesensitize);
-            }
-            if (isDesensitize) {
-                desensitize(field);
-            }
-        });
+        allFields.forEach(this::desensitize);
         return (M) this;
-    }
-
-    /**
-     * 过滤字段
-     *
-     * @param filterClass 过滤器
-     * @return 实体
-     * @see #filterAndDesensitize(Class, boolean)
-     * @see #filterAndDesensitize(Filter, boolean)
-     * @see #desensitize(Field)
-     */
-    public final M filter(Class<?> filterClass) {
-        return filterAndDesensitize(filterClass, false);
-    }
-
-    /**
-     * 过滤和脱敏
-     *
-     * @param filter        过滤器注解
-     * @param isDesensitize 是否需要脱敏
-     * @return 实体
-     * @see #filterAndDesensitize(Class, boolean)
-     * @see #filter(Class)
-     * @see #desensitize(Field)
-     */
-    public final M filterAndDesensitize(@Nullable Filter filter, boolean isDesensitize) {
-        if (Objects.isNull(filter)) {
-            return filterAndDesensitize(Void.class, isDesensitize);
-        }
-        return filterAndDesensitize(filter.value(), isDesensitize);
-    }
-
-    /**
-     * 通过指定的过滤器排除字段
-     *
-     * @param field       字段
-     * @param filterClass 过滤器
-     */
-    private void excludeBy(@NotNull Field field, @NotNull Class<?> filterClass) {
-        Class<?>[] excludeClasses = null;
-        final String fieldGetter = ReflectUtil.getFieldGetter(field);
-        try {
-            Method getMethod = getClass().getMethod(fieldGetter);
-            Exclude methodExclude = ReflectUtil.getAnnotation(Exclude.class, getMethod);
-            if (Objects.nonNull(methodExclude)) {
-                // 属性的Getter上标记了排除
-                excludeClasses = methodExclude.filters();
-            }
-        } catch (NoSuchMethodException exception) {
-            log.error(exception.getMessage(), exception);
-        }
-        if (Objects.isNull(excludeClasses)) {
-            Exclude fieldExclude = ReflectUtil.getAnnotation(Exclude.class, field);
-            if (Objects.isNull(fieldExclude)) {
-                // 属性Getter没标记 也没有属性本身标记 则暴露
-                return;
-            }
-            // 属性Getter没标记 但是属性本身标记了
-            excludeClasses = fieldExclude.filters();
-        }
-
-        boolean isNeedClear = true;
-        if (excludeClasses.length > 0) {
-            isNeedClear = Arrays.asList(excludeClasses).contains(filterClass);
-        }
-        if (isNeedClear) {
-            ReflectUtil.clearFieldValue(this, field);
-        }
-    }
-
-    /**
-     * 通过指定的过滤器暴露字段
-     *
-     * @param field       字段
-     * @param filterClass 过滤器
-     */
-    private void exposeBy(@NotNull Field field, @NotNull Class<?> filterClass) {
-        final String fieldGetter = ReflectUtil.getFieldGetter(field);
-        Class<?>[] exposeClasses = null;
-        try {
-            Method getMethod = getClass().getMethod(fieldGetter);
-            Expose methodExpose = ReflectUtil.getAnnotation(Expose.class, getMethod);
-            if (Objects.nonNull(methodExpose)) {
-                // 属性的Getter标记了暴露
-                exposeClasses = methodExpose.filters();
-            }
-            // 属性的Getter没有标记
-        } catch (NoSuchMethodException exception) {
-            log.error(exception.getMessage(), exception);
-        }
-        if (Objects.isNull(exposeClasses)) {
-            Expose fieldExpose = ReflectUtil.getAnnotation(Expose.class, field);
-            if (Objects.isNull(fieldExpose)) {
-                // 属性以及Getter都没有标记暴露 则排除
-                ReflectUtil.clearFieldValue(this, field);
-                return;
-            }
-            exposeClasses = fieldExpose.filters();
-        }
-        if (exposeClasses.length == 0) {
-            // 虽然标记但未指定过滤器 所有场景都暴露
-            return;
-        }
-        boolean isExpose = Arrays.asList(exposeClasses).contains(filterClass);
-        if (!isExpose) {
-            // 当前场景不在标记的暴露场景中 则排除
-            ReflectUtil.clearFieldValue(this, field);
-        }
-    }
-
-    /**
-     * 递归过滤和脱敏
-     *
-     * @param field         字段
-     * @param isDesensitize 是否需要脱敏
-     */
-    private void filterField(@NotNull Field field, Class<?> filterClass, boolean isDesensitize) {
-        Object fieldValue = ReflectUtil.getFieldValue(this, field);
-        if (fieldValue instanceof Collection<?>) {
-            Class<?> fieldClass = field.getType();
-            if (!ReflectUtil.isModel(fieldClass)) {
-                return;
-            }
-            Collection<RootModel<?>> collection = CollectionUtil.getCollectWithoutNull(
-                    (Collection<RootModel<?>>) fieldValue, fieldClass
-            );
-            collection.forEach(item -> item.filterAndDesensitize(filterClass, isDesensitize));
-            ReflectUtil.setFieldValue(this, field, collection);
-            return;
-        }
-        if (!ReflectUtil.isModel(field.getType())) {
-            return;
-        }
-        if (Objects.isNull(fieldValue)) {
-            return;
-        }
-        ReflectUtil.setFieldValue(this, field,
-                ((RootModel<?>) fieldValue).filterAndDesensitize(filterClass, isDesensitize)
-        );
     }
 
     /**

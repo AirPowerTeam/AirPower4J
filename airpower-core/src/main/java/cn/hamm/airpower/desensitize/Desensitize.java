@@ -11,7 +11,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <h1>标记字段在 API 输出时自动脱敏</h1>
  *
  * @author Hamm.cn
- * @apiNote 如需标记不脱敏的接口，可使用 {@link DesensitizeExclude}
+ * @apiNote 如需标记不脱敏的接口，可使用 {@link DesensitizeIgnore}
  */
 @Target(FIELD)
 @Retention(RUNTIME)

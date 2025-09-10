@@ -1,9 +1,8 @@
 package cn.hamm.airpower.interceptor;
 
 import cn.hamm.airpower.api.Json;
-import cn.hamm.airpower.api.fiter.Filter;
 import cn.hamm.airpower.curd.query.QueryPageResponse;
-import cn.hamm.airpower.desensitize.DesensitizeExclude;
+import cn.hamm.airpower.desensitize.DesensitizeIgnore;
 import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.request.RequestUtil;
 import cn.hamm.airpower.root.RootModel;
@@ -99,15 +98,15 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
         if (Objects.isNull(data)) {
             return json;
         }
-
-        Filter filter = ReflectUtil.getAnnotation(Filter.class, method);
-        DesensitizeExclude desensitizeExclude = ReflectUtil.getAnnotation(DesensitizeExclude.class, method);
+        DesensitizeIgnore desensitizeIgnore = ReflectUtil.getAnnotation(DesensitizeIgnore.class, method);
+        if (Objects.isNull(desensitizeIgnore)) {
+            // 无需脱敏
+            return json;
+        }
         if (data instanceof QueryPageResponse) {
             QueryPageResponse<M> queryPageResponse = (QueryPageResponse<M>) json.getData();
             // 如果 data 分页对象
-            queryPageResponse.getList().forEach(item ->
-                    item.filterAndDesensitize(filter, Objects.isNull(desensitizeExclude))
-            );
+            queryPageResponse.getList().forEach(RootModel::desensitize);
             return json.setData(queryPageResponse);
         }
 
@@ -120,14 +119,14 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
                     .toList()
                     .forEach(item -> {
                         if (ReflectUtil.isModel(item.getClass())) {
-                            ((M) item).filterAndDesensitize(filter, Objects.isNull(desensitizeExclude));
+                            ((M) item).desensitize();
                         }
                     });
             return json.setData(collection);
         }
         if (ReflectUtil.isModel(dataCls)) {
             // 如果 data 是 Model
-            return json.setData(((M) data).filterAndDesensitize(filter, Objects.isNull(desensitizeExclude)));
+            return json.setData(((M) data).desensitize());
         }
 
         // 其他数据 原样返回

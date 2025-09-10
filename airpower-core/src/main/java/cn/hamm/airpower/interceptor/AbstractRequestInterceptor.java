@@ -12,10 +12,13 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import static cn.hamm.airpower.exception.ServiceError.SERVICE_ERROR;
 import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
@@ -60,8 +63,22 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
         //取出控制器和方法
         Class<?> clazz = handlerMethod.getBeanType();
         Method method = handlerMethod.getMethod();
+        setShareData(REQUEST_METHOD_KEY, method);
         handleRequest(request, response, clazz, method);
         return true;
+    }
+
+    /**
+     * <h2>设置共享数据</h2>
+     *
+     * @param key   KEY
+     * @param value VALUE
+     */
+    protected final void setShareData(String key, Object value) {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (Objects.nonNull(requestAttributes)) {
+            requestAttributes.setAttribute(key, value, RequestAttributes.SCOPE_REQUEST);
+        }
     }
 
     /**

@@ -73,7 +73,7 @@ public class RootModel<M extends RootModel<M>> {
         Class<M> clazz = (Class<M>) getClass();
         Exclude exclude = clazz.getAnnotation(Exclude.class);
         // 类中没有标排除 则所有字段全暴露 走黑名单
-        boolean isExpose = Objects.nonNull(exclude) && Arrays.asList(exclude.filters()).contains(filterClass);
+        boolean isExpose = Objects.nonNull(exclude) && (Arrays.asList(exclude.filters()).contains(filterClass) || exclude.filters().length == 0);
         BiConsumer<@NotNull Field, @NotNull Class<?>> task = isExpose ? this::exposeBy : this::excludeBy;
         List<Field> allFields = ReflectUtil.getFieldList(clazz);
         allFields.forEach(field -> {

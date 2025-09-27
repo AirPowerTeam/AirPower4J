@@ -161,9 +161,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterSaved(long, E)
      */
     public final long add(@NotNull E source) {
+        source.setIsDisabled(false).setCreateTime(System.currentTimeMillis());
         source = beforeAdd(source);
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
-        source.setId(null).setIsDisabled(false).setCreateTime(System.currentTimeMillis());
+        source.setId(null);
         E finalSource = source;
         long id = saveToDatabaseIgnoreNull(source);
         TaskUtil.run(() -> afterAdd(id, finalSource));

@@ -3,6 +3,7 @@ package cn.hamm.airpower.curd.query;
 import cn.hamm.airpower.annotation.Description;
 import cn.hamm.airpower.root.RootModel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
@@ -11,10 +12,11 @@ import lombok.experimental.Accessors;
  * @param <M> 数据模型
  * @author Hamm.cn
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
 @Description("查询请求")
-public class QueryRequest<M extends RootModel<M>> {
+public class QueryRequest<M extends RootModel<M>> extends RootModel<QueryRequest<M>> {
     /**
      * 搜索过滤器
      */

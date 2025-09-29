@@ -5,6 +5,7 @@ import cn.hamm.airpower.curd.Page;
 import cn.hamm.airpower.curd.Sort;
 import cn.hamm.airpower.root.RootModel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,10 +17,11 @@ import java.util.List;
  *
  * @author Hamm.cn
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
 @Description("分页查询响应类")
-public class QueryPageResponse<M extends RootModel<M>> {
+public class QueryPageResponse<M extends RootModel<M>> extends RootModel<QueryPageResponse<M>> {
     /**
      * 总数量
      */

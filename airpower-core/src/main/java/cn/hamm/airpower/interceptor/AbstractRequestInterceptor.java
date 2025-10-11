@@ -17,10 +17,8 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -63,19 +61,6 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
             requestId = UUID.randomUUID().toString();
         }
         MDC.put(RequestUtil.REQUEST_ID, requestId);
-
-        // 判断是否是包装过的请求
-        if (request instanceof ContentCachingRequestWrapper cachedRequest) {
-            byte[] requestBodyBytes = cachedRequest.getContentAsByteArray();
-
-            if (requestBodyBytes.length > 0) {
-                String requestBody = new String(requestBodyBytes, StandardCharsets.UTF_8);
-                System.out.println("拦截器获取到的请求体: " + requestBody);
-            } else {
-                System.out.println("请求体为空");
-            }
-        }
-
         HandlerMethod handlerMethod = (HandlerMethod) object;
         //取出控制器和方法
         Class<?> clazz = handlerMethod.getBeanType();

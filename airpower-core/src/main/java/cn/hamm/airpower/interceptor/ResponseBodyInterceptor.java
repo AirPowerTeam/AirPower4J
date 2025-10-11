@@ -7,6 +7,7 @@ import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.request.RequestUtil;
 import cn.hamm.airpower.root.RootModel;
 import cn.hamm.airpower.util.CollectionUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -21,8 +22,10 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -160,5 +163,21 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             return null;
         }
         return requestAttributes.getAttribute(key, RequestAttributes.SCOPE_REQUEST);
+    }
+
+    /**
+     * 获取请求体
+     *
+     * @param request 请求
+     * @return 请求体
+     */
+    protected String getRequestBody(HttpServletRequest request) {
+        String requestBody = "";
+        // 判断是否是包装过的请求
+        if (request instanceof ContentCachingRequestWrapper wrappedRequest) {
+            byte[] bodyBytes = wrappedRequest.getContentAsByteArray();
+            requestBody = new String(bodyBytes, StandardCharsets.UTF_8);
+        }
+        return requestBody;
     }
 }

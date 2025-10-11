@@ -34,7 +34,7 @@ public class RequestFilter implements Filter {
             // 仅对POST、PUT等有body的请求做缓存，可根据需求调整
             HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
             String method = httpRequest.getMethod();
-            if (HttpMethod.POST.name().equals(method) && RequestUtil.isUploadRequest(servletRequest)) {
+            if (HttpMethod.POST.name().equals(method) && !RequestUtil.isUploadRequest(servletRequest)) {
                 // 包装请求，缓存请求体
                 ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(httpRequest);
                 filterChain.doFilter(wrappedRequest, servletResponse);

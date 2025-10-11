@@ -49,7 +49,7 @@ public abstract class AbstractWebConfig implements WebMvcConfigurer, WebSocketCo
     public FilterRegistrationBean<RequestFilter> getFilterRegistration() {
         FilterRegistrationBean<RequestFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new RequestFilter());
-        registration.addUrlPatterns("/*");
+        registration.addUrlPatterns("/**");
         return registration;
     }
 

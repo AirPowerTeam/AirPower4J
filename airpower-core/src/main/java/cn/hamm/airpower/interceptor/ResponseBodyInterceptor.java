@@ -72,10 +72,14 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             @NotNull ServerHttpResponse response
     ) {
         Method method = (Method) getShareData(REQUEST_METHOD_KEY);
+        Object responseResult;
         if (Objects.isNull(method)) {
-            return beforeResponseFinished(body, request, response);
+            responseResult = beforeResponseFinished(body, request, response);
+        } else {
+            responseResult = beforeResponseFinished(getResult(body, method), request, response);
         }
-        return beforeResponseFinished(getResult(body, method), request, response);
+        response.getHeaders().set(RequestUtil.REQUEST_ID, MDC.get(RequestUtil.REQUEST_ID));
+        return responseResult;
     }
 
     /**
@@ -93,7 +97,6 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             // 返回不是JsonData 原样返回
             return result;
         }
-        json.setRequestId(MDC.get(RequestUtil.REQUEST_ID));
         Object data = json.getData();
         if (Objects.isNull(data)) {
             return json;

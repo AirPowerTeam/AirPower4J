@@ -31,7 +31,7 @@ public class RequestUtil {
     /**
      * 缓存的 REQUEST_ID
      */
-    public static final String REQUEST_ID = "REQUEST_ID";
+    public static final String REQUEST_ID = "X-Request-ID";
 
     /**
      * 常用 IP 反向代理 Header 头

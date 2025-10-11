@@ -55,12 +55,6 @@ public class Json {
     @Description("返回数据")
     private Object data;
 
-    /**
-     * 请求ID
-     */
-    @Description("请求ID")
-    private String requestId;
-
     @Contract(pure = true)
     private Json() {
         // 禁止外部实例化

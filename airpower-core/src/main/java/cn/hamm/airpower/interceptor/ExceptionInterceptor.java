@@ -4,12 +4,10 @@ import cn.hamm.airpower.api.Json;
 import cn.hamm.airpower.exception.IException;
 import cn.hamm.airpower.exception.ServiceError;
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.request.RequestUtil;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.mapping.PropertyReferenceException;
@@ -273,6 +271,6 @@ public class ExceptionInterceptor {
      * @return Json
      */
     private Json responseError(IException<?> serviceError, String message) {
-        return Json.error(serviceError, message).setRequestId(MDC.get(RequestUtil.REQUEST_ID));
+        return Json.error(serviceError, message);
     }
 }

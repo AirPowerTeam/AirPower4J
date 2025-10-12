@@ -13,14 +13,12 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Objects;
 
 import static cn.hamm.airpower.exception.ServiceError.*;
 
@@ -31,7 +29,7 @@ import static cn.hamm.airpower.exception.ServiceError.*;
  */
 @Aspect
 @Component
-public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService> {
+public class OpenApiAspect<S extends IOpenAppService> {
     /**
      * 防重放时长
      */
@@ -44,9 +42,6 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
 
     @Autowired(required = false)
     private S openAppService;
-
-    @Autowired(required = false)
-    private LS openLogService;
 
     @Autowired
     private HttpServletRequest request;
@@ -67,33 +62,15 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     public Object openApi(@NotNull ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
         validOpenApi(proceedingJoinPoint);
         OpenRequest openRequest = getOpenRequest(proceedingJoinPoint);
-        Long openLogId = null;
-        String response = "";
-        try {
-            IOpenApp openApp = getOpenApp(openRequest);
-            checkIpWhiteList(openApp);
-            openRequest.checkSignature(openApp);
-            Object object = proceedingJoinPoint.proceed();
-            openLogId = addOpenLog(
-                    openRequest.getOpenApp(),
-                    request.getRequestURI(),
-                    openRequest.decodeContent()
-            );
-            if (object instanceof Json json) {
-                // 日志记录原始数据
-                response = Json.toString(json);
-                // 如果是Json 需要将 Json.data 对输出的数据进行加密
-                json.setData(OpenResponse.encodeResponse(openRequest.getOpenApp(), json.getData()));
-            }
-            updateLogResponse(openLogId, response);
-            return object;
-        } catch (ServiceException serviceException) {
-            updateLogResponse(openLogId, serviceException);
-            throw serviceException;
-        } catch (Exception exception) {
-            updateLogResponse(openLogId, exception);
-            throw exception;
+        IOpenApp openApp = getOpenApp(openRequest);
+        checkIpWhiteList(openApp);
+        openRequest.checkSignature(openApp);
+        Object object = proceedingJoinPoint.proceed();
+        if (object instanceof Json json) {
+            // 如果是Json 需要将 Json.data 对输出的数据进行加密
+            json.setData(OpenResponse.encodeResponse(openRequest.getOpenApp(), json.getData()));
         }
+        return object;
     }
 
     /**
@@ -176,21 +153,6 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
     }
 
     /**
-     * 添加日志
-     *
-     * @param openApp     {@code OpenApp}
-     * @param url         请求 {@code URL}
-     * @param requestBody 请求数据
-     * @return 日志ID
-     */
-    private @Nullable Long addOpenLog(IOpenApp openApp, String url, String requestBody) {
-        if (Objects.nonNull(openLogService)) {
-            return openLogService.addRequest(openApp, url, requestBody);
-        }
-        return null;
-    }
-
-    /**
      * 防重放检测
      */
     private void checkNonce(String nonce) {
@@ -198,41 +160,5 @@ public class OpenApiAspect<S extends IOpenAppService, LS extends IOpenLogService
         Object savedNonce = redisHelper.get(cacheKey);
         REPEAT_REQUEST.whenNotNull(savedNonce);
         redisHelper.set(cacheKey, 1, NONCE_CACHE_SECOND);
-    }
-
-    /**
-     * 更新日志返回数据
-     *
-     * @param openLogId    日志 ID
-     * @param responseBody 返回值
-     */
-    private void updateLogResponse(Long openLogId, String responseBody) {
-        if (Objects.isNull(openLogId) || Objects.isNull(openLogService)) {
-            return;
-        }
-        openLogService.updateResponse(openLogId, responseBody);
-    }
-
-    /**
-     * 更新日志异常
-     *
-     * @param openLogId        日志 ID
-     * @param serviceException 异常
-     */
-    private void updateLogResponse(Long openLogId, @NotNull ServiceException serviceException) {
-        updateLogResponse(openLogId, Json.toString(Json.create()
-                .setCode(serviceException.getCode())
-                .setMessage(serviceException.getMessage())
-        ));
-    }
-
-    /**
-     * 更新日志异常
-     *
-     * @param openLogId 日志 ID
-     * @param exception 异常
-     */
-    private void updateLogResponse(Long openLogId, @NotNull Exception exception) {
-        updateLogResponse(openLogId, Json.toString(Json.create().setMessage(exception.getMessage())));
     }
 }

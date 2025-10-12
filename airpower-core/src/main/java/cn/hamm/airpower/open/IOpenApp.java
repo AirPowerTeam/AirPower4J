@@ -8,13 +8,6 @@ package cn.hamm.airpower.open;
  */
 public interface IOpenApp {
     /**
-     * 获取应用的 AppKey
-     *
-     * @return AppKey
-     */
-    String getAppKey();
-
-    /**
      * 获取应用的 AppSecret
      *
      * @return AppSecret
@@ -34,13 +27,6 @@ public interface IOpenApp {
      * @return 私钥
      */
     String getPrivateKey();
-
-    /**
-     * 获取应用的公钥
-     *
-     * @return 公钥
-     */
-    String getPublicKey();
 
     /**
      * 获取 IP 白名单列表

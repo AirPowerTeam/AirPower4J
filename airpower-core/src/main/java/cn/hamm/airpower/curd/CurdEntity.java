@@ -2,7 +2,6 @@ package cn.hamm.airpower.curd;
 
 import cn.hamm.airpower.annotation.Description;
 import cn.hamm.airpower.annotation.ReadOnly;
-import cn.hamm.airpower.annotation.Search;
 import cn.hamm.airpower.curd.export.ExcelColumn;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.root.RootModel;
@@ -20,7 +19,6 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.io.Serializable;
 
-import static cn.hamm.airpower.annotation.Search.Mode.EQUALS;
 import static cn.hamm.airpower.curd.export.ExportColumnType.*;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
@@ -59,7 +57,6 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
 
     @Description("主键ID")
     @Id
-    @Search(EQUALS)
     @GeneratedValue(strategy = IDENTITY)
     @Column(nullable = false, columnDefinition = "bigint UNSIGNED comment 'ID'")
     @Min(value = 0, message = "ID必须大于{value}")
@@ -69,7 +66,6 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
 
     @Description("是否禁用")
     @ReadOnly
-    @Search(EQUALS)
     @Column(columnDefinition = "tinyint UNSIGNED default 0 comment '是否禁用'")
     @ExcelColumn(BOOLEAN)
     private Boolean isDisabled;

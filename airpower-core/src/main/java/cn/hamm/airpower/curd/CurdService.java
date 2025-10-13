@@ -13,8 +13,7 @@ import cn.hamm.airpower.redis.RedisHelper;
 import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.util.CollectionUtil;
 import cn.hamm.airpower.util.TaskUtil;
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityManager;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
@@ -987,7 +986,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 搜索条件
      */
     private @NotNull List<jakarta.persistence.criteria.Predicate> getPredicateList(
-            @NotNull From<?, ?> root, @NotNull CriteriaBuilder builder, @NotNull Object search, boolean isEqual
+            @NotNull From<?, ?> root,
+            @NotNull CriteriaBuilder builder,
+            @NotNull Object search,
+            boolean isEqual
     ) {
         List<Field> fields = ReflectUtil.getFieldList(search.getClass());
         List<Predicate> predicateList = new ArrayList<>();
@@ -997,30 +999,45 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                 // 没有传入查询值 空字符串 跳过
                 return;
             }
-            Search searchMode = ReflectUtil.getAnnotation(Search.class, field);
-            if (Objects.isNull(searchMode)) {
-                // 没有配置查询注解 跳过
+            OneToMany oneToMany = ReflectUtil.getAnnotation(OneToMany.class, field);
+            if (Objects.nonNull(oneToMany)) {
+                // 一对多的属性 不参与搜索
                 return;
             }
-            switch (searchMode.value()) {
-                case JOIN:
-                    Join<?, ?> payload = root.join(field.getName(), JoinType.INNER);
-                    predicateList.addAll(getPredicateList(payload, builder, fieldValue, isEqual));
-                    break;
-                case LIKE:
-                    if (!isEqual) {
-                        // 如果是模糊匹配
-                        predicateList.add(
-                                builder.like(root.get(field.getName()), fieldValue + "%")
-                        );
-                        break;
-                    }
-                    // 如果不是模糊匹配，走到default分支
-                default:
-                    // 强匹配
-                    Predicate predicate = builder.equal(root.get(field.getName()), fieldValue);
-                    predicateList.add(predicate);
+            ManyToMany manyToMany = ReflectUtil.getAnnotation(ManyToMany.class, field);
+            if (Objects.nonNull(manyToMany)) {
+                // 多对多的属性 不参与搜索
+                return;
             }
+            Transient transientAnnotation = ReflectUtil.getAnnotation(Transient.class, field);
+            if (Objects.nonNull(transientAnnotation)) {
+                // 非数据库字段 不参与搜索
+                return;
+            }
+            ManyToOne manyToOne = ReflectUtil.getAnnotation(ManyToOne.class, field);
+            if (Objects.nonNull(manyToOne)) {
+                // 标记了多对一注解 则直接认为是 Join 查询
+                Join<?, ?> payload = root.join(field.getName(), JoinType.INNER);
+                predicateList.addAll(getPredicateList(payload, builder, fieldValue, isEqual));
+                return;
+            }
+            if (isEqual) {
+                // 要求全强匹配
+                predicateList.add(builder.equal(root.get(field.getName()), fieldValue));
+                return;
+            }
+
+            // 没有标记搜索 则强匹配
+            Search searchAnnotation = ReflectUtil.getAnnotation(Search.class, field);
+            if (Objects.nonNull(searchAnnotation)) {
+                // 标记了搜索 则模糊搜索
+                predicateList.add(
+                        builder.like(root.get(field.getName()), fieldValue + "%")
+                );
+                return;
+            }
+            // 最后兜底还是强匹配
+            predicateList.add(builder.equal(root.get(field.getName()), fieldValue));
         });
         return predicateList;
     }
@@ -1082,7 +1099,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         }
         E lastFilter = beforeCreatePredicate(filter.copy());
         List<Predicate> predicateList = getPredicateList(root, builder, lastFilter, isEqual);
+
+        // 添加更多自定义查询条件
         predicateList.addAll(addSearchPredicate(root, builder, filter));
+
+        // 添加修改时间和创建时间的区间查询
         addCreateAndUpdateTimePredicate(root, builder, filter, predicateList);
         Predicate[] predicates = new Predicate[predicateList.size()];
         criteriaQuery.where(builder.and(predicateList.toArray(predicates)));

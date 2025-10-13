@@ -18,5 +18,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Documented
 public @interface Search {
+    /**
+     * 是否全模糊查询，默认只左模糊
+     */
+    boolean fullLike() default false;
 }
 

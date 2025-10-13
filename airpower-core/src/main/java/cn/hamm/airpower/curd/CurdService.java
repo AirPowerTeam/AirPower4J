@@ -1031,9 +1031,13 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             Search searchAnnotation = ReflectUtil.getAnnotation(Search.class, field);
             if (Objects.nonNull(searchAnnotation)) {
                 // 标记了搜索 则模糊搜索
-                predicateList.add(
-                        builder.like(root.get(field.getName()), fieldValue + "%")
-                );
+                if (searchAnnotation.fullLike()) {
+                    predicateList.add(builder.like(root.get(field.getName()),
+                            "%" + fieldValue + "%"));
+                    return;
+                }
+                predicateList.add(builder.like(root.get(field.getName()),
+                        fieldValue + "%"));
                 return;
             }
             // 最后兜底还是强匹配

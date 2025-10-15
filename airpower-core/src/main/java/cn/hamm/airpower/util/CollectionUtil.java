@@ -5,7 +5,7 @@ import cn.hamm.airpower.datetime.DateTimeUtil;
 import cn.hamm.airpower.dictionary.Dictionary;
 import cn.hamm.airpower.dictionary.DictionaryUtil;
 import cn.hamm.airpower.dictionary.IDictionary;
-import cn.hamm.airpower.export.ExcelColumn;
+import cn.hamm.airpower.export.Export;
 import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.root.RootModel;
 import lombok.extern.slf4j.Slf4j;
@@ -74,8 +74,8 @@ public class CollectionUtil {
     public static <M extends RootModel<M>> @NotNull InputStream toCsvInputStream(List<M> list, Class<M> itemClass) {
         List<Field> fieldList = new ArrayList<>();
         ReflectUtil.getFieldList(itemClass).forEach(field -> {
-            ExcelColumn excelColumn = ReflectUtil.getAnnotation(ExcelColumn.class, field);
-            if (Objects.isNull(excelColumn)) {
+            Export export = ReflectUtil.getAnnotation(Export.class, field);
+            if (Objects.isNull(export)) {
                 return;
             }
             fieldList.add(field);
@@ -122,11 +122,11 @@ public class CollectionUtil {
             if (Objects.isNull(field)) {
                 return value;
             }
-            ExcelColumn excelColumn = ReflectUtil.getAnnotation(ExcelColumn.class, field);
-            if (Objects.isNull(excelColumn)) {
+            Export export = ReflectUtil.getAnnotation(Export.class, field);
+            if (Objects.isNull(export)) {
                 return value;
             }
-            return switch (excelColumn.value()) {
+            return switch (export.value()) {
                 case DATETIME -> INDENT + DateTimeUtil.format(Long.parseLong(value.toString()));
                 case TEXT -> INDENT + value;
                 case BOOLEAN -> (boolean) value ? "是" : "否";

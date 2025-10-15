@@ -90,7 +90,7 @@ public class TreeUtil {
             S extends CurdService<E, R>,
             R extends ICurdRepository<E>
             > @NotNull List<E> findByParentId(@NotNull S service, Long parentId) {
-        return service.filter(ReflectUtil.newInstance(service.getEntityClass()).setParentId(parentId));
+        return service.filter(ReflectUtil.newInstance(service.getFirstParameterizedTypeClass()).setParentId(parentId));
     }
 
     /**

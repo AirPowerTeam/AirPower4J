@@ -2,16 +2,12 @@ package cn.hamm.airpower.curd;
 
 import cn.hamm.airpower.annotation.NullEnable;
 import cn.hamm.airpower.annotation.Search;
-import cn.hamm.airpower.curd.export.ExportHelper;
-import cn.hamm.airpower.curd.query.QueryExport;
 import cn.hamm.airpower.curd.query.QueryListRequest;
 import cn.hamm.airpower.curd.query.QueryPageRequest;
 import cn.hamm.airpower.curd.query.QueryPageResponse;
-import cn.hamm.airpower.desensitize.Desensitize;
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.redis.RedisHelper;
 import cn.hamm.airpower.reflect.ReflectUtil;
-import cn.hamm.airpower.util.CollectionUtil;
+import cn.hamm.airpower.root.RootService;
 import cn.hamm.airpower.util.TaskUtil;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
@@ -30,16 +26,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
 import java.beans.PropertyDescriptor;
-import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.function.BiFunction;
 
 import static cn.hamm.airpower.exception.ServiceError.*;
 
 /**
- * <h1>服务根类</h1>
+ * <h1>实体根服务</h1>
  *
  * @param <E> 实体
  * @param <R> 数据源
@@ -47,23 +41,29 @@ import static cn.hamm.airpower.exception.ServiceError.*;
  */
 @SuppressWarnings({"SpringJavaInjectionPointsAutowiringInspection"})
 @Slf4j
-public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> {
+public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> extends RootService<E> {
+    /**
+     * 提交的数据不允许为空
+     */
     private static final String DATA_REQUIRED = "提交的数据不允许为空";
 
+    /**
+     * 数据源
+     */
     @Autowired
     protected R repository;
 
+    /**
+     * 实体管理器
+     */
     @Autowired
     protected EntityManager entityManager;
 
-    @Autowired
-    protected RedisHelper redisHelper;
-
+    /**
+     * CURD配置
+     */
     @Autowired
     private CurdConfig curdConfig;
-
-    @Autowired
-    private ExportHelper exportHelper;
 
     /**
      * 创建导出任务
@@ -75,68 +75,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #createExportStream(List)
      */
     public final String createExportTask(QueryListRequest<E> queryListRequest) {
-        return exportHelper.createExportTask(() -> {
-            List<E> list = exportQuery(queryListRequest);
-            return saveExportFile(createExportStream(list));
-        });
-    }
-
-    /**
-     * 导出查询前置方法
-     *
-     * @param queryListRequest 查询请求
-     * @return 处理后的查询请求
-     */
-    protected QueryListRequest<E> beforeExportQuery(QueryListRequest<E> queryListRequest) {
-        return queryListRequest;
-    }
-
-    /**
-     * 创建导出数据的文件字节流
-     *
-     * @param exportList 导出的数据
-     * @return 导出的文件的字节流
-     * @apiNote 支持完全重写导出文件生成逻辑
-     *
-     * <ul>
-     *     <li>默认导出为 {@code CSV} 表格，如需自定义导出方式或格式，可直接重写此方法</li>
-     *     <li>如仅需 <b>自定义导出存储位置</b>，可重写 {@link #saveExportFile(InputStream)}</li>
-     * </ul>
-     */
-    protected InputStream createExportStream(List<E> exportList) {
-        return CollectionUtil.toCsvInputStream(exportList, getEntityClass());
-    }
-
-    /**
-     * 保存导出生成的文件
-     *
-     * @param exportFileStream 导出的文件字节流
-     * @return 存储后的可访问路径
-     * @apiNote 可重写此方法存储至其他地方后返回可访问绝对路径
-     */
-    protected String saveExportFile(InputStream exportFileStream) {
-        // 准备导出的相对路径
-        return exportHelper.saveExportFileStream(exportFileStream);
-    }
-
-    /**
-     * 导出查询后置方法
-     *
-     * @param exportList 导出的数据列表
-     * @return 处理后的数据列表
-     */
-    protected List<E> afterExportQuery(@NotNull List<E> exportList) {
-        return exportList;
-    }
-
-    /**
-     * 查询导出结果
-     *
-     * @param queryExport 查询导出模型
-     * @return 导出文件地址
-     */
-    protected final String queryExport(@NotNull QueryExport queryExport) {
-        return exportHelper.getExportFileUrl(queryExport.getFileCode());
+        return createExportTask(exportQuery(queryListRequest));
     }
 
     /**
@@ -473,7 +412,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         E entity = get(id);
         FORBIDDEN_DISABLED.when(
                 entity.getIsDisabled(),
-                String.format(FORBIDDEN_DISABLED.getMessage(), id, ReflectUtil.getDescription(getEntityClass()))
+                String.format(FORBIDDEN_DISABLED.getMessage(), id, ReflectUtil.getDescription(getFirstParameterizedTypeClass()))
         );
         return entity;
     }
@@ -582,7 +521,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
         PARAM_MISSING.whenNull(source.getId(), String.format(
                 "修改失败，请传入%s的ID!",
-                ReflectUtil.getDescription(getEntityClass())
+                ReflectUtil.getDescription(getFirstParameterizedTypeClass())
         ));
         saveToDatabase(source, withNull);
     }
@@ -680,7 +619,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #query(QueryListRequest)
      */
     private @NotNull List<E> find(@Nullable E filter, @Nullable Sort sort, boolean isEquals) {
-        filter = Objects.requireNonNullElse(filter, ReflectUtil.newInstance(getEntityClass()));
+        filter = Objects.requireNonNullElse(filter, ReflectUtil.newInstance(getFirstParameterizedTypeClass()));
         return repository.findAll(
                 createSpecification(filter, isEquals),
                 createSort(sort)
@@ -699,7 +638,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         queryListRequest = Objects.requireNonNullElse(queryListRequest, newInstance);
         queryListRequest.setFilter(Objects.requireNonNullElse(
                 queryListRequest.getFilter(),
-                ReflectUtil.newInstance(getEntityClass()))
+                ReflectUtil.newInstance(getFirstParameterizedTypeClass()))
         );
         return queryListRequest;
     }
@@ -730,11 +669,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private @NotNull E getById(Long id) {
         PARAM_MISSING.whenNull(id, String.format(
                 "查询失败，请传入%s的ID！",
-                ReflectUtil.getDescription(getEntityClass())
+                ReflectUtil.getDescription(getFirstParameterizedTypeClass())
         ));
         Optional<E> optional = repository.findById(id);
         if (optional.isEmpty()) {
-            throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getEntityClass())));
+            throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getFirstParameterizedTypeClass())));
         }
         return optional.get();
     }
@@ -801,7 +740,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @apiNote 仅供 {@link #saveToDatabase(E, boolean)} 调用
      */
     private long saveAndFlush(@NotNull E entity) {
-        E target = ReflectUtil.newInstance(getEntityClass());
+        E target = ReflectUtil.newInstance(getFirstParameterizedTypeClass());
         BeanUtils.copyProperties(entity, target);
         target = beforeSaveToDatabase(target);
         target = repository.saveAndFlush(target);
@@ -825,45 +764,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 脱敏
-     *
-     * @param exist 待脱敏实体
-     * @return 脱敏后的实体
-     */
-    @Contract("_ -> param1")
-    private E desensitize(@NotNull E exist) {
-        List<Field> fieldList = ReflectUtil.getFieldList(getEntityClass());
-        fieldList.forEach(field -> {
-            Desensitize desensitize = ReflectUtil.getAnnotation(Desensitize.class, field);
-            if (Objects.isNull(desensitize)) {
-                // 非脱敏注解标记属性
-                return;
-            }
-            // 脱敏字段
-            Object fieldValue = ReflectUtil.getFieldValue(exist, field);
-            if (Objects.isNull(fieldValue)) {
-                // 值本身是空的
-                return;
-            }
-            if (desensitize.replace() && Objects.equals(desensitize.symbol(), fieldValue.toString())) {
-                // 如果是替换 且没有修改内容
-                ReflectUtil.setFieldValue(exist, field, null);
-            }
-            if (!desensitize.replace() && fieldValue.toString().contains(desensitize.symbol())) {
-                // 如果值包含脱敏字符
-                ReflectUtil.setFieldValue(exist, field, null);
-            }
-        });
-        return exist;
-    }
-
-    /**
      * 判断是否唯一
      *
      * @param entity 实体
      */
     private void checkUnique(@NotNull E entity) {
-        List<Field> fields = ReflectUtil.getFieldList(getEntityClass());
+        List<Field> fields = ReflectUtil.getFieldList(getFirstParameterizedTypeClass());
         fields.forEach(field -> {
             Column annotation = ReflectUtil.getAnnotation(Column.class, field);
             if (Objects.isNull(annotation)) {
@@ -879,7 +785,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                 // 没有值 不校验
                 return;
             }
-            E search = ReflectUtil.newInstance(getEntityClass());
+            E search = ReflectUtil.newInstance(getFirstParameterizedTypeClass());
             ReflectUtil.setFieldValue(search, field, fieldValue);
             Example<E> example = Example.of(search);
             Optional<E> exist = repository.findOne(example);
@@ -895,16 +801,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                     ReflectUtil.getDescription(field), fieldValue)
             );
         });
-    }
-
-    /**
-     * 获取实体类
-     *
-     * @return 类
-     */
-    public final @NotNull Class<E> getEntityClass() {
-        //noinspection unchecked
-        return (Class<E>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
     }
 
     /**

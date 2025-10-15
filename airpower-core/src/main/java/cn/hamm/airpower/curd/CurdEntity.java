@@ -2,8 +2,8 @@ package cn.hamm.airpower.curd;
 
 import cn.hamm.airpower.annotation.Description;
 import cn.hamm.airpower.annotation.ReadOnly;
-import cn.hamm.airpower.curd.export.ExcelColumn;
 import cn.hamm.airpower.exception.ServiceException;
+import cn.hamm.airpower.export.ExcelColumn;
 import cn.hamm.airpower.root.RootModel;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -19,7 +19,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.io.Serializable;
 
-import static cn.hamm.airpower.curd.export.ExportColumnType.*;
+import static cn.hamm.airpower.export.ExportColumnType.*;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 /**

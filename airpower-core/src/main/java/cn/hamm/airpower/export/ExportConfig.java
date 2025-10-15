@@ -1,4 +1,4 @@
-package cn.hamm.airpower.curd.export;
+package cn.hamm.airpower.export;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -1,13 +1,13 @@
 package cn.hamm.airpower.util;
 
 import cn.hamm.airpower.api.Json;
-import cn.hamm.airpower.curd.CurdEntity;
-import cn.hamm.airpower.curd.export.ExcelColumn;
 import cn.hamm.airpower.datetime.DateTimeUtil;
 import cn.hamm.airpower.dictionary.Dictionary;
 import cn.hamm.airpower.dictionary.DictionaryUtil;
 import cn.hamm.airpower.dictionary.IDictionary;
+import cn.hamm.airpower.export.ExcelColumn;
 import cn.hamm.airpower.reflect.ReflectUtil;
+import cn.hamm.airpower.root.RootModel;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -67,11 +67,11 @@ public class CollectionUtil {
      *
      * @param list      集合
      * @param itemClass 元素的类名
-     * @param <E>       元素类型
+     * @param <M>       元素类型
      * @return InputStream
      */
     @Contract("_, _ -> new")
-    public static <E extends CurdEntity<E>> @NotNull InputStream toCsvInputStream(List<E> list, Class<E> itemClass) {
+    public static <M extends RootModel<M>> @NotNull InputStream toCsvInputStream(List<M> list, Class<M> itemClass) {
         List<Field> fieldList = new ArrayList<>();
         ReflectUtil.getFieldList(itemClass).forEach(field -> {
             ExcelColumn excelColumn = ReflectUtil.getAnnotation(ExcelColumn.class, field);

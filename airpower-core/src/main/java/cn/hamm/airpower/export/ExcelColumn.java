@@ -1,11 +1,11 @@
-package cn.hamm.airpower.curd.export;
+package cn.hamm.airpower.export;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static cn.hamm.airpower.curd.export.ExportColumnType.TEXT;
+import static cn.hamm.airpower.export.ExportColumnType.TEXT;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 

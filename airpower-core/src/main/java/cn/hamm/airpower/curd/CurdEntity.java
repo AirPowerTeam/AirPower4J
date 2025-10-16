@@ -39,7 +39,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Slf4j
 @SuppressWarnings("unchecked")
 public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
-        implements Serializable, IEntity<E>, ICurdAction {
+        implements Serializable, ICurdAction {
     /**
      * 主键 ID 字段名
      */
@@ -104,7 +104,6 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
      * @param id ID
      * @return 实体
      */
-    @Override
     public E setId(Long id) {
         this.id = id;
         return (E) this;

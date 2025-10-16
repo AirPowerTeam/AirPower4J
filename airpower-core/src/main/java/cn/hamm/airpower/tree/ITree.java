@@ -1,7 +1,5 @@
 package cn.hamm.airpower.tree;
 
-import cn.hamm.airpower.curd.IEntity;
-
 import java.util.List;
 
 /**
@@ -9,7 +7,7 @@ import java.util.List;
  *
  * @author Hamm.cn
  */
-public interface ITree<E extends ITree<E>> extends IEntity<E> {
+public interface ITree<E extends ITree<E>> {
     /**
      * 获取树的父级 ID
      *

@@ -40,7 +40,7 @@ public class TreeUtil {
      * @param <E>  泛型
      * @return 树结构数组
      */
-    public static <E extends ITree<E>> List<E> buildTreeList(List<E> list) {
+    public static <E extends CurdEntity<E> & ITree<E>> List<E> buildTreeList(List<E> list) {
         return buildTreeList(list, ROOT_ID);
     }
 
@@ -52,7 +52,7 @@ public class TreeUtil {
      * @param <E>      泛型
      * @return 数结构数组
      */
-    private static <E extends ITree<E>> List<E> buildTreeList(@NotNull List<E> list, Long parentId) {
+    private static <E extends CurdEntity<E> & ITree<E>> List<E> buildTreeList(@NotNull List<E> list, Long parentId) {
         return list.stream()
                 .filter(item -> Objects.equals(parentId, item.getParentId()))
                 .peek(item -> item.setChildren(

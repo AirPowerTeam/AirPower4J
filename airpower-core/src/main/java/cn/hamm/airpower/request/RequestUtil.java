@@ -37,7 +37,11 @@ public class RequestUtil {
      * 常用 IP 反向代理 Header 头
      */
     private static final List<String> PROXY_IP_HEADERS = List.of(
-            "X-Forwarded-For", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"
+            "X-Forwarded-For",
+            "Proxy-Client-IP",
+            "WL-Proxy-Client-IP",
+            "HTTP_CLIENT_IP",
+            "HTTP_X_FORWARDED_FOR"
     );
 
     /**

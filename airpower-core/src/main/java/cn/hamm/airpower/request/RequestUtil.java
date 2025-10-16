@@ -37,8 +37,13 @@ public class RequestUtil {
      * 常用 IP 反向代理 Header 头
      */
     private static final List<String> PROXY_IP_HEADERS = List.of(
-            "x-forwarded-for", "Proxy-Client-IP", "WL-Proxy-Client-IP"
+            "X-Forwarded-For", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"
     );
+
+    /**
+     * 多 IP 地址分隔符
+     */
+    private static final String IP_PROXY_SPLIT = ",";
 
     /**
      * 禁止外部实例化
@@ -87,6 +92,10 @@ public class RequestUtil {
             }
 
             ipAddress = request.getRemoteAddr();
+
+            if (ipAddress.contains(IP_PROXY_SPLIT)) {
+                ipAddress = ipAddress.split(IP_PROXY_SPLIT)[0].trim();
+            }
             if (!Objects.equals(LOCAL_IP_ADDRESS, ipAddress)) {
                 return ipAddress;
             }

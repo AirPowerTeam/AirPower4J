@@ -4,7 +4,7 @@ import cn.hamm.airpower.api.Json;
 import cn.hamm.airpower.curd.query.QueryPageResponse;
 import cn.hamm.airpower.desensitize.DesensitizeIgnore;
 import cn.hamm.airpower.reflect.ReflectUtil;
-import cn.hamm.airpower.request.RequestUtil;
+import cn.hamm.airpower.request.HttpConstant;
 import cn.hamm.airpower.root.RootModel;
 import cn.hamm.airpower.util.CollectionUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -81,7 +81,7 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
         } else {
             responseResult = beforeResponseFinished(getResult(body, method), request, response);
         }
-        response.getHeaders().set(RequestUtil.REQUEST_ID, MDC.get(RequestUtil.REQUEST_ID));
+        response.getHeaders().set(HttpConstant.Header.REQUEST_ID, MDC.get(HttpConstant.Header.REQUEST_ID));
         return responseResult;
     }
 

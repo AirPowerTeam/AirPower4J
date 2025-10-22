@@ -1,6 +1,7 @@
 package cn.hamm.airpower.request;
 
 import cn.hamm.airpower.exception.ServiceException;
+import cn.hamm.airpower.request.HttpConstant.Header;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Contract;
@@ -13,7 +14,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
 
-import static cn.hamm.airpower.request.ContentType.JSON;
 import static cn.hamm.airpower.request.HttpMethod.GET;
 
 /**
@@ -52,7 +52,7 @@ public class HttpUtil {
     /**
      * 请求体类型
      */
-    private ContentType contentType = JSON;
+    private String contentType = HttpConstant.ContentType.APPLICATION_JSON_UTF8;
 
     /**
      * 连接超时时间
@@ -155,11 +155,11 @@ public class HttpUtil {
             List<String> cookieList = new ArrayList<>();
             cookies.forEach((key, value) -> cookieList.add(key + "=" + value));
             requestBuilder.setHeader(
-                    "Cookie", String.join("; ", cookieList)
+                    Header.COOKIE, String.join("; ", cookieList)
             );
         }
         if (Objects.nonNull(contentType)) {
-            requestBuilder.header("Content-Type", contentType.getValue());
+            requestBuilder.header(Header.CONTENT_TYPE, contentType);
         }
         return requestBuilder.build();
     }

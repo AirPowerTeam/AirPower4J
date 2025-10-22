@@ -14,7 +14,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.hamm.airpower.exception.ServiceError.FORBIDDEN;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+import static cn.hamm.airpower.request.HttpConstant.ContentType.MULTIPART_FORM_DATA;
+import static cn.hamm.airpower.request.HttpConstant.Proxy.Header;
 
 /**
  * <h1>请求工具类</h1>
@@ -24,24 +25,14 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 @Slf4j
 public class RequestUtil {
     /**
-     * 本机
-     */
-    public static final String LOCAL_IP_ADDRESS = "127.0.0.1";
-
-    /**
-     * 缓存的 REQUEST_ID
-     */
-    public static final String REQUEST_ID = "X-Request-ID";
-
-    /**
      * 常用 IP 反向代理 Header 头
      */
     private static final List<String> PROXY_IP_HEADERS = List.of(
-            "X-Forwarded-For",
-            "Proxy-Client-IP",
-            "WL-Proxy-Client-IP",
-            "HTTP_CLIENT_IP",
-            "HTTP_X_FORWARDED_FOR"
+            Header.X_FORWARDED_FOR,
+            Header.PROXY_CLIENT_IP,
+            Header.WL_PROXY_CLIENT_IP,
+            Header.HTTP_CLIENT_IP,
+            Header.HTTP_X_FORWARDED_FOR
     );
 
     /**
@@ -100,7 +91,7 @@ public class RequestUtil {
             if (ipAddress.contains(IP_PROXY_SPLIT)) {
                 ipAddress = ipAddress.split(IP_PROXY_SPLIT)[0].trim();
             }
-            if (!Objects.equals(LOCAL_IP_ADDRESS, ipAddress)) {
+            if (!Objects.equals(HttpConstant.LOCAL_IP_ADDRESS, ipAddress)) {
                 return ipAddress;
             }
             // 根据网卡取本机配置的IP
@@ -114,7 +105,7 @@ public class RequestUtil {
         } catch (Exception exception) {
             FORBIDDEN.show("获取IP地址异常");
         }
-        return LOCAL_IP_ADDRESS;
+        return HttpConstant.LOCAL_IP_ADDRESS;
     }
 
     /**
@@ -125,7 +116,7 @@ public class RequestUtil {
      */
     @Contract(value = "null -> false", pure = true)
     private static boolean isUploadFileContentType(String contentType) {
-        return contentType != null && contentType.startsWith(MULTIPART_FORM_DATA_VALUE);
+        return contentType != null && contentType.startsWith(MULTIPART_FORM_DATA);
     }
 
     /**
@@ -137,7 +128,7 @@ public class RequestUtil {
     private static boolean isValidAddress(String ipAddress) {
         return Objects.nonNull(ipAddress)
                 && StringUtils.hasText(ipAddress)
-                && !LOCAL_IP_ADDRESS.equalsIgnoreCase(ipAddress);
+                && !HttpConstant.LOCAL_IP_ADDRESS.equalsIgnoreCase(ipAddress);
     }
 
     /**

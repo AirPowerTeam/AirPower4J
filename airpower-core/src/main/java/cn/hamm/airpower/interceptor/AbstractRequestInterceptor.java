@@ -4,7 +4,7 @@ import cn.hamm.airpower.access.Access;
 import cn.hamm.airpower.access.AccessConfig;
 import cn.hamm.airpower.access.AccessTokenUtil;
 import cn.hamm.airpower.access.PermissionUtil;
-import cn.hamm.airpower.request.RequestUtil;
+import cn.hamm.airpower.request.HttpConstant;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -56,11 +56,11 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
             @NotNull HttpServletResponse response,
             @NotNull Object object
     ) {
-        String requestId = request.getHeader(RequestUtil.REQUEST_ID);
+        String requestId = request.getHeader(HttpConstant.Header.REQUEST_ID);
         if (!StringUtils.hasText(requestId)) {
             requestId = UUID.randomUUID().toString();
         }
-        MDC.put(RequestUtil.REQUEST_ID, requestId);
+        MDC.put(HttpConstant.Header.REQUEST_ID, requestId);
         HandlerMethod handlerMethod = (HandlerMethod) object;
         //取出控制器和方法
         Class<?> clazz = handlerMethod.getBeanType();

@@ -74,7 +74,11 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
     EMAIL_ERROR(5023, "发送邮件异常"),
 
     // 5024 websocket相关代码
-    WEBSOCKET_ERROR(5024, "WebSocket服务发生错误，请稍后再试");
+    WEBSOCKET_ERROR(5024, "WebSocket服务发生错误，请稍后再试"),
+
+    // 5025 AI相关代码
+    AI_ERROR(5025, "AI服务异常"),
+    ;
 
     private final int code;
     private String message;

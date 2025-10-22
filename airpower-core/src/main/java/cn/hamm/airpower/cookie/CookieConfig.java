@@ -2,10 +2,8 @@ package cn.hamm.airpower.cookie;
 
 import cn.hamm.airpower.datetime.DateTimeUtil;
 import lombok.Data;
-import lombok.experimental.Accessors;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 /**
  * <h1> Cookie 相关配置</h1>
@@ -13,9 +11,7 @@ import org.springframework.stereotype.Component;
  * @author Hamm.cn
  * @see CookieHelper
  */
-@Component
 @Data
-@Accessors(chain = true)
 @Configuration
 @ConfigurationProperties("airpower.cookie")
 public class CookieConfig {

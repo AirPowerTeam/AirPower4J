@@ -1,6 +1,6 @@
 package cn.hamm.airpower.ai;
 
-import cn.hamm.airpower.exception.ServiceError;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -58,13 +58,16 @@ public class AiResponse {
      *
      * @return 消息内容
      */
+    @JsonIgnore
     public @NotNull String getResponseMessage() {
-        ServiceError.AI_ERROR.when(Objects.isNull(choices) || choices.isEmpty(), "没有获取到AI的响应");
+        if (Objects.isNull(choices) || choices.isEmpty()) {
+            return "";
+        }
         AiMessage message = choices.get(0).getMessage();
-        ServiceError.AI_ERROR.when(Objects.isNull(message), "AI响应的消息对象为空");
-        String content = message.getContent();
-        ServiceError.AI_ERROR.when(Objects.isNull(content), "AI响应的消息内容为空");
-        return content;
+        if (Objects.isNull(message)) {
+            return "";
+        }
+        return Objects.requireNonNull(message.getContent(), "");
     }
 
     /**
@@ -72,13 +75,16 @@ public class AiResponse {
      *
      * @return 消息内容
      */
-    public @NotNull String getStreamMessage() {
-        ServiceError.AI_ERROR.when(Objects.isNull(choices) || choices.isEmpty(), "没有获取到AI的响应");
+    @JsonIgnore
+    public String getStreamMessage() {
+        if (Objects.isNull(choices) || choices.isEmpty()) {
+            return "";
+        }
         AiMessage delta = choices.get(0).getDelta();
-        ServiceError.AI_ERROR.when(Objects.isNull(delta), "AI响应的消息对象为空");
-        String content = delta.getContent();
-        ServiceError.AI_ERROR.when(Objects.isNull(content), "AI响应的消息内容为空");
-        return content;
+        if (Objects.isNull(delta)) {
+            return "";
+        }
+        return Objects.requireNonNull(delta.getContent(), "");
     }
 
     /**

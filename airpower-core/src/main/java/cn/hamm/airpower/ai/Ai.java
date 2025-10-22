@@ -10,6 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,8 +23,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static cn.hamm.airpower.exception.ServiceError.AI_ERROR;
 import static cn.hamm.airpower.request.HttpConstant.ContentType.APPLICATION_JSON_UTF8;
@@ -106,17 +112,8 @@ public class Ai {
      * @param callback 回调函数
      */
     public final void requestAsync(@NotNull AiRequest request, Consumer<AiStream> callback) {
-        AI_ERROR.whenNull(request, "请求参数错误，请检查请求参数");
-        request.setStream(true);
-        setRequestParam(request);
-        HttpClient httpClient = getHttpClient();
-        HttpRequest httpRequest = getHttpRequest(request);
+        HttpResponse<InputStream> httpResponse = getInputStreamHttpResponse(request);
         try {
-            HttpResponse<InputStream> httpResponse = httpClient.send(
-                    httpRequest,
-                    HttpResponse.BodyHandlers.ofInputStream()
-            );
-            AI_ERROR.whenNotEquals(httpResponse.statusCode(), STATUS.OK, "请求失败，AI模型服务异常");
             InputStream inputStream = httpResponse.body();
             try (var reader = new BufferedReader(new InputStreamReader(inputStream))) {
                 String line;
@@ -136,11 +133,99 @@ public class Ai {
                     callback.accept(new AiStream().setResponse(response));
                 }
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             log.error(e.getMessage(), e);
             throw new ServiceException(ServiceError.AI_ERROR, e.getMessage());
         }
+    }
 
+    /**
+     * 获取输入流HTTP响应
+     *
+     * @param request 模型请求参数
+     * @return 输入流HTTP响应
+     */
+    private @NotNull HttpResponse<InputStream> getInputStreamHttpResponse(@NotNull AiRequest request) {
+        try {
+            AI_ERROR.whenNull(request, "请求参数错误，请检查请求参数");
+            request.setStream(true);
+            setRequestParam(request);
+            HttpClient httpClient = getHttpClient();
+            HttpRequest httpRequest = getHttpRequest(request);
+            HttpResponse<InputStream> httpResponse = httpClient.send(
+                    httpRequest,
+                    HttpResponse.BodyHandlers.ofInputStream()
+            );
+            AI_ERROR.whenNotEquals(httpResponse.statusCode(), STATUS.OK, "请求失败，AI模型服务异常");
+            return httpResponse;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException(AI_ERROR, e.getMessage());
+        }
+    }
+
+
+    /**
+     * 发送流式请求
+     *
+     * @param request 模型请求参数
+     */
+    public final @NotNull ResponseEntity<StreamingResponseBody> requestStream(@NotNull AiRequest request) {
+        return requestStream(request, (Json::toString));
+    }
+
+    /**
+     * 发送流式请求
+     *
+     * @param request 模型请求参数
+     * @param func    流式处理函数
+     */
+    public final @NotNull ResponseEntity<StreamingResponseBody> requestStream(@NotNull AiRequest request, Function<AiStream, String> func) {
+        StreamingResponseBody responseBody = outputStream -> {
+            HttpResponse<InputStream> httpResponse = getInputStreamHttpResponse(request);
+            try {
+                InputStream inputStream = httpResponse.body();
+                try (var reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        // 去除首尾空格
+                        line = line.trim();
+                        if (!line.startsWith(FLAG_STREAM_DATA)) {
+                            continue;
+                        }
+                        String replaced = line.replace(FLAG_STREAM_DATA, "");
+                        if (replaced.equals(FLAG_STREAM_DONE)) {
+                            AiStream aiStream = new AiStream().setIsDone(true);
+                            String apply = func.apply(aiStream);
+                            if (Objects.isNull(apply)) {
+                                apply = "";
+                            }
+                            outputStream.write(apply.getBytes(StandardCharsets.UTF_8));
+                            outputStream.close();
+                            break;
+                        }
+                        AiResponse aiResponse = Json.parse(replaced, AiResponse.class);
+                        if (StringUtils.hasText(aiResponse.getStreamMessage())) {
+                            AiStream aiStream = new AiStream()
+                                    .setResponse(aiResponse);
+
+                            String apply = func.apply(aiStream);
+                            if (Objects.isNull(apply)) {
+                                apply = "";
+                            }
+                            outputStream.write(apply.getBytes(StandardCharsets.UTF_8));
+                            outputStream.flush();
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+                throw new ServiceException(ServiceError.AI_ERROR, e.getMessage());
+            }
+        };
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8"))
+                .body(responseBody);
     }
 
     /**

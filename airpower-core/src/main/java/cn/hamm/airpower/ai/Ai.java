@@ -12,7 +12,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.BufferedReader;
@@ -182,46 +181,23 @@ public class Ai {
      */
     public final @NotNull ResponseEntity<StreamingResponseBody> requestStream(@NotNull AiRequest request, Function<AiStream, String> func) {
         StreamingResponseBody responseBody = outputStream -> {
-            HttpResponse<InputStream> httpResponse = getInputStreamHttpResponse(request);
-            try {
-                InputStream inputStream = httpResponse.body();
-                try (var reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        // 去除首尾空格
-                        line = line.trim();
-                        if (!line.startsWith(FLAG_STREAM_DATA)) {
-                            continue;
-                        }
-                        String replaced = line.replace(FLAG_STREAM_DATA, "");
-                        if (replaced.equals(FLAG_STREAM_DONE)) {
-                            AiStream aiStream = new AiStream().setIsDone(true);
-                            String apply = func.apply(aiStream);
-                            if (Objects.isNull(apply)) {
-                                apply = "";
-                            }
-                            outputStream.write(apply.getBytes(StandardCharsets.UTF_8));
-                            outputStream.close();
-                            break;
-                        }
-                        AiResponse aiResponse = Json.parse(replaced, AiResponse.class);
-                        if (StringUtils.hasText(aiResponse.getStreamMessage())) {
-                            AiStream aiStream = new AiStream()
-                                    .setResponse(aiResponse);
-
-                            String apply = func.apply(aiStream);
-                            if (Objects.isNull(apply)) {
-                                apply = "";
-                            }
-                            outputStream.write(apply.getBytes(StandardCharsets.UTF_8));
-                            outputStream.flush();
-                        }
+            requestAsync(request, stream -> {
+                try {
+                    String apply = func.apply(stream);
+                    if (Objects.isNull(apply)) {
+                        apply = "";
                     }
+                    outputStream.write(apply.getBytes(StandardCharsets.UTF_8));
+                    if (stream.getIsDone()) {
+                        outputStream.close();
+                    } else {
+                        outputStream.flush();
+                    }
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                    throw new ServiceException(ServiceError.AI_ERROR, e.getMessage());
                 }
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-                throw new ServiceException(ServiceError.AI_ERROR, e.getMessage());
-            }
+            });
         };
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8"))

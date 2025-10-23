@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.jetbrains.annotations.Contract;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,28 +23,45 @@ public class AiRequest {
      */
     @Setter(AccessLevel.PACKAGE)
     private Boolean stream = false;
-
     /**
      * 最大Token
      */
     @JsonProperty("max_tokens")
     private Integer maxToken;
-
     /**
      * 模型
      */
     private String model;
-
     /**
      * 是否启用思考
      */
     @JsonProperty("enable_thinking")
     private Boolean enableThinking;
-
     /**
      * 消息列表
      */
     private List<AiMessage> messages = new ArrayList<>();
+
+    /**
+     * 私有构造函数
+     */
+    private AiRequest() {
+
+    }
+
+    /**
+     * 从提示词开始
+     *
+     * @param prompt 提示词
+     * @return 当前对象
+     */
+    @Contract("_ -> new")
+    public static AiRequest prompt(String prompt) {
+        return new AiRequest().addMessage(new AiMessage()
+                .setRole("system")
+                .setContent(prompt)
+        );
+    }
 
     /**
      * 添加消息
@@ -51,23 +69,10 @@ public class AiRequest {
      * @param message 消息
      * @return 当前对象
      */
-    public AiRequest addMessage(AiMessage message) {
+    @Contract("_ -> this")
+    private AiRequest addMessage(AiMessage message) {
         messages.add(message);
         return this;
-    }
-
-    /**
-     * 添加消息
-     *
-     * @param role    角色
-     * @param content 内容
-     * @return 当前对象
-     */
-    public AiRequest addMessage(AiMessage.AiRole role, String content) {
-        return addMessage(new AiMessage()
-                .setRole(role)
-                .setContent(content)
-        );
     }
 
     /**
@@ -76,22 +81,9 @@ public class AiRequest {
      * @param content 内容
      * @return 当前对象
      */
-    public AiRequest addUserMessage(String content) {
+    public AiRequest addMessage(String content) {
         return addMessage(new AiMessage()
                 .setRole(AiMessage.AiRole.USER)
-                .setContent(content)
-        );
-    }
-
-    /**
-     * 添加系统消息
-     *
-     * @param content 内容
-     * @return 当前对象
-     */
-    public AiRequest addSystemMessage(String content) {
-        return addMessage(new AiMessage()
-                .setRole(AiMessage.AiRole.SYSTEM)
                 .setContent(content)
         );
     }

@@ -89,8 +89,6 @@ public class Ai {
         request.setStream(false);
         setRequestParam(request);
         String json = Json.toString(request);
-        System.out.println(json);
-        System.out.println(url);
         HttpResponse<String> httpResponse = HttpUtil.create()
                 .setUrl(url)
                 .addHeader(AUTHORIZATION, getBearerToken())

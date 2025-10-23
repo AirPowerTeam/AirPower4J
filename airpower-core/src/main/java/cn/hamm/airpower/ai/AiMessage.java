@@ -55,19 +55,14 @@ public class AiMessage {
     @Getter
     public enum AiRole implements IDictionary {
         /**
-         * 系统消息
-         */
-        SYSTEM(1, "系统消息"),
-
-        /**
          * 用户消息
          */
-        USER(2, "用户消息"),
+        USER(1, "用户消息"),
 
         /**
          * 模型消息
          */
-        ASSISTANT(3, "模型消息");
+        ASSISTANT(2, "模型消息");
 
 
         private final int key;

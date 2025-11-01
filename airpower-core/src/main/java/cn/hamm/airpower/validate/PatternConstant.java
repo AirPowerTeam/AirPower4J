@@ -15,7 +15,7 @@ public class PatternConstant {
     /**
      * 数字
      */
-    public static final Pattern NUMBER = compile("^(-?\\d+)(\\.\\d+)?$");
+    public static final Pattern NUMBER = compile("^-?\\d+(\\.\\d+)?$");
 
     /**
      * 字母
@@ -25,13 +25,13 @@ public class PatternConstant {
     /**
      * 整数
      */
-    public static final Pattern INTEGER = compile("^-?[0-9]\\d*$");
+    public static final Pattern INTEGER = compile("^-?\\d+$");
 
     /**
      * 邮箱
      */
     public static final Pattern EMAIL = compile(
-            "^[a-zA-Z0-9]+(\\.([a-zA-Z0-9]+))*@[a-zA-Z0-9]+(\\.([a-zA-Z0-9]+))+$"
+            "^(?!.*\\.\\.)[a-zA-Z0-9]+([._%+-][a-zA-Z0-9]+)*@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
     );
 
     /**
@@ -42,7 +42,7 @@ public class PatternConstant {
     /**
      * 中文
      */
-    public static final Pattern CHINESE = compile("^[\\u4e00-\\u9fa5]*$");
+    public static final Pattern CHINESE = compile("^[\\u4e00-\\u9fff]*$");
 
     /**
      * 手机
@@ -59,7 +59,7 @@ public class PatternConstant {
     /**
      * 普通字符
      */
-    public static final Pattern NORMAL_CODE = compile("^[@#%a-zA-Z0-9\\u4e00-\\u9fa5_\\-\\\\/+]+$");
+    public static final Pattern NORMAL_CODE = compile("^[@#%a-zA-Z0-9\\u4e00-\\u9fa5_\\-\\\\/+]$");
 
     /**
      * 数字或字母
@@ -69,7 +69,7 @@ public class PatternConstant {
     /**
      * 自然数
      */
-    public static final Pattern NATURAL_NUMBER = compile("^[0-9]+((.)[0-9]+)?$");
+    public static final Pattern NATURAL_NUMBER = compile("^[0-9]+(\\.[0-9]+)?$");
 
     /**
      * 自然整数

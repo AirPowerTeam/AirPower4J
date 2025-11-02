@@ -1,7 +1,6 @@
 package cn.hamm.airpower.access;
 
 import cn.hamm.airpower.api.Api;
-import cn.hamm.airpower.api.Extends;
 import cn.hamm.airpower.curd.Curd;
 import cn.hamm.airpower.dictionary.DictionaryUtil;
 import cn.hamm.airpower.reflect.ReflectUtil;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -150,16 +148,14 @@ public class PermissionUtil {
                 Method[] methods = clazz.getMethods();
 
                 // 取出控制器类上的Extends注解 如自己没标 则使用父类的
-                Extends extendsApi = ReflectUtil.getAnnotation(Extends.class, clazz);
+                List<Curd> curdList = Curd.getCurdList(clazz);
                 for (Method method : methods) {
-                    if (Objects.nonNull(extendsApi)) {
-                        try {
-                            Curd current = DictionaryUtil.getDictionary(Curd.class, Curd::getMethodName, method.getName());
-                            if (checkApiExcluded(current, extendsApi)) {
-                                continue;
-                            }
-                        } catch (Exception ignored) {
+                    try {
+                        Curd current = DictionaryUtil.getDictionary(Curd.class, Curd::getMethodName, method.getName());
+                        if (!curdList.contains(current)) {
+                            continue;
                         }
+                    } catch (Exception ignored) {
                     }
                     String subIdentity = getMethodPermissionIdentity(method);
                     if (Objects.isNull(subIdentity)) {
@@ -182,25 +178,6 @@ public class PermissionUtil {
             log.error("扫描权限出错", exception);
         }
         return permissions;
-    }
-
-    /**
-     * 检查Api是否在子控制器中被排除
-     *
-     * @param curd   Api
-     * @param extend 注解
-     * @return 检查结果
-     */
-    private static boolean checkApiExcluded(Curd curd, @NotNull Extends extend) {
-        List<Curd> excludeList = Arrays.asList(extend.exclude());
-        if (excludeList.contains(curd)) {
-            return true;
-        }
-        List<Curd> includeList = Arrays.asList(extend.value());
-        if (includeList.isEmpty()) {
-            return false;
-        }
-        return !includeList.contains(curd);
     }
 
     /**

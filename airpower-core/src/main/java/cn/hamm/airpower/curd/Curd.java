@@ -2,10 +2,12 @@ package cn.hamm.airpower.curd;
 
 import cn.hamm.airpower.api.Extends;
 import cn.hamm.airpower.dictionary.IDictionary;
+import cn.hamm.airpower.reflect.ReflectUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -80,31 +82,58 @@ public enum Curd implements IDictionary {
     private final String methodName;
 
     /**
+     * 获取控制器的可用API列表
+     *
+     * @param clazz 类
+     * @return 可用API列表
+     */
+    public static @NotNull List<Curd> getCurdList(Class<?> clazz) {
+        List<Curd> excludeCurdList = getExcludeCurdList(clazz);
+        List<Curd> list = new ArrayList<>(Arrays.stream(Curd.values()).filter(curd -> !excludeCurdList.contains(curd)).toList());
+        Extends extend = clazz.getAnnotation(Extends.class);
+        if (Objects.nonNull(extend)) {
+            list.addAll(Arrays.stream(extend.value()).toList());
+        }
+        return list;
+    }
+
+    /**
+     * 获取父类链中被排除的API列表
+     *
+     * @param clazz 类
+     * @return 父类链中被排除的API列表
+     */
+    private static List<Curd> getExcludeCurdList(Class<?> clazz) {
+        return getExcludeCurdList(clazz, new ArrayList<>());
+    }
+
+    /**
+     * 获取父类链中被排除的API列表
+     *
+     * @param clazz     类
+     * @param existList 排除列表
+     * @return 排除列表
+     */
+    private static List<Curd> getExcludeCurdList(Class<?> clazz, List<Curd> existList) {
+        if (ReflectUtil.isTheRootClass(clazz)) {
+            return existList;
+        }
+        // 获取父类链中被排除过的
+        Extends extend = clazz.getAnnotation(Extends.class);
+        if (Objects.nonNull(extend)) {
+            existList.addAll(Arrays.stream(extend.exclude()).toList());
+        }
+        return getExcludeCurdList(clazz.getSuperclass(), existList);
+    }
+
+    /**
      * 检查接口是否可用
      *
      * @param controller 控制器类
      * @param <T>        泛型
      */
     public <T extends CurdController<?, ?, ?>> void checkApiAvailable(@NotNull T controller) {
-        Extends extendsApi = controller.getClass().getAnnotation(Extends.class);
-        if (Objects.isNull(extendsApi)) {
-            // 没配置
-            return;
-        }
-        List<Curd> whiteList = Arrays.asList(extendsApi.value());
-        List<Curd> blackList = Arrays.asList(extendsApi.exclude());
-        if (whiteList.isEmpty() && blackList.isEmpty()) {
-            // 配了个寂寞
-            return;
-        }
-        if (whiteList.contains(this)) {
-            // 在白名单里
-            return;
-        }
-        if (blackList.isEmpty() || !blackList.contains(this)) {
-            // 不在黑名单里
-            return;
-        }
-        API_SERVICE_UNSUPPORTED.show();
+        List<Curd> curdList = getCurdList(controller.getClass());
+        API_SERVICE_UNSUPPORTED.when(!curdList.contains(this));
     }
 }

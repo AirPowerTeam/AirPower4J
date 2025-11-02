@@ -87,43 +87,32 @@ public enum Curd implements IDictionary {
      * @param clazz 类
      * @return 可用API列表
      */
-    public static @NotNull List<Curd> getCurdList(Class<?> clazz) {
-        List<Curd> excludeCurdList = getExcludeCurdList(clazz);
-        List<Curd> list = new ArrayList<>(Arrays.stream(Curd.values()).filter(curd -> !excludeCurdList.contains(curd)).toList());
-        Extends extend = clazz.getAnnotation(Extends.class);
-        if (Objects.nonNull(extend)) {
-            list.addAll(Arrays.stream(extend.value()).toList());
-        }
-        return list;
+    public static @NotNull List<Curd> getCurdList(@NotNull Class<?> clazz) {
+        List<Curd> whiteList = new ArrayList<>();
+        List<Curd> blackList = new ArrayList<>();
+        return getCurdList(clazz, whiteList, blackList);
     }
 
     /**
-     * 获取父类链中被排除的API列表
-     *
-     * @param clazz 类
-     * @return 父类链中被排除的API列表
-     */
-    private static List<Curd> getExcludeCurdList(Class<?> clazz) {
-        return getExcludeCurdList(clazz, new ArrayList<>());
-    }
-
-    /**
-     * 获取父类链中被排除的API列表
+     * 获取控制器的可用API列表
      *
      * @param clazz     类
-     * @param existList 排除列表
-     * @return 排除列表
+     * @param whiteList 已经可用的列表
+     * @param blackList 已经排除的列表
+     * @return 可用API列表
      */
-    private static List<Curd> getExcludeCurdList(Class<?> clazz, List<Curd> existList) {
+    private static @NotNull List<Curd> getCurdList(@NotNull Class<?> clazz, List<Curd> whiteList, List<Curd> blackList) {
         if (ReflectUtil.isTheRootClass(clazz)) {
-            return existList;
+            whiteList.addAll(Arrays.stream(Curd.values()).filter(curd -> !blackList.contains(curd)).toList());
+            return whiteList;
         }
-        // 获取父类链中被排除过的
         Extends extend = clazz.getAnnotation(Extends.class);
         if (Objects.nonNull(extend)) {
-            existList.addAll(Arrays.stream(extend.exclude()).toList());
+            // 先添加当前类可用的
+            whiteList.addAll(Arrays.stream(extend.value()).filter(curd -> !blackList.contains(curd)).toList());
+            blackList.addAll(Arrays.stream(extend.exclude()).toList());
         }
-        return getExcludeCurdList(clazz.getSuperclass(), existList);
+        return getCurdList(clazz.getSuperclass(), whiteList, blackList);
     }
 
     /**

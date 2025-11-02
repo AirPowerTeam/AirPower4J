@@ -55,23 +55,22 @@ public class PermissionUtil {
      * @return 需要授权的选项
      */
     public static @NotNull Access getWhatNeedAccess(@NotNull Class<?> clazz, @NotNull Method method) {
-        //默认无标记时，不需要登录和授权
+        // 默认无标记时，不需要登录和授权
         Access access = new Access();
 
-        //判断类是否标记访问权限
+        // 判断类是否标记访问权限
         Permission permissionClass = clazz.getAnnotation(Permission.class);
         if (Objects.nonNull(permissionClass)) {
-            //类有AccessRequire标记
+            // 类做了标记 先记下来 后续可能被方法覆盖
             access.setLogin(permissionClass.login());
-            //需要登录时 RBAC选项才能启用
+            // 需要登录时 RBAC选项才能启用
             access.setAuthorize(permissionClass.login() && permissionClass.authorize());
         }
-        //如果方法也标注了 方法将覆盖类的注解配置
+        // 如果方法也标注了 方法将覆盖类的注解配置
         Permission permissionMethod = method.getAnnotation(Permission.class);
         if (Objects.nonNull(permissionMethod)) {
-            //方法有AccessRequire标记
+            // 方法标记覆盖类的配置
             access.setLogin(permissionMethod.login());
-            //需要登录时 RBAC选项才能启用
             access.setAuthorize(permissionMethod.login() && permissionMethod.authorize());
         }
         return access;
@@ -164,8 +163,12 @@ public class PermissionUtil {
                     subIdentity = apiPath + subIdentity;
                     String customMethodName = ReflectUtil.getDescription(method);
                     Access accessConfig = getWhatNeedAccess(clazz, method);
-                    if (!accessConfig.isLogin() || !accessConfig.isAuthorize()) {
-                        // 这里可以选择是否不读取这些接口的权限，但前端可能需要
+                    if (!accessConfig.isLogin()) {
+                        // 无需登录 不扫描权限
+                        continue;
+                    }
+                    if (!accessConfig.isAuthorize()) {
+                        // 无需授权 不扫描权限
                         continue;
                     }
                     P subPermission = permissionClass.getConstructor().newInstance();

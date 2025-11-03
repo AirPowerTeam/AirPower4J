@@ -3,7 +3,7 @@ package cn.hamm.airpower.ai;
 import cn.hamm.airpower.api.Json;
 import cn.hamm.airpower.exception.ServiceError;
 import cn.hamm.airpower.exception.ServiceException;
-import cn.hamm.airpower.request.HttpConstant.STATUS;
+import cn.hamm.airpower.request.HttpConstant.Status;
 import cn.hamm.airpower.request.HttpUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -93,7 +93,7 @@ public class Ai {
                 .setUrl(url)
                 .addHeader(AUTHORIZATION, getBearerToken())
                 .post(json);
-        AI_ERROR.whenNotEquals(httpResponse.statusCode(), STATUS.OK, "请求失败，AI模型服务异常");
+        AI_ERROR.whenNotEquals(httpResponse.statusCode(), Status.OK, "请求失败，AI模型服务异常");
         String response = httpResponse.body();
         try {
             return Json.parse(response, AiResponse.class);
@@ -153,7 +153,7 @@ public class Ai {
                     httpRequest,
                     HttpResponse.BodyHandlers.ofInputStream()
             );
-            AI_ERROR.whenNotEquals(httpResponse.statusCode(), STATUS.OK, "请求失败，AI模型服务异常");
+            AI_ERROR.whenNotEquals(httpResponse.statusCode(), Status.OK, "请求失败，AI模型服务异常");
             return httpResponse;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -178,25 +178,23 @@ public class Ai {
      * @param func    流式处理函数
      */
     public final @NotNull ResponseEntity<StreamingResponseBody> requestStream(@NotNull AiRequest request, Function<AiStream, String> func) {
-        StreamingResponseBody responseBody = outputStream -> {
-            requestAsync(request, stream -> {
-                try {
-                    String apply = func.apply(stream);
-                    if (Objects.isNull(apply)) {
-                        apply = "";
-                    }
-                    outputStream.write(apply.getBytes(StandardCharsets.UTF_8));
-                    if (stream.getIsDone()) {
-                        outputStream.close();
-                    } else {
-                        outputStream.flush();
-                    }
-                } catch (IOException e) {
-                    log.error(e.getMessage(), e);
-                    throw new ServiceException(ServiceError.AI_ERROR, e.getMessage());
+        StreamingResponseBody responseBody = outputStream -> requestAsync(request, stream -> {
+            try {
+                String apply = func.apply(stream);
+                if (Objects.isNull(apply)) {
+                    apply = "";
                 }
-            });
-        };
+                outputStream.write(apply.getBytes(StandardCharsets.UTF_8));
+                if (stream.getIsDone()) {
+                    outputStream.close();
+                } else {
+                    outputStream.flush();
+                }
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+                throw new ServiceException(ServiceError.AI_ERROR, e.getMessage());
+            }
+        });
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8"))
                 .body(responseBody);

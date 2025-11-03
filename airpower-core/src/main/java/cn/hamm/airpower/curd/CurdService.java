@@ -6,8 +6,11 @@ import cn.hamm.airpower.curd.query.QueryListRequest;
 import cn.hamm.airpower.curd.query.QueryPageRequest;
 import cn.hamm.airpower.curd.query.QueryPageResponse;
 import cn.hamm.airpower.exception.ServiceException;
+import cn.hamm.airpower.export.ExportHelper;
+import cn.hamm.airpower.file.FileUtil;
 import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.root.RootService;
+import cn.hamm.airpower.util.CollectionUtil;
 import cn.hamm.airpower.util.TaskUtil;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
@@ -27,6 +30,7 @@ import org.springframework.util.StringUtils;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.BiFunction;
 
@@ -66,16 +70,77 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private CurdConfig curdConfig;
 
     /**
+     * 保存CSV数据
+     *
+     * @param exportFile 导出文件
+     * @param valueList  数据列表
+     */
+    private static void saveCsvListToFile(@NotNull ExportHelper.ExportFile exportFile, List<String> valueList) {
+        String rowString = String.join(CollectionUtil.CSV_ROW_DELIMITER, valueList);
+        // 写入文件
+        FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), rowString + CollectionUtil.CSV_ROW_DELIMITER, StandardOpenOption.APPEND);
+    }
+
+    /**
      * 创建导出任务
      *
-     * @param queryListRequest 请求查询的参数
+     * @param queryPageRequest 请求查询的分页参数
      * @return 导出任务ID
-     * @see #beforeExportQuery(QueryListRequest)
-     * @see #afterExportQuery(List)
-     * @see #createExportStream(List)
      */
-    public final String createExportTask(QueryListRequest<E> queryListRequest) {
-        return createExportTask(exportQuery(queryListRequest));
+    public final String createExportTask(QueryPageRequest<E> queryPageRequest) {
+        return exportHelper.createExportTask(() -> {
+            ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
+            List<Field> fieldList = CollectionUtil.getExportFieldList(getFirstParameterizedTypeClass());
+            List<String> rowList = CollectionUtil.getCsvHeaderList(fieldList);
+            String headerString = String.join(CollectionUtil.CSV_COLUMN_DELIMITER, rowList);
+            List<String> header = new ArrayList<>();
+            header.add(headerString);
+            saveCsvListToFile(exportFile, header);
+            queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
+            return exportFile.getRelativeFile();
+        });
+    }
+
+    /**
+     * 分页查询导出数据
+     *
+     * @param queryPageRequest 查询对象
+     */
+    private void queryPageToSaveExportFile(QueryPageRequest<E> queryPageRequest, List<Field> fieldList, ExportHelper.ExportFile exportFile) {
+        queryPageRequest = beforeExportQuery(queryPageRequest);
+        QueryPageResponse<E> page = getPage(queryPageRequest);
+        log.info("导出查询第 {} 页，本页 {} 条", page.getPage().getPageNum(), page.getList().size());
+        // 当前页查到的数据列表
+        List<E> list = page.getList();
+        list = afterExportQuery(list);
+        List<String> valuelist = CollectionUtil.getCsvValuelist(list, fieldList);
+        saveCsvListToFile(exportFile, valuelist);
+
+        // 继续分页
+        if (page.getPage().getPageNum() < page.getPageCount()) {
+            queryPageRequest.getPage().setPageNum(page.getPage().getPageNum() + 1);
+            queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
+        }
+    }
+
+    /**
+     * 导出查询后置方法
+     *
+     * @param exportList 导出的数据列表
+     * @return 处理后的数据列表
+     */
+    protected List<E> afterExportQuery(@NotNull List<E> exportList) {
+        return exportList;
+    }
+
+    /**
+     * 导出查询前置方法
+     *
+     * @param queryPageRequest 查询请求
+     * @return 处理后的查询请求
+     */
+    protected QueryPageRequest<E> beforeExportQuery(QueryPageRequest<E> queryPageRequest) {
+        return queryPageRequest;
     }
 
     /**
@@ -544,19 +609,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         if (Objects.nonNull(value)) {
             predicateList.add(expression.apply(root.get(fieldName), value));
         }
-    }
-
-    /**
-     * 导出查询
-     *
-     * @param queryListRequest 查询请求
-     * @return 查询结果
-     */
-    private @NotNull List<E> exportQuery(QueryListRequest<E> queryListRequest) {
-        queryListRequest = requireWithFilterNonNullElse(queryListRequest, new QueryListRequest<>());
-        queryListRequest = beforeExportQuery(queryListRequest);
-        List<E> list = query(queryListRequest);
-        return afterExportQuery(list);
     }
 
     /**

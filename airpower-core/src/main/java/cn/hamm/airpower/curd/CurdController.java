@@ -9,6 +9,7 @@ import cn.hamm.airpower.curd.query.QueryExport;
 import cn.hamm.airpower.curd.query.QueryListRequest;
 import cn.hamm.airpower.curd.query.QueryPageRequest;
 import cn.hamm.airpower.curd.query.QueryPageResponse;
+import cn.hamm.airpower.export.ExportConfig;
 import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.util.TaskUtil;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,9 @@ public class CurdController<
     @Autowired
     protected S service;
 
+    @Autowired
+    private ExportConfig exportConfig;
+
     /**
      * 创建导出任务
      */
@@ -47,7 +51,11 @@ public class CurdController<
     @PostMapping("export")
     public Json export(@RequestBody QueryListRequest<E> queryListRequest) {
         Export.checkApiAvailable(this);
-        return Json.data(service.createExportTask(queryListRequest), "导出任务创建成功");
+        QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
+        queryPageRequest.setSort(queryListRequest.getSort());
+        queryPageRequest.setFilter(queryListRequest.getFilter());
+        queryPageRequest.setPage(new Page().setPageSize(exportConfig.getExportPageSize()));
+        return Json.data(service.createExportTask(queryPageRequest), "导出任务创建成功");
     }
 
     /**

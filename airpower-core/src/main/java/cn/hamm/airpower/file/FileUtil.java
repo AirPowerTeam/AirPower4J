@@ -6,7 +6,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
@@ -129,16 +131,32 @@ public class FileUtil {
      * @param absoluteDirectory 目录绝对路径
      * @param fileName          文件名
      * @param bytes             文件字节数组
+     * @param options           保存选项
      */
-    public static void saveFile(@NotNull String absoluteDirectory, @NotNull String fileName, byte @NotNull [] bytes) {
+    public static void saveFile(@NotNull String absoluteDirectory, @NotNull String fileName, byte @NotNull [] bytes, OpenOption @NotNull ... options) {
         absoluteDirectory = formatDirectory(absoluteDirectory);
         createDirectories(absoluteDirectory);
         try {
             Path path = Paths.get(absoluteDirectory + fileName);
-            Files.write(path, bytes);
+            if (!Files.exists(path)) {
+                Files.createFile(path);
+            }
+            Files.write(path, bytes, options);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException("文件保存失败，请确认权限是否正常");
         }
+    }
+
+    /**
+     * 保存文件
+     *
+     * @param absoluteDirectory 目录绝对路径
+     * @param fileName          文件名
+     * @param string            文件字符串内容
+     * @param options           保存选项
+     */
+    public static void saveFile(@NotNull String absoluteDirectory, @NotNull String fileName, @NotNull String string, OpenOption @NotNull ... options) {
+        saveFile(absoluteDirectory, fileName, string.getBytes(StandardCharsets.UTF_8), options);
     }
 }

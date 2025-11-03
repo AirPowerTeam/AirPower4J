@@ -17,4 +17,9 @@ public class ExportConfig {
      * 生成文件的目录
      */
     private String saveFilePath = "";
+
+    /**
+     * 导出分页大小
+     */
+    private Integer exportPageSize = 5000;
 }

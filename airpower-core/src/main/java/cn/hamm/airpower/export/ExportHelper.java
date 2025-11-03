@@ -4,6 +4,9 @@ import cn.hamm.airpower.file.FileUtil;
 import cn.hamm.airpower.redis.RedisHelper;
 import cn.hamm.airpower.util.RandomUtil;
 import cn.hamm.airpower.util.TaskUtil;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +49,7 @@ public class ExportHelper {
     /**
      * 创建异步任务
      *
-     * @param supplier 上报任务结果
+     * @param supplier 自行保存文件并返回路径
      * @return 文件编码
      */
     public final String createExportTask(Supplier<String> supplier) {
@@ -91,8 +94,28 @@ public class ExportHelper {
      * @return 保存后的文件名
      */
     public final @NotNull String saveExportFileStream(@NotNull InputStream inputStream, String extension) {
-        final String absolutePath = FileUtil.formatDirectory(exportConfig.getSaveFilePath());
-        SERVICE_ERROR.when(!StringUtils.hasText(absolutePath), "导出失败，未配置导出文件目录");
+        ExportFile exportFile = getExportFilePath(extension);
+
+        try {
+            FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), inputStream.readAllBytes());
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
+        return exportFile.getRelativeFile();
+    }
+
+
+    /**
+     * 获取导出文件相对路径
+     *
+     * @param extension 文件后缀
+     * @return 文件相对路径
+     */
+    public final @NotNull ExportFile getExportFilePath(String extension) {
+        final String exportRootDirectory = FileUtil.formatDirectory(exportConfig.getSaveFilePath());
+        SERVICE_ERROR.when(!StringUtils.hasText(exportRootDirectory), "导出失败，未配置导出文件目录");
+
 
         // 相对目录 默认为今天的文件夹
         String relativeDirectory = FileUtil.getTodayDirectory(EXPORT_DIR);
@@ -101,12 +124,48 @@ public class ExportHelper {
         final String fileName = FULL_TIME.formatCurrent().replaceAll(":", "") +
                 "_" + RandomUtil.randomString() + FileUtil.EXTENSION_SEPARATOR + extension;
 
-        try {
-            FileUtil.saveFile(absolutePath + relativeDirectory, fileName, inputStream.readAllBytes());
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            throw new RuntimeException(e);
+        return new ExportFile()
+                .setExportRootDirectory(exportRootDirectory)
+                .setRelativeDirectory(relativeDirectory)
+                .setFileName(fileName);
+    }
+
+
+    @Setter
+    @Accessors(chain = true)
+    public static class ExportFile {
+        /**
+         * 导出根目录
+         */
+        private String exportRootDirectory;
+
+        /**
+         * 文件名
+         */
+        @Getter
+        private String fileName;
+
+        /**
+         * 相对目录
+         */
+        private String relativeDirectory;
+
+        /**
+         * 获取绝对目录
+         *
+         * @return 绝对目录
+         */
+        public String getAbsoluteDirectory() {
+            return exportRootDirectory + relativeDirectory;
         }
-        return relativeDirectory + fileName;
+
+        /**
+         * 获取相对文件地址
+         *
+         * @return 相对文件地址
+         */
+        public String getRelativeFile() {
+            return relativeDirectory + fileName;
+        }
     }
 }

@@ -10,7 +10,7 @@ public class HttpConstant {
 
     public static final String LOCAL_HOST = "localhost";
 
-    public static class STATUS {
+    public static class Status {
         public static final int OK = 200;
         public static final int CREATED = 201;
         public static final int NO_CONTENT = 204;

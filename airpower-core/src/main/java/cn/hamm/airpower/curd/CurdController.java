@@ -55,7 +55,18 @@ public class CurdController<
         queryPageRequest.setSort(queryListRequest.getSort());
         queryPageRequest.setFilter(queryListRequest.getFilter());
         queryPageRequest.setPage(new Page().setPageSize(exportConfig.getExportPageSize()));
+        queryPageRequest = beforeExportQuery(queryPageRequest);
         return Json.data(service.createExportTask(queryPageRequest), "导出任务创建成功");
+    }
+
+    /**
+     * 导出查询前置方法
+     *
+     * @param queryPageRequest 查询请求
+     * @return 处理后的查询请求
+     */
+    protected QueryPageRequest<E> beforeExportQuery(QueryPageRequest<E> queryPageRequest) {
+        return queryPageRequest;
     }
 
     /**

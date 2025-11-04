@@ -184,6 +184,22 @@ public class Json {
     }
 
     /**
+     * JSON 反序列化到指定类
+     *
+     * @param json          字符串
+     * @param typeReference 目标类
+     * @param <T>           目标类
+     * @return 目标类的实例
+     */
+    public static <T> T parse(String json, TypeReference<T> typeReference) {
+        try {
+            return getObjectMapper().readValue(json, typeReference);
+        } catch (JsonProcessingException exception) {
+            throw new ServiceException(exception);
+        }
+    }
+
+    /**
      * JSON 反序列化为数组
      *
      * @param json  字符串

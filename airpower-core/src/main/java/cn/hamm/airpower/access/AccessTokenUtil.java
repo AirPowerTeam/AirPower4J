@@ -17,7 +17,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import static cn.hamm.airpower.exception.ServiceError.PARAM_INVALID;
 import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
@@ -184,16 +183,21 @@ public class AccessTokenUtil {
         }
         UNAUTHORIZED.when(!StringUtils.hasText(source), ACCESS_TOKEN_INVALID);
         String[] list = source.split("\\" + TOKEN_DELIMITER);
-        if (list.length != TOKEN_PART_COUNT) {
-            throw new ServiceException(UNAUTHORIZED, ACCESS_TOKEN_INVALID);
-        }
-        //noinspection AlibabaUndefineMagicConstant
-        if (!Objects.equals(hmacSha256(secret, list[0] + TOKEN_DELIMITER + list[2]), list[1])) {
-            throw new ServiceException(UNAUTHORIZED, ACCESS_TOKEN_INVALID);
-        }
-        if (Long.parseLong(list[0]) < System.currentTimeMillis() && Long.parseLong(list[0]) != 0) {
-            throw new ServiceException(UNAUTHORIZED, "身份令牌已过期，请重新获取身份令牌");
-        }
+        UNAUTHORIZED.whenNotEquals(
+                list.length,
+                TOKEN_PART_COUNT,
+                ACCESS_TOKEN_INVALID
+        );
+        UNAUTHORIZED.whenNotEquals(
+                hmacSha256(secret, list[0] + TOKEN_DELIMITER + list[2]),
+                list[1],
+                ACCESS_TOKEN_INVALID
+        );
+        UNAUTHORIZED.when(
+                Long.parseLong(list[0]) < System.currentTimeMillis() &&
+                        Long.parseLong(list[0]) != 0,
+                ACCESS_TOKEN_INVALID
+        );
         Map<String, Object> payloads = Json.parse2Map(new String(
                 Base64.getUrlDecoder().decode(list[2].getBytes(UTF_8)))
         );

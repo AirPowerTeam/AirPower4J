@@ -164,8 +164,19 @@ public class DateTimeUtil {
      */
     @Contract(value = "_ -> new", pure = true)
     public static @NotNull Date parse(String dateTime) throws ParseException {
-        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime localDateTime = LocalDateTime.parse(dateTime, formatter);
+        return parse(dateTime, FULL_DATETIME.getValue());
+    }
+
+    /**
+     * 字符串转换成日期格式
+     *
+     * @param dateTime  字符串
+     * @param formatter 时间格式
+     * @return 时间戳对应的日期
+     */
+    public static @NotNull Date parse(String dateTime, String formatter) throws ParseException {
+        java.time.format.DateTimeFormatter dateTimeFormatter = java.time.format.DateTimeFormatter.ofPattern(formatter);
+        LocalDateTime localDateTime = LocalDateTime.parse(dateTime, dateTimeFormatter);
         return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 

@@ -1,5 +1,6 @@
 package cn.hamm.airpower.interceptor;
 
+import cn.hamm.airpower.api.ApiConfig;
 import cn.hamm.airpower.api.Json;
 import cn.hamm.airpower.curd.query.QueryPageResponse;
 import cn.hamm.airpower.desensitize.DesensitizeIgnore;
@@ -13,11 +14,13 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -39,6 +42,9 @@ import static cn.hamm.airpower.interceptor.AbstractRequestInterceptor.REQUEST_ME
 @ControllerAdvice
 @Slf4j
 public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
+    @Autowired
+    private ApiConfig apiConfig;
+
     /**
      * 是否支持
      *
@@ -81,7 +87,14 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
         } else {
             responseResult = beforeResponseFinished(getResult(body, method), request, response);
         }
-        response.getHeaders().set(HttpConstant.Header.REQUEST_ID, MDC.get(HttpConstant.Header.REQUEST_ID));
+        String requestId = MDC.get(HttpConstant.Header.REQUEST_ID);
+        response.getHeaders().set(HttpConstant.Header.REQUEST_ID, requestId);
+        if (apiConfig.getRequestLog()) {
+            log.info("请求包体 {}", getRequestBody(((ServletServerHttpRequest) request).getServletRequest()));
+        }
+        if (apiConfig.getResponseLog()) {
+            log.info("响应包体 {}", Json.toString(responseResult));
+        }
         return responseResult;
     }
 

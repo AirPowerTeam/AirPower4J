@@ -36,7 +36,7 @@ public class ExportHelper {
     private static final String EXPORT_DIR = "export";
 
     /**
-     * 导出文件夹前缀
+     * 导出文件前缀
      */
     private static final String EXPORT_CACHE_PREFIX = EXPORT_DIR + "_";
 
@@ -115,7 +115,6 @@ public class ExportHelper {
     public final @NotNull ExportFile getExportFilePath(String extension) {
         final String exportRootDirectory = FileUtil.formatDirectory(exportConfig.getSaveFilePath());
         SERVICE_ERROR.when(!StringUtils.hasText(exportRootDirectory), "导出失败，未配置导出文件目录");
-
 
         // 相对目录 默认为今天的文件夹
         String relativeDirectory = FileUtil.getTodayDirectory(EXPORT_DIR);

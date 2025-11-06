@@ -16,7 +16,7 @@ public class ExportConfig {
     /**
      * 生成文件的目录
      */
-    private String saveFilePath = "";
+    private String saveFilePath = "/tmp/airpower/";
 
     /**
      * 导出分页大小

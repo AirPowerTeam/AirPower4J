@@ -225,14 +225,10 @@ public class NumberUtil {
      * @return 商
      */
     private static @NotNull BigDecimal divide(BigDecimal first, BigDecimal second, int scale, RoundingMode roundingMode) {
-        try {
-            if (Objects.equals(BigDecimal.valueOf(0), second)) {
-                throw new RuntimeException("除数不能为0");
-            }
-            return first.divide(second, scale, roundingMode);
-        } catch (Exception e) {
-            throw new RuntimeException("计算出现异常");
+        if (Objects.equals(BigDecimal.valueOf(0), second)) {
+            throw new RuntimeException("除数不能为0");
         }
+        return first.divide(second, scale, roundingMode);
     }
 
     /**
@@ -270,5 +266,9 @@ public class NumberUtil {
             scale = 0;
         }
         return BigDecimal.valueOf(number).setScale(scale, roundingMode);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(divide(10, 0));
     }
 }

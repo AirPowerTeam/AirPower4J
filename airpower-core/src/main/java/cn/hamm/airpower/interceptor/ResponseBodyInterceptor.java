@@ -90,9 +90,11 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
         String requestId = MDC.get(HttpConstant.Header.REQUEST_ID);
         response.getHeaders().set(HttpConstant.Header.REQUEST_ID, requestId);
         if (apiConfig.getRequestLog()) {
+            log.info("请求头部 {}", request.getHeaders());
             log.info("请求包体 {}", getRequestBody(((ServletServerHttpRequest) request).getServletRequest()));
         }
         if (apiConfig.getResponseLog()) {
+            log.info("响应头部 {}", response.getHeaders());
             log.info("响应包体 {}", Json.toString(responseResult));
         }
         return responseResult;

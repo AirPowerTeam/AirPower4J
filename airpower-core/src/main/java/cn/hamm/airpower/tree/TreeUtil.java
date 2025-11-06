@@ -112,15 +112,15 @@ public class TreeUtil {
      *
      * @param parentId 父 ID
      * @param service  服务类
-     * @param <T>      实体类型
      * @return ID集合
      */
     public static <
-            T extends CurdEntity<T> & ITree<T>,
-            R extends ICurdRepository<T>
+            E extends CurdEntity<E> & ITree<E>,
+            S extends CurdService<E, R>,
+            R extends ICurdRepository<E>
             > @NotNull Set<Long> getChildrenIdList(
             long parentId,
-            @NotNull CurdService<T, R> service
+            @NotNull S service
     ) {
         Set<Long> list = new HashSet<>();
         getChildrenIdList(parentId, service, list);
@@ -133,18 +133,21 @@ public class TreeUtil {
      * @param parentId 父 ID
      * @param service  服务类
      * @param list     集合
-     * @param <T>      实体类型
      */
-    public static <T extends CurdEntity<T> & ITree<T>> void getChildrenIdList(
+    public static <
+            E extends CurdEntity<E> & ITree<E>,
+            S extends CurdService<E, R>,
+            R extends ICurdRepository<E>
+            > void getChildrenIdList(
             long parentId,
-            @NotNull CurdService<T, ?> service,
+            @NotNull S service,
             @NotNull Set<Long> list
     ) {
-        T parent = service.get(parentId);
+        E parent = service.get(parentId);
         list.add(parent.getId());
-        List<T> children;
+        List<E> children;
         try {
-            Class<T> entityClass = service.getFirstParameterizedTypeClass();
+            Class<E> entityClass = service.getFirstParameterizedTypeClass();
             children = service.filter(entityClass.getConstructor().newInstance().setParentId(parent.getId()));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException e) {

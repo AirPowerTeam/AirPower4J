@@ -110,46 +110,46 @@ public class TreeUtil {
     /**
      * 获取指定父ID下的所有子 ID
      *
-     * @param parentId    父 ID
-     * @param service     服务类
-     * @param entityClass 实体类
-     * @param <T>         实体类型
+     * @param parentId 父 ID
+     * @param service  服务类
+     * @param <T>      实体类型
      * @return ID集合
      */
-    public static <T extends CurdEntity<T> & ITree<T>> @NotNull Set<Long> getChildrenIdList(
+    public static <
+            T extends CurdEntity<T> & ITree<T>,
+            R extends ICurdRepository<T>
+            > @NotNull Set<Long> getChildrenIdList(
             long parentId,
-            @NotNull CurdService<T, ?> service,
-            @NotNull Class<T> entityClass
+            @NotNull CurdService<T, R> service
     ) {
         Set<Long> list = new HashSet<>();
-        getChildrenIdList(parentId, service, entityClass, list);
+        getChildrenIdList(parentId, service, list);
         return list;
     }
 
     /**
      * 获取指定父ID下的所有子 ID
      *
-     * @param parentId    父 ID
-     * @param service     服务类
-     * @param entityClass 实体类型
-     * @param list        集合
-     * @param <T>         实体类型
+     * @param parentId 父 ID
+     * @param service  服务类
+     * @param list     集合
+     * @param <T>      实体类型
      */
     public static <T extends CurdEntity<T> & ITree<T>> void getChildrenIdList(
             long parentId,
             @NotNull CurdService<T, ?> service,
-            @NotNull Class<T> entityClass,
             @NotNull Set<Long> list
     ) {
         T parent = service.get(parentId);
         list.add(parent.getId());
         List<T> children;
         try {
+            Class<T> entityClass = service.getFirstParameterizedTypeClass();
             children = service.filter(entityClass.getConstructor().newInstance().setParentId(parent.getId()));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
-        children.forEach(child -> getChildrenIdList(child.getId(), service, entityClass, list));
+        children.forEach(child -> getChildrenIdList(child.getId(), service, list));
     }
 }

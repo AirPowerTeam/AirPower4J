@@ -44,14 +44,14 @@ import static cn.hamm.airpower.request.HttpConstant.Header.CONTENT_TYPE;
 @Slf4j
 public class Ai {
     /**
-     * 模型返回数据结束标识
-     */
-    public static final String FLAG_STREAM_DONE = "[DONE]";
-
-    /**
      * 模型返回数据开始标识
      */
-    public static final String FLAG_STREAM_DATA = "data: ";
+    private static final String FLAG_STREAM_DATA = "data: ";
+
+    /**
+     * 模型返回数据结束标识
+     */
+    private static final String FLAG_STREAM_DONE = "[DONE]";
 
     /**
      * 请求地址

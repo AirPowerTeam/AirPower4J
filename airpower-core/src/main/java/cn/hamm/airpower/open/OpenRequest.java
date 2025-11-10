@@ -123,9 +123,8 @@ public class OpenRequest {
      */
     final void checkSignature(IOpenApp openApp) {
         this.openApp = openApp;
-        log.info("签名传入 {}", signature);
         String sign = sign();
-        log.info("签名计算 {}", sign);
+        log.info("签名比对 {} {}", sign, signature);
         SIGNATURE_INVALID.whenNotEquals(signature, sign);
     }
 

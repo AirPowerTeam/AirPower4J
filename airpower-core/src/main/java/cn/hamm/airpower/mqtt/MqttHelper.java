@@ -67,6 +67,7 @@ public class MqttHelper {
      * @param message 消息内容
      */
     public void publish(@NotNull String topic, @NotNull String message) throws MqttException {
+        log.info("MQTT 发送消息：{} {}", topic, message);
         try (MqttClient client = createClient()) {
             client.connect(createOption());
             MqttMessage mqttMessage = new MqttMessage();

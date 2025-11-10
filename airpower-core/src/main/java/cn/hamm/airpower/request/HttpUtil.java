@@ -1,9 +1,11 @@
 package cn.hamm.airpower.request;
 
+import cn.hamm.airpower.api.Json;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.request.HttpConstant.Header;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,6 +23,7 @@ import static cn.hamm.airpower.request.HttpMethod.GET;
  *
  * @author Hamm.cn
  */
+@Slf4j
 @Data
 @Accessors(chain = true, makeFinal = true)
 public class HttpUtil {
@@ -93,7 +96,7 @@ public class HttpUtil {
      *
      * @return HttpResponse
      */
-    public final HttpResponse<String> post() {
+    public final @NotNull HttpResponse<String> post() {
         method = HttpMethod.POST;
         return send();
     }
@@ -105,7 +108,7 @@ public class HttpUtil {
      * @return HttpResponse
      */
     @SuppressWarnings("UnusedReturnValue")
-    public final HttpResponse<String> post(String body) {
+    public final @NotNull HttpResponse<String> post(String body) {
         method = HttpMethod.POST;
         this.body = body;
         return send();
@@ -116,7 +119,7 @@ public class HttpUtil {
      *
      * @return HttpResponse
      */
-    public final HttpResponse<String> get() {
+    public final @NotNull HttpResponse<String> get() {
         method = GET;
         return send();
     }
@@ -126,9 +129,12 @@ public class HttpUtil {
      *
      * @return HttpResponse
      */
-    public final HttpResponse<String> send() {
+    public final @NotNull HttpResponse<String> send() {
         try {
-            return getHttpClient().send(getHttpRequest(), HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = getHttpClient().send(getHttpRequest(), HttpResponse.BodyHandlers.ofString());
+            log.info("响应码: {}", response.statusCode());
+            log.info("响应体: {}", response.body());
+            return response;
         } catch (Exception exception) {
             throw new ServiceException(exception);
         }
@@ -144,6 +150,9 @@ public class HttpUtil {
                 .uri(URI.create(url));
         headers.forEach((key, value) -> requestBuilder.header(key, value.toString()));
         HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofString(body);
+        log.info("请求地址: {} {}", method.name(), url);
+        log.info("请求头: {}", Json.toString(headers));
+        log.info("请求体: {}", body);
         switch (method) {
             case GET -> requestBuilder.GET();
             case POST -> requestBuilder.POST(bodyPublisher);

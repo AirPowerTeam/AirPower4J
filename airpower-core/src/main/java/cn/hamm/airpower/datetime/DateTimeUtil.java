@@ -227,7 +227,17 @@ public class DateTimeUtil {
      * @return 年份
      */
     public static int getCurrentYear() {
-        return ZonedDateTime.now().getYear();
+        return getYear(new Date());
+    }
+
+    /**
+     * 获取年份
+     *
+     * @param date 时间
+     * @return 年份
+     */
+    public static int getYear(@NotNull Date date) {
+        return getLocalDateTime(date.getTime()).getYear();
     }
 
     /**
@@ -236,7 +246,28 @@ public class DateTimeUtil {
      * @return 月份
      */
     public static int getCurrentMonth() {
-        return ZonedDateTime.now().getMonthValue();
+        return getMonth(new Date());
+    }
+
+    /**
+     * 获取月份
+     *
+     * @param date 时间
+     * @return 月份
+     */
+    public static int getMonth(@NotNull Date date) {
+        return getLocalDateTime(date.getTime()).getMonthValue();
+    }
+
+    /**
+     * 获取当前时间
+     *
+     * @param millisecond 毫秒时间戳
+     * @return 时间
+     */
+    @Contract("_ -> new")
+    public static @NotNull LocalDateTime getLocalDateTime(long millisecond) {
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(millisecond), ZoneId.systemDefault());
     }
 
     /**
@@ -249,12 +280,32 @@ public class DateTimeUtil {
     }
 
     /**
+     * 获取日期第几天
+     *
+     * @param date 时间
+     * @return 日期
+     */
+    public static int getDay(@NotNull Date date) {
+        return getLocalDateTime(date.getTime()).getDayOfMonth();
+    }
+
+    /**
      * 获取当前小时
      *
      * @return 小时
      */
     public static int getCurrentHour() {
-        return ZonedDateTime.now().getHour();
+        return getHour(new Date());
+    }
+
+    /**
+     * 获取小时
+     *
+     * @param date 时间
+     * @return 小时
+     */
+    public static int getHour(@NotNull Date date) {
+        return getLocalDateTime(date.getTime()).getHour();
     }
 
     /**
@@ -263,7 +314,17 @@ public class DateTimeUtil {
      * @return 分钟
      */
     public static int getCurrentMinute() {
-        return ZonedDateTime.now().getMinute();
+        return getMinute(new Date());
+    }
+
+    /**
+     * 获取分钟
+     *
+     * @param date 时间
+     * @return 分钟
+     */
+    public static int getMinute(@NotNull Date date) {
+        return getLocalDateTime(date.getTime()).getMinute();
     }
 
     /**
@@ -272,7 +333,17 @@ public class DateTimeUtil {
      * @return 秒
      */
     public static int getCurrentSecond() {
-        return ZonedDateTime.now().getSecond();
+        return getSecond(new Date());
+    }
+
+    /**
+     * 获取秒
+     *
+     * @param date 时间
+     * @return 秒
+     */
+    public static int getSecond(@NotNull Date date) {
+        return getLocalDateTime(date.getTime()).getSecond();
     }
 
     /**
@@ -468,10 +539,11 @@ public class DateTimeUtil {
     public static @NotNull Date getStartOfMonth(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.MILLISECOND, 0);
         return calendar.getTime();
     }
 
@@ -493,11 +565,11 @@ public class DateTimeUtil {
     public static @NotNull Date getStartOfYear(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
+        calendar.set(Calendar.DAY_OF_YEAR, 1);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        calendar.set(Calendar.DAY_OF_YEAR, 1);
         return calendar.getTime();
     }
 

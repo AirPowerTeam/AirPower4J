@@ -32,10 +32,12 @@ public class CollectionUtil {
      * CSV 列分隔符
      */
     public static final String CSV_COLUMN_DELIMITER = ",";
+
     /**
      * CSV 行分隔符
      */
     public static final String CSV_ROW_DELIMITER = "\n";
+
     /**
      * CSV 缩进符号
      */
@@ -64,7 +66,7 @@ public class CollectionUtil {
     }
 
     /**
-     * 将集合转换为 CSV 文件
+     * 将集合转换为 CSV 文件流
      *
      * @param list      集合
      * @param itemClass 元素的类名
@@ -77,7 +79,7 @@ public class CollectionUtil {
     }
 
     /**
-     * 将集合转换为 CSV 文件
+     * 将集合转换为 CSV 文件流
      *
      * @param itemClass         元素的类名
      * @param valueListFunction 列数据列表函数

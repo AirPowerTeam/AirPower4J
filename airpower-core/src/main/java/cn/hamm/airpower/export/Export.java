@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 
 import static cn.hamm.airpower.export.Export.Type.TEXT;
 import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
@@ -16,7 +17,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *
  * @author Hamm.cn
  */
-@Target(FIELD)
+@Target({FIELD, METHOD})
 @Retention(RUNTIME)
 @Inherited
 @Documented
@@ -30,6 +31,11 @@ public @interface Export {
      * 导出列排序
      */
     int sort() default 0;
+
+    /**
+     * 是否移除
+     */
+    boolean remove() default false;
 
     /**
      * <h1>列数据类型</h1>

@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 
@@ -138,8 +139,21 @@ public class CollectionUtil {
     public static <M extends RootModel<M>> @NotNull List<Field> getExportFieldList(Class<M> itemClass) {
         List<CsvField> fieldList = new ArrayList<>();
         ReflectUtil.getFieldList(itemClass).forEach(field -> {
-            Export export = ReflectUtil.getAnnotation(Export.class, field);
+            Export export = null;
+            // 判断 Getter 是否被标记
+            String fieldGetter = ReflectUtil.getFieldGetter(field);
+            try {
+                Method getter = itemClass.getMethod(fieldGetter);
+                export = ReflectUtil.getAnnotation(Export.class, getter);
+                if (Objects.isNull(export)) {
+                    export = ReflectUtil.getAnnotation(Export.class, field);
+                }
+            } catch (NoSuchMethodException ignored) {
+            }
             if (Objects.isNull(export)) {
+                return;
+            }
+            if (export.remove()) {
                 return;
             }
             fieldList.add(new CsvField().setField(field).setSort(export.sort()));

@@ -27,6 +27,11 @@ public @interface Export {
     Type value() default TEXT;
 
     /**
+     * 导出列排序
+     */
+    int sort() default 0;
+
+    /**
      * <h1>列数据类型</h1>
      *
      * @author Hamm.cn

@@ -55,31 +55,31 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
      */
     public static final String STRING_UPDATE_TIME = "updateTime";
 
-    @Description("主键ID")
+    @Description("ID")
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(nullable = false, columnDefinition = "bigint UNSIGNED comment 'ID'")
     @Min(value = 0, message = "ID必须大于{value}")
-    @Export(NUMBER)
+    @Export(value = NUMBER, sort = 99)
     @NotNull(groups = {WhenUpdate.class, WhenIdRequired.class}, message = "ID不能为空")
     private Long id;
 
     @Description("是否禁用")
     @ReadOnly
     @Column(columnDefinition = "tinyint UNSIGNED default 0 comment '是否禁用'")
-    @Export(BOOLEAN)
+    @Export(value = BOOLEAN, sort = -77)
     private Boolean isDisabled;
 
     @Description("创建时间")
     @ReadOnly
     @Column(columnDefinition = "bigint UNSIGNED default 0 comment '创建时间'")
-    @Export(DATETIME)
+    @Export(value = DATETIME, sort = -88)
     private Long createTime;
 
     @Description("修改时间")
     @ReadOnly
     @Column(columnDefinition = "bigint UNSIGNED default 0 comment '修改时间'")
-    @Export(DATETIME)
+    @Export(value = DATETIME, sort = -99)
     private Long updateTime;
 
     @Transient

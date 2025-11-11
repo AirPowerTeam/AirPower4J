@@ -113,7 +113,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         // 当前页查到的数据列表
         List<E> list = page.getList();
         list = afterExportQuery(list);
-        List<String> valuelist = CollectionUtil.getCsvValuelist(list, fieldList);
+        List<String> valuelist = CollectionUtil.getCsvValueList(list, fieldList);
         saveCsvListToFile(exportFile, valuelist);
 
         // 继续分页

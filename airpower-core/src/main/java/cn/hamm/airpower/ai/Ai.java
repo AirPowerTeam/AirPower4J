@@ -7,6 +7,7 @@ import cn.hamm.airpower.request.HttpConstant.Status;
 import cn.hamm.airpower.request.HttpUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -110,7 +111,7 @@ public class Ai {
     public final @NotNull ResponseEntity<StreamingResponseBody> requestStreamRaw(@NotNull AiRequest request, Function<String, String> func) {
         StreamingResponseBody responseBody = outputStream -> {
             HttpResponse<InputStream> httpResponse = getInputStreamHttpResponse(request);
-            try (outputStream) {
+            try (outputStream; outputStream) {
                 InputStream inputStream = httpResponse.body();
                 try (var reader = new BufferedReader(new InputStreamReader(inputStream))) {
                     String line;
@@ -128,6 +129,38 @@ public class Ai {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8"))
                 .body(responseBody);
+    }
+
+    /**
+     * 发送流式请求
+     *
+     * @param request 模型请求参数
+     */
+    public final @NotNull ResponseEntity<StreamingResponseBody> requestStreamRaw(@NotNull AiRequest request) {
+        return requestStreamRaw(request, line -> line + "\n");
+    }
+
+    /**
+     * 发送流式请求
+     *
+     * @param request 模型请求参数
+     * @param func    流式处理函数
+     */
+    public final @NotNull ResponseEntity<StreamingResponseBody> requestStream(@NotNull AiRequest request, Function<AiStream, String> func) {
+        return requestStreamRaw(request, line -> {
+            line = line.trim();
+            AiStream aiStream = new AiStream();
+            if (!line.startsWith(FLAG_STREAM_DATA)) {
+                return func.apply(aiStream.setResponse(null));
+            }
+
+            String replaced = line.replace(FLAG_STREAM_DATA, "");
+            if (replaced.equals(FLAG_STREAM_DONE)) {
+                return func.apply(aiStream.setIsDone(true));
+            }
+            AiResponse response = Json.parse(replaced, AiResponse.class);
+            return func.apply(aiStream.setResponse(response));
+        });
     }
 
     /**
@@ -153,29 +186,6 @@ public class Ai {
             log.error(e.getMessage(), e);
             throw new ServiceException(AI_ERROR, e.getMessage());
         }
-    }
-
-    /**
-     * 发送流式请求
-     *
-     * @param request 模型请求参数
-     * @param func    流式处理函数
-     */
-    public final @NotNull ResponseEntity<StreamingResponseBody> requestStream(@NotNull AiRequest request, Function<AiStream, String> func) {
-        return requestStreamRaw(request, line -> {
-            line = line.trim();
-            AiStream aiStream = new AiStream();
-            if (!line.startsWith(FLAG_STREAM_DATA)) {
-                return func.apply(aiStream.setResponse(null));
-            }
-
-            String replaced = line.replace(FLAG_STREAM_DATA, "");
-            if (replaced.equals(FLAG_STREAM_DONE)) {
-                return func.apply(aiStream.setIsDone(true));
-            }
-            AiResponse response = Json.parse(replaced, AiResponse.class);
-            return func.apply(aiStream.setResponse(response));
-        });
     }
 
     /**
@@ -220,6 +230,7 @@ public class Ai {
      *
      * @return 授权请求参数
      */
+    @Contract(pure = true)
     private @NotNull String getBearerToken() {
         return BEARER + " " + key;
     }

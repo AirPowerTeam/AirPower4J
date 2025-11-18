@@ -229,6 +229,7 @@ public class FileUtil {
      * @param pathName 文件夹路径
      */
     public static void deleteDirectory(String pathName) {
+        // 判断文件夹是否存在
         Path path = Paths.get(pathName);
         if (Files.exists(path)) {
             try {

@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.text.DecimalFormat;
 import java.util.Comparator;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -183,12 +184,12 @@ public class FileUtil {
     /**
      * 递归压缩目录
      *
-     * @param dir 要压缩的目录
-     * @param zos ZIP输出流
+     * @param dir     要压缩的目录
+     * @param dirName 当前目录名称
+     * @param zos     ZIP输出流
      * @throws IOException IO异常
-     * @paramDirectoryName 相对于根目录的名称
      */
-    private static void zipDirectory(Path dir, String dirName, ZipOutputStream zos) throws IOException {
+    private static void zipDirectory(Path dir, String dirName, @NotNull ZipOutputStream zos) throws IOException {
         // 添加目录条目
         dirName = formatDirectory(dirName);
 
@@ -204,27 +205,27 @@ public class FileUtil {
                 if (Files.isDirectory(path)) {
                     // 递归处理子目录
                     zipDirectory(path, entryName, zos);
-                } else {
-                    // 添加文件条目
-                    ZipEntry fileEntry = new ZipEntry(entryName);
-                    zos.putNextEntry(fileEntry);
-
-                    // 写入文件内容
-                    try (FileInputStream fis = new FileInputStream(path.toFile())) {
-                        byte[] buffer = new byte[1024];
-                        int length;
-                        while ((length = fis.read(buffer)) > 0) {
-                            zos.write(buffer, 0, length);
-                        }
-                    }
-                    zos.closeEntry();
+                    continue;
                 }
+                // 添加文件条目
+                ZipEntry fileEntry = new ZipEntry(entryName);
+                zos.putNextEntry(fileEntry);
+
+                // 写入文件内容
+                try (FileInputStream fis = new FileInputStream(path.toFile())) {
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = fis.read(buffer)) > 0) {
+                        zos.write(buffer, 0, length);
+                    }
+                }
+                zos.closeEntry();
             }
         }
     }
 
     /**
-     * 删除文件夹以及当前文件夹内的文件，但是不删除父级文件夹
+     * 删除当前文件夹以及当前文件夹内的文件
      *
      * @param pathName 文件夹路径
      */
@@ -232,9 +233,9 @@ public class FileUtil {
         // 判断文件夹是否存在
         Path path = Paths.get(pathName);
         if (Files.exists(path)) {
-            try {
-                Files.walk(path)
-                        .sorted(Comparator.reverseOrder())
+            try (Stream<Path> walk = Files.walk(path)) {
+                //noinspection ResultOfMethodCallIgnored
+                walk.sorted(Comparator.reverseOrder())
                         .map(Path::toFile)
                         .forEach(File::delete);
             } catch (IOException e) {

@@ -24,7 +24,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static cn.hamm.airpower.exception.ServiceError.AI_ERROR;
@@ -103,37 +102,32 @@ public class Ai {
     }
 
     /**
-     * 发送异步请求
+     * 发送流式请求
      *
-     * @param request  模型请求参数
-     * @param callback 回调函数
+     * @param request 模型请求参数
+     * @param func    回调函数
      */
-    public final void requestAsync(@NotNull AiRequest request, Consumer<AiStream> callback) {
-        HttpResponse<InputStream> httpResponse = getInputStreamHttpResponse(request);
-        try {
-            InputStream inputStream = httpResponse.body();
-            try (var reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // 去除首尾空格
-                    line = line.trim();
-                    if (!line.startsWith(FLAG_STREAM_DATA)) {
-                        continue;
+    public final @NotNull ResponseEntity<StreamingResponseBody> requestStreamRaw(@NotNull AiRequest request, Function<String, String> func) {
+        StreamingResponseBody responseBody = outputStream -> {
+            HttpResponse<InputStream> httpResponse = getInputStreamHttpResponse(request);
+            try (outputStream) {
+                InputStream inputStream = httpResponse.body();
+                try (var reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        String apply = func.apply(line);
+                        outputStream.write(apply.getBytes(StandardCharsets.UTF_8));
+                        outputStream.flush();
                     }
-
-                    String replaced = line.replace(FLAG_STREAM_DATA, "");
-                    if (replaced.equals(FLAG_STREAM_DONE)) {
-                        callback.accept(new AiStream().setIsDone(true));
-                        break;
-                    }
-                    AiResponse response = Json.parse(replaced, AiResponse.class);
-                    callback.accept(new AiStream().setResponse(response));
                 }
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+                throw new ServiceException(ServiceError.AI_ERROR, e.getMessage());
             }
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            throw new ServiceException(ServiceError.AI_ERROR, e.getMessage());
-        }
+        };
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8"))
+                .body(responseBody);
     }
 
     /**
@@ -161,16 +155,6 @@ public class Ai {
         }
     }
 
-
-    /**
-     * 发送流式请求
-     *
-     * @param request 模型请求参数
-     */
-    public final @NotNull ResponseEntity<StreamingResponseBody> requestStream(@NotNull AiRequest request) {
-        return requestStream(request, (Json::toString));
-    }
-
     /**
      * 发送流式请求
      *
@@ -178,26 +162,20 @@ public class Ai {
      * @param func    流式处理函数
      */
     public final @NotNull ResponseEntity<StreamingResponseBody> requestStream(@NotNull AiRequest request, Function<AiStream, String> func) {
-        StreamingResponseBody responseBody = outputStream -> requestAsync(request, stream -> {
-            try {
-                String apply = func.apply(stream);
-                if (Objects.isNull(apply)) {
-                    apply = "";
-                }
-                outputStream.write(apply.getBytes(StandardCharsets.UTF_8));
-                if (stream.getIsDone()) {
-                    outputStream.close();
-                } else {
-                    outputStream.flush();
-                }
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-                throw new ServiceException(ServiceError.AI_ERROR, e.getMessage());
+        return requestStreamRaw(request, line -> {
+            line = line.trim();
+            AiStream aiStream = new AiStream();
+            if (!line.startsWith(FLAG_STREAM_DATA)) {
+                return func.apply(aiStream.setResponse(null));
             }
+
+            String replaced = line.replace(FLAG_STREAM_DATA, "");
+            if (replaced.equals(FLAG_STREAM_DONE)) {
+                return func.apply(aiStream.setIsDone(true));
+            }
+            AiResponse response = Json.parse(replaced, AiResponse.class);
+            return func.apply(aiStream.setResponse(response));
         });
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8"))
-                .body(responseBody);
     }
 
     /**

@@ -5,13 +5,15 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.text.DecimalFormat;
+import java.util.Comparator;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static cn.hamm.airpower.datetime.DateTimeFormatter.FULL_DATE;
 
@@ -158,5 +160,85 @@ public class FileUtil {
      */
     public static void saveFile(@NotNull String absoluteDirectory, @NotNull String fileName, @NotNull String string, OpenOption @NotNull ... options) {
         saveFile(absoluteDirectory, fileName, string.getBytes(StandardCharsets.UTF_8), options);
+    }
+
+    /**
+     * 将整个文件夹压缩为ZIP文件
+     *
+     * @param sourceDirPath 源文件夹路径
+     * @param zipFilePath   ZIP文件输出路径
+     * @throws IOException IO异常
+     */
+    public static void zip(String sourceDirPath, String zipFilePath) throws IOException {
+        Path sourceDir = Paths.get(sourceDirPath);
+        if (!Files.exists(sourceDir)) {
+            throw new IOException("源文件夹不存在: " + sourceDirPath);
+        }
+        try (FileOutputStream fos = new FileOutputStream(zipFilePath);
+             ZipOutputStream zos = new ZipOutputStream(fos)) {
+            zipDirectory(sourceDir, sourceDir.getFileName().toString(), zos);
+        }
+    }
+
+    /**
+     * 递归压缩目录
+     *
+     * @param dir 要压缩的目录
+     * @param zos ZIP输出流
+     * @throws IOException IO异常
+     * @paramDirectoryName 相对于根目录的名称
+     */
+    private static void zipDirectory(Path dir, String dirName, ZipOutputStream zos) throws IOException {
+        // 添加目录条目
+        dirName = formatDirectory(dirName);
+
+        ZipEntry dirEntry = new ZipEntry(dirName);
+        zos.putNextEntry(dirEntry);
+        zos.closeEntry();
+
+        // 遍历目录中的所有文件和子目录
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+            for (Path path : stream) {
+                String entryName = dirName + path.getFileName().toString();
+
+                if (Files.isDirectory(path)) {
+                    // 递归处理子目录
+                    zipDirectory(path, entryName, zos);
+                } else {
+                    // 添加文件条目
+                    ZipEntry fileEntry = new ZipEntry(entryName);
+                    zos.putNextEntry(fileEntry);
+
+                    // 写入文件内容
+                    try (FileInputStream fis = new FileInputStream(path.toFile())) {
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = fis.read(buffer)) > 0) {
+                            zos.write(buffer, 0, length);
+                        }
+                    }
+                    zos.closeEntry();
+                }
+            }
+        }
+    }
+
+    /**
+     * 删除文件夹以及当前文件夹内的文件，但是不删除父级文件夹
+     *
+     * @param pathName 文件夹路径
+     */
+    public static void deleteDirectory(String pathName) {
+        Path path = Paths.get(pathName);
+        if (Files.exists(path)) {
+            try {
+                Files.walk(path)
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
     }
 }

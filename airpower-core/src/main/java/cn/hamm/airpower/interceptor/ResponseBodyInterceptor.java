@@ -1,6 +1,7 @@
 package cn.hamm.airpower.interceptor;
 
 import cn.hamm.airpower.api.ApiConfig;
+import cn.hamm.airpower.api.DisableLog;
 import cn.hamm.airpower.api.Json;
 import cn.hamm.airpower.curd.query.QueryPageResponse;
 import cn.hamm.airpower.desensitize.DesensitizeIgnore;
@@ -89,6 +90,13 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
         }
         String requestId = MDC.get(HttpConstant.Header.REQUEST_ID);
         response.getHeaders().set(HttpConstant.Header.REQUEST_ID, requestId);
+        if (method != null) {
+            DisableLog disableLog = ReflectUtil.getAnnotation(DisableLog.class, method);
+            if (Objects.nonNull(disableLog) && !disableLog.value()) {
+                // 禁用日志
+                return responseResult;
+            }
+        }
         if (apiConfig.getRequestLog()) {
             log.info("请求头部 {}", request.getHeaders());
             log.info("请求包体 {}", getRequestBody(((ServletServerHttpRequest) request).getServletRequest()));

@@ -41,7 +41,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
         implements Serializable, ICurdAction {
     /**
-     * 主键 ID 字段名
+     * 主键字段名
      */
     public static final String STRING_ID = "id";
 

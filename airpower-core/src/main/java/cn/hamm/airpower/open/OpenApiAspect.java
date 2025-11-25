@@ -6,6 +6,7 @@ import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.redis.RedisHelper;
 import cn.hamm.airpower.request.RequestUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
@@ -27,6 +28,7 @@ import static cn.hamm.airpower.exception.ServiceError.*;
  *
  * @author Hamm.cn
  */
+@Slf4j
 @Aspect
 @Component
 public class OpenApiAspect<S extends IOpenAppService> {
@@ -49,10 +51,8 @@ public class OpenApiAspect<S extends IOpenAppService> {
     @Autowired
     private RedisHelper redisHelper;
 
-    @SuppressWarnings("EmptyMethod")
     @Pointcut("@annotation(cn.hamm.airpower.open.OpenApi)")
     public void pointCut() {
-
     }
 
     /**

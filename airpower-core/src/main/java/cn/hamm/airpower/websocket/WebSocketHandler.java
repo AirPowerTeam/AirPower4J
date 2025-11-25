@@ -152,7 +152,6 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
      *
      * @param session 会话
      */
-    @SuppressWarnings("EmptyMethod")
     protected void afterConnectSuccess(@NonNull WebSocketSession session) {
         log.info("连接成功 会话ID: {}", session.getId());
     }

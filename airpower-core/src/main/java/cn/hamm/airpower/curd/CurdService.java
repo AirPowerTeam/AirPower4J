@@ -383,10 +383,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param filter 过滤器
      * @return List数据
      * @see #filter(CurdEntity)
-     * @see #filter(CurdEntity, Sort)
      * @see #query(CurdEntity)
-     * @see #query(CurdEntity, Sort)
      * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
     public final @NotNull List<E> filter(@Nullable E filter) {
         return filter(filter, null);
@@ -399,10 +400,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param sort   排序
      * @return List数据
      * @see #filter(CurdEntity)
-     * @see #filter(CurdEntity, Sort)
      * @see #query(CurdEntity)
-     * @see #query(CurdEntity, Sort)
      * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
     public final @NotNull List<E> filter(@Nullable E filter, @Nullable Sort sort) {
         return find(filter, sort, true);
@@ -478,13 +480,44 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 自定义计算查询
+     *
+     * @param fieldName   字段名称
+     * @param function    自定义计算
+     * @param resultClass 结果类型
+     * @param <FIELD>     结果类型
+     * @return 计算结果
+     */
+    public final <FIELD, RESULT> RESULT selectAndCalculate(
+            @NotNull BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
+            String fieldName,
+            @NotNull BiFunction<CriteriaBuilder, Path<FIELD>, Selection<? extends RESULT>> function,
+            Class<RESULT> resultClass,
+            Class<FIELD> fieldClass
+    ) {
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<RESULT> query = builder.createQuery(resultClass);
+        Root<E> root = query.from(getFirstParameterizedTypeClass());
+        Path<FIELD> field = root.get(fieldName);
+        query.select(function.apply(builder, field)).where(predicate.apply(root, builder));
+        TypedQuery<RESULT> typedQuery = entityManager.createQuery(query);
+        return typedQuery.getSingleResult();
+    }
+
+    /**
      * 查询数据
      *
      * @param predicate 查询条件
      * @return 查询结果数据列表
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
-    public final @NotNull List<E> findList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
-        return findList(predicate, null);
+    public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
+        return selectList(predicate, null);
     }
 
     /**
@@ -493,8 +526,14 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param predicate 查询条件
      * @param sort      排序
      * @return 查询结果数据列表
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
-    public final @NotNull List<E> findList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
+    public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
         return repository.findAll(
                 (root, criteriaQuery, builder) -> predicate.apply(root, builder),
                 createSort(sort)
@@ -506,9 +545,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param predicate 查询条件
      * @return 查询结果数据分页对象
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
-    public final @NotNull QueryPageResponse<E> findPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
-        return findPage(predicate, null, null);
+    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
+        return selectPage(predicate, null, null);
     }
 
     /**
@@ -517,9 +562,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param predicate 查询条件
      * @param sort      排序
      * @return 查询结果数据分页对象
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
-    public final @NotNull QueryPageResponse<E> findPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
-        return findPage(predicate, null, sort);
+    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
+        return selectPage(predicate, null, sort);
     }
 
     /**
@@ -528,9 +579,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param predicate 查询条件
      * @param page      分页
      * @return 查询结果数据分页对象
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
-    public final @NotNull QueryPageResponse<E> findPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page) {
-        return findPage(predicate, page, null);
+    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page) {
+        return selectPage(predicate, page, null);
     }
 
     /**
@@ -540,8 +597,14 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param page      分页
      * @param sort      排序
      * @return 查询结果数据分页对象
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
-    public final @NotNull QueryPageResponse<E> findPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page, @Nullable Sort sort) {
+    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page, @Nullable Sort sort) {
         QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
         queryPageRequest.setPage(page);
         queryPageRequest.setSort(sort);
@@ -659,10 +722,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param queryListRequest 查询请求
      * @return 查询结果数据列表
      * @see #filter(CurdEntity)
-     * @see #filter(CurdEntity, Sort)
      * @see #query(CurdEntity)
-     * @see #query(CurdEntity, Sort)
      * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
     public final @NotNull List<E> query(@NotNull QueryListRequest<E> queryListRequest) {
         return find(queryListRequest.getFilter(), queryListRequest.getSort(), false);
@@ -674,10 +738,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param filter 过滤条件
      * @return 查询结果数据列表
      * @see #filter(CurdEntity)
-     * @see #filter(CurdEntity, Sort)
      * @see #query(CurdEntity)
-     * @see #query(CurdEntity, Sort)
      * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
     public final @NotNull List<E> query(@Nullable E filter) {
         return query(filter, null);
@@ -690,10 +755,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param sort   排序
      * @return 查询结果数据列表
      * @see #filter(CurdEntity)
-     * @see #filter(CurdEntity, Sort)
      * @see #query(CurdEntity)
-     * @see #query(CurdEntity, Sort)
      * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
     public final @NotNull List<E> query(@Nullable E filter, @Nullable Sort sort) {
         return find(filter, sort, false);
@@ -707,10 +773,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param isEquals 是否全匹配
      * @return 查询结果数据列表
      * @see #filter(CurdEntity)
-     * @see #filter(CurdEntity, Sort)
      * @see #query(CurdEntity)
-     * @see #query(CurdEntity, Sort)
      * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
      */
     private @NotNull List<E> find(@Nullable E filter, @Nullable Sort sort, boolean isEquals) {
         filter = Objects.requireNonNullElse(filter, ReflectUtil.newInstance(getFirstParameterizedTypeClass()));
@@ -964,7 +1031,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                         Objects.requireNonNullElse(page.getPageSize(), curdConfig.getDefaultPageSize())
                 );
         int pageNumber = Math.max(0, page.getPageNum() - 1);
-        int pageSize = Math.max(1, queryPageData.getPage().getPageSize());
+        int pageSize = Math.max(1, page.getPageSize());
         return PageRequest.of(pageNumber, pageSize, createSort(queryPageData.getSort()));
     }
 

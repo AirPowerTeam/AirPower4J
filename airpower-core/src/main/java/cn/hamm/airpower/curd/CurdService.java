@@ -478,6 +478,84 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 查询数据
+     *
+     * @param predicate 查询条件
+     * @return 查询结果数据列表
+     */
+    public final @NotNull List<E> findList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
+        return findList(predicate, null);
+    }
+
+    /**
+     * 查询数据
+     *
+     * @param predicate 查询条件
+     * @param sort      排序
+     * @return 查询结果数据列表
+     */
+    public final @NotNull List<E> findList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
+        return repository.findAll(
+                (root, criteriaQuery, builder) -> predicate.apply(root, builder),
+                createSort(sort)
+        );
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param predicate 查询条件
+     * @return 查询结果数据分页对象
+     */
+    public final @NotNull QueryPageResponse<E> findPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
+        return findPage(predicate, null, null);
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param predicate 查询条件
+     * @param sort      排序
+     * @return 查询结果数据分页对象
+     */
+    public final @NotNull QueryPageResponse<E> findPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
+        return findPage(predicate, null, sort);
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param predicate 查询条件
+     * @param page      分页
+     * @return 查询结果数据分页对象
+     */
+    public final @NotNull QueryPageResponse<E> findPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page) {
+        return findPage(predicate, page, null);
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param predicate 查询条件
+     * @param page      分页
+     * @param sort      排序
+     * @return 查询结果数据分页对象
+     */
+    public final @NotNull QueryPageResponse<E> findPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page, @Nullable Sort sort) {
+        QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
+        queryPageRequest.setPage(page);
+        queryPageRequest.setSort(sort);
+        org.springframework.data.domain.Page<E> pageData = repository.findAll(
+                (root, criteriaQuery, builder) -> predicate.apply(root, builder),
+                createPageable(queryPageRequest)
+        );
+        // 组装分页数据
+        QueryPageResponse<E> queryPageResponse = QueryPageResponse.newInstance(pageData);
+        queryPageResponse.setSort(queryPageRequest.getSort());
+        return queryPageResponse;
+    }
+
+    /**
      * 根据 ID 查询正常启用的实体
      *
      * @param id 主键

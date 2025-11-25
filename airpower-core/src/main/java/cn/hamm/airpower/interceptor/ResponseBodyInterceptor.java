@@ -92,7 +92,7 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
         response.getHeaders().set(HttpConstant.Header.REQUEST_ID, requestId);
         if (method != null) {
             DisableLog disableLog = ReflectUtil.getAnnotation(DisableLog.class, method);
-            if (Objects.nonNull(disableLog) && !disableLog.value()) {
+            if (Objects.nonNull(disableLog) && disableLog.value()) {
                 // 禁用日志
                 return responseResult;
             }

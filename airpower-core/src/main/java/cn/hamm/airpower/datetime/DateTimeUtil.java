@@ -100,6 +100,34 @@ public class DateTimeUtil {
     }
 
     /**
+     * 格式化当前时间
+     *
+     * @return 格式化后的时间
+     */
+    public static @NotNull String formatCurrent() {
+        return formatCurrent(FULL_DATETIME);
+    }
+
+    /**
+     * 格式化当前时间
+     *
+     * @return 格式化后的时间
+     */
+    public static @NotNull String formatCurrent(@NotNull DateTimeFormatter formatter) {
+        return formatCurrent(formatter.getValue());
+    }
+
+    /**
+     * 格式化当前时间
+     *
+     * @param formatter 时间格式
+     * @return 格式化后的时间
+     */
+    public static @NotNull String formatCurrent(String formatter) {
+        return format(System.currentTimeMillis(), formatter);
+    }
+
+    /**
      * 格式化时间
      *
      * @param milliSecond 毫秒

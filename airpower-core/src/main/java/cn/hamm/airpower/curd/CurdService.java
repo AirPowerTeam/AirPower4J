@@ -90,12 +90,17 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     public final String createExportTask(QueryPageRequest<E> queryPageRequest) {
         return exportHelper.createExportTask(() -> {
             ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
+            // 获取导出字段列表
             List<Field> fieldList = CollectionUtil.getExportFieldList(getFirstParameterizedTypeClass());
+            // 获取一行用作于表头
             List<String> rowList = CollectionUtil.getCsvHeaderList(fieldList);
             String headerString = String.join(CollectionUtil.CSV_COLUMN_DELIMITER, rowList);
             List<String> header = new ArrayList<>();
             header.add(headerString);
+            // 保存表头到CSV文件
             saveCsvListToFile(exportFile, header);
+
+            // 查询数据并保存到导出文件
             queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
             return exportFile.getRelativeFile();
         });
@@ -113,11 +118,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         // 当前页查到的数据列表
         List<E> list = page.getList();
         list = afterExportQuery(list);
+
+        // 获取CSV值列表
         List<String> valuelist = CollectionUtil.getCsvValueList(list, fieldList);
+
+        // 保存CSV数据
         saveCsvListToFile(exportFile, valuelist);
 
-        // 继续分页
         if (page.getPage().getPageNum() < page.getPageCount()) {
+            // 继续分页
             queryPageRequest.getPage().setPageNum(page.getPage().getPageNum() + 1);
             queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
         }
@@ -173,6 +182,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         long id = saveToDatabaseIgnoreNull(source);
         final E entity = get(id);
         final E finalSource = source;
+
+        // 新增完毕后的一些后置处理
         TaskUtil.run(
                 () -> afterAdd(entity, finalSource),
                 () -> afterSaved(entity, finalSource)

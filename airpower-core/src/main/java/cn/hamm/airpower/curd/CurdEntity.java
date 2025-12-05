@@ -66,7 +66,7 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
 
     @Description("是否禁用")
     @ReadOnly
-    @Column(columnDefinition = "tinyint UNSIGNED default 0 comment '是否禁用'")
+    @Column(columnDefinition = "bit(1) default 0 comment '是否禁用'")
     @Export(value = BOOLEAN, sort = -77)
     private Boolean isDisabled;
 

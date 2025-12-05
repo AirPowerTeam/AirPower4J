@@ -173,7 +173,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterSaved(E, E)
      */
     public final @NotNull E add(@NotNull E source) {
-        source.setIsDisabled(false).setCreateTime(System.currentTimeMillis());
         source = beforeAdd(source);
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
 
@@ -891,17 +890,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private long saveToDatabase(@NotNull E entity, boolean withNull) {
         checkUnique(entity);
         entity.setUpdateTime(System.currentTimeMillis());
-        if (Objects.nonNull(entity.getId())) {
-            // 修改前清掉JPA缓存，避免查询到旧数据
-            entityManager.clear();
-            // 有ID 走修改 且不允许修改下列字段
-            E existEntity = getById(entity.getId());
-            entity = withNull ? entity : getEntityForUpdate(entity, existEntity);
-        }
         if (Objects.isNull(entity.getId())) {
+            // 设置当前时间为创建时间
+            entity.setCreateTime(System.currentTimeMillis())
+                    .setIsDisabled(false);
             // 新增
             return saveAndFlush(entity);
         }
+        // 更新 不允许修改创建时间
+        entity.setCreateTime(null);
         // 修改前清掉JPA缓存，避免查询到旧数据
         entityManager.clear();
         // 有ID 走修改 且不允许修改下列字段

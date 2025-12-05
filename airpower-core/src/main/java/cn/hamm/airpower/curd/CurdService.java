@@ -173,7 +173,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         long id = saveToDatabaseIgnoreNull(source);
         final E entity = get(id);
         final E finalSource = source;
-        TaskUtil.run(() -> afterAdd(entity, finalSource));
+        TaskUtil.run(
+                () -> afterAdd(entity, finalSource),
+                () -> afterSaved(entity, finalSource)
+        );
         return entity;
     }
 

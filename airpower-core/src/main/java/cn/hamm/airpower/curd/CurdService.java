@@ -2,6 +2,7 @@ package cn.hamm.airpower.curd;
 
 import cn.hamm.airpower.annotation.NullEnable;
 import cn.hamm.airpower.annotation.Search;
+import cn.hamm.airpower.annotation.SearchEmpty;
 import cn.hamm.airpower.curd.query.QueryListRequest;
 import cn.hamm.airpower.curd.query.QueryPageRequest;
 import cn.hamm.airpower.curd.query.QueryPageResponse;
@@ -90,12 +91,17 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     public final String createExportTask(QueryPageRequest<E> queryPageRequest) {
         return exportHelper.createExportTask(() -> {
             ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
+            // 获取导出字段列表
             List<Field> fieldList = CollectionUtil.getExportFieldList(getFirstParameterizedTypeClass());
+            // 获取一行用作于表头
             List<String> rowList = CollectionUtil.getCsvHeaderList(fieldList);
             String headerString = String.join(CollectionUtil.CSV_COLUMN_DELIMITER, rowList);
             List<String> header = new ArrayList<>();
             header.add(headerString);
+            // 保存表头到CSV文件
             saveCsvListToFile(exportFile, header);
+
+            // 查询数据并保存到导出文件
             queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
             return exportFile.getRelativeFile();
         });
@@ -113,11 +119,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         // 当前页查到的数据列表
         List<E> list = page.getList();
         list = afterExportQuery(list);
+
+        // 获取CSV值列表
         List<String> valuelist = CollectionUtil.getCsvValueList(list, fieldList);
+
+        // 保存CSV数据
         saveCsvListToFile(exportFile, valuelist);
 
-        // 继续分页
         if (page.getPage().getPageNum() < page.getPageCount()) {
+            // 继续分页
             queryPageRequest.getPage().setPageNum(page.getPage().getPageNum() + 1);
             queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
         }
@@ -164,7 +174,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterSaved(E, E)
      */
     public final @NotNull E add(@NotNull E source) {
-        source.setIsDisabled(false).setCreateTime(System.currentTimeMillis());
         source = beforeAdd(source);
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
 
@@ -173,7 +182,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         long id = saveToDatabaseIgnoreNull(source);
         final E entity = get(id);
         final E finalSource = source;
-        TaskUtil.run(() -> afterAdd(entity, finalSource));
+
+        // 新增完毕后的一些后置处理
+        TaskUtil.run(
+                () -> afterAdd(entity, finalSource),
+                () -> afterSaved(entity, finalSource)
+        );
         return entity;
     }
 
@@ -877,17 +891,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private long saveToDatabase(@NotNull E entity, boolean withNull) {
         checkUnique(entity);
         entity.setUpdateTime(System.currentTimeMillis());
-        if (Objects.nonNull(entity.getId())) {
-            // 修改前清掉JPA缓存，避免查询到旧数据
-            entityManager.clear();
-            // 有ID 走修改 且不允许修改下列字段
-            E existEntity = getById(entity.getId());
-            entity = withNull ? entity : getEntityForUpdate(entity, existEntity);
-        }
         if (Objects.isNull(entity.getId())) {
+            // 设置当前时间为创建时间
+            entity.setCreateTime(System.currentTimeMillis())
+                    .setIsDisabled(false);
             // 新增
             return saveAndFlush(entity);
         }
+        // 更新 不允许修改创建时间
+        entity.setCreateTime(null);
         // 修改前清掉JPA缓存，避免查询到旧数据
         entityManager.clear();
         // 有ID 走修改 且不允许修改下列字段
@@ -1054,9 +1066,20 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         List<Predicate> predicateList = new ArrayList<>();
         fields.forEach(field -> {
             Object fieldValue = ReflectUtil.getFieldValue(search, field);
-            if (Objects.isNull(fieldValue) || !StringUtils.hasText(fieldValue.toString())) {
+            if (Objects.isNull(fieldValue)) {
                 // 没有传入查询值 空字符串 跳过
                 return;
+            }
+            SearchEmpty searchEmpty = ReflectUtil.getAnnotation(SearchEmpty.class, field);
+            if (!StringUtils.hasText(fieldValue.toString())) {
+                if (Objects.isNull(searchEmpty)) {
+                    // 没有标记查询空字符串
+                    return;
+                }
+                // 标记了 但不查询空字符串
+                if (!searchEmpty.value()) {
+                    return;
+                }
             }
             OneToMany oneToMany = ReflectUtil.getAnnotation(OneToMany.class, field);
             if (Objects.nonNull(oneToMany)) {
@@ -1086,8 +1109,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                 return;
             }
 
-            // 没有标记搜索 则强匹配
             Search searchAnnotation = ReflectUtil.getAnnotation(Search.class, field);
+            // 没有标记搜索 则强匹配
             if (Objects.nonNull(searchAnnotation)) {
                 // 标记了搜索 则模糊搜索
                 if (searchAnnotation.fullLike()) {

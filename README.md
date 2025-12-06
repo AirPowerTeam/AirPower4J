@@ -23,10 +23,11 @@
 
 当然，
 
-> 如果你对全栈感兴趣，也可以和我们的 **`AirPower4T`**
-> （[Github](https://github.com/AirPowerTeam/AirPower4T)/[Gitee](https://gitee.com/air-power/AirPower4T)） 一起玩耍，
-`AirPower4T`
-> 是一个基于 `Vue3`/`TypeScript`/`ElementPlus`/`Vite` 等技术栈的一个基础开发脚手架，`AirPower4J`和`AirPower4T`
+> 如果你对全栈感兴趣，也可以和我们的 **`@airpower/web`**
+> （[Github](https://github.com/AirPowerTeam/AirPower-Web)/[Gitee](https://gitee.com/air-power/AirPower-Web
+)） 一起玩耍，
+`@airpower/web`
+> 是一个基于 `Vue3`/`TypeScript`/`ElementPlus`/`Vite` 等技术栈的一个基础开发脚手架，`AirPower4J`和`@airpower/web`
 > 的联合可以为你的全栈之路增加另外一份很不一样的开发体验。
 
 ## 🔑 二、如何使用(初始化)?

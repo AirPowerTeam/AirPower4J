@@ -66,8 +66,4 @@
 
 ### 🎉 Features:
 
-- feat(AirPower4J): 发布了AirPower4J的第一个版本
-
-### 🐞 Bugs:
-
-- 404 - Bug not found!!!
+- release(v2.0.0): 发布了`v1.0.0`正式版本

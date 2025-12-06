@@ -2,6 +2,7 @@ package cn.hamm.airpower.curd;
 
 import cn.hamm.airpower.annotation.NullEnable;
 import cn.hamm.airpower.annotation.Search;
+import cn.hamm.airpower.annotation.SearchEmpty;
 import cn.hamm.airpower.curd.query.QueryListRequest;
 import cn.hamm.airpower.curd.query.QueryPageRequest;
 import cn.hamm.airpower.curd.query.QueryPageResponse;
@@ -659,6 +660,145 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 自定义计算查询
+     *
+     * @param fieldName   字段名称
+     * @param function    自定义计算
+     * @param resultClass 结果类型
+     * @param <FIELD>     结果类型
+     * @return 计算结果
+     */
+    public final <FIELD, RESULT> RESULT selectAndCalculate(
+            @NotNull BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
+            String fieldName,
+            @NotNull BiFunction<CriteriaBuilder, Path<FIELD>, Selection<? extends RESULT>> function,
+            Class<RESULT> resultClass,
+            Class<FIELD> fieldClass
+    ) {
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<RESULT> query = builder.createQuery(resultClass);
+        Root<E> root = query.from(getFirstParameterizedTypeClass());
+        Path<FIELD> field = root.get(fieldName);
+        query.select(function.apply(builder, field)).where(predicate.apply(root, builder));
+        TypedQuery<RESULT> typedQuery = entityManager.createQuery(query);
+        return typedQuery.getSingleResult();
+    }
+
+    /**
+     * 查询数据
+     *
+     * @param predicate 查询条件
+     * @return 查询结果数据列表
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
+     */
+    public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
+        return selectList(predicate, null);
+    }
+
+    /**
+     * 查询数据
+     *
+     * @param predicate 查询条件
+     * @param sort      排序
+     * @return 查询结果数据列表
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
+     */
+    public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
+        return repository.findAll(
+                (root, criteriaQuery, builder) -> predicate.apply(root, builder),
+                createSort(sort)
+        );
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param predicate 查询条件
+     * @return 查询结果数据分页对象
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
+     */
+    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
+        return selectPage(predicate, null, null);
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param predicate 查询条件
+     * @param sort      排序
+     * @return 查询结果数据分页对象
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
+     */
+    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
+        return selectPage(predicate, null, sort);
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param predicate 查询条件
+     * @param page      分页
+     * @return 查询结果数据分页对象
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
+     */
+    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page) {
+        return selectPage(predicate, page, null);
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param predicate 查询条件
+     * @param page      分页
+     * @param sort      排序
+     * @return 查询结果数据分页对象
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
+     */
+    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page, @Nullable Sort sort) {
+        QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
+        queryPageRequest.setPage(page);
+        queryPageRequest.setSort(sort);
+        org.springframework.data.domain.Page<E> pageData = repository.findAll(
+                (root, criteriaQuery, builder) -> predicate.apply(root, builder),
+                createPageable(queryPageRequest)
+        );
+        // 组装分页数据
+        QueryPageResponse<E> queryPageResponse = QueryPageResponse.newInstance(pageData);
+        queryPageResponse.setSort(queryPageRequest.getSort());
+        return queryPageResponse;
+    }
+
+    /**
      * 分页查询数据
      *
      * @param queryPageRequest 请求的 {@code request} 对象
@@ -1065,9 +1205,20 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         List<Predicate> predicateList = new ArrayList<>();
         fields.forEach(field -> {
             Object fieldValue = ReflectUtil.getFieldValue(search, field);
-            if (Objects.isNull(fieldValue) || !StringUtils.hasText(fieldValue.toString())) {
+            if (Objects.isNull(fieldValue)) {
                 // 没有传入查询值 空字符串 跳过
                 return;
+            }
+            SearchEmpty searchEmpty = ReflectUtil.getAnnotation(SearchEmpty.class, field);
+            if (!StringUtils.hasText(fieldValue.toString())) {
+                if (Objects.isNull(searchEmpty)) {
+                    // 没有标记查询空字符串
+                    return;
+                }
+                // 标记了 但不查询空字符串
+                if (!searchEmpty.value()) {
+                    return;
+                }
             }
             OneToMany oneToMany = ReflectUtil.getAnnotation(OneToMany.class, field);
             if (Objects.nonNull(oneToMany)) {
@@ -1097,8 +1248,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                 return;
             }
 
-            // 没有标记搜索 则强匹配
             Search searchAnnotation = ReflectUtil.getAnnotation(Search.class, field);
+            // 没有标记搜索 则强匹配
             if (Objects.nonNull(searchAnnotation)) {
                 // 标记了搜索 则模糊搜索
                 if (searchAnnotation.fullLike()) {

@@ -10,6 +10,7 @@ import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.export.ExportHelper;
 import cn.hamm.airpower.file.FileUtil;
 import cn.hamm.airpower.reflect.ReflectUtil;
+import cn.hamm.airpower.root.RootModel;
 import cn.hamm.airpower.root.RootService;
 import cn.hamm.airpower.util.CollectionUtil;
 import cn.hamm.airpower.util.TaskUtil;
@@ -34,6 +35,7 @@ import java.lang.reflect.Field;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static cn.hamm.airpower.exception.ServiceError.*;
 
@@ -667,16 +669,57 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #beforeGetPage(QueryPageRequest)
      * @see #afterGetPage(QueryPageResponse)
      */
-    public final @NotNull QueryPageResponse<E> getPage(@Nullable QueryPageRequest<E> queryPageRequest) {
+    public final @NotNull <RES extends RootModel<RES>> QueryPageResponse<RES> getPage(
+            @Nullable QueryPageRequest<E> queryPageRequest,
+            @Nullable Function<QueryPageRequest<E>, QueryPageRequest<E>> before,
+            @NotNull Function<List<E>, List<RES>> after
+    ) {
         queryPageRequest = requireWithFilterNonNullElse(queryPageRequest, new QueryPageRequest<>());
         queryPageRequest = beforeGetPage(queryPageRequest);
+        if (Objects.nonNull(before)) {
+            queryPageRequest = before.apply(queryPageRequest);
+        }
         org.springframework.data.domain.Page<E> pageData = repository.findAll(
                 createSpecification(queryPageRequest.getFilter(), false), createPageable(queryPageRequest)
         );
+
         // 组装分页数据
         QueryPageResponse<E> queryPageResponse = QueryPageResponse.newInstance(pageData);
         queryPageResponse.setSort(queryPageRequest.getSort());
-        return afterGetPage(queryPageResponse);
+        queryPageResponse = afterGetPage(queryPageResponse);
+
+        QueryPageResponse<RES> response = new QueryPageResponse<>();
+        response.setPage(queryPageResponse.getPage())
+                .setTotal(queryPageResponse.getTotal())
+                .setSort(queryPageResponse.getSort())
+                .setPageCount(queryPageResponse.getPageCount())
+                .setList(after.apply(queryPageResponse.getList()))
+        ;
+        return response;
+    }
+
+    /**
+     * 分页查询数据
+     *
+     * @param queryPageRequest 请求的 {@code request} 对象
+     * @return 分页查询列表
+     * @see #beforeGetPage(QueryPageRequest)
+     * @see #afterGetPage(QueryPageResponse)
+     */
+    public final @NotNull QueryPageResponse<E> getPage(@Nullable QueryPageRequest<E> queryPageRequest, @Nullable Function<QueryPageRequest<E>, QueryPageRequest<E>> beforeSelectPage) {
+        return getPage(queryPageRequest, beforeSelectPage, (list) -> list);
+    }
+
+    /**
+     * 分页查询数据
+     *
+     * @param queryPageRequest 请求的 {@code request} 对象
+     * @return 分页查询列表
+     * @see #beforeGetPage(QueryPageRequest)
+     * @see #afterGetPage(QueryPageResponse)
+     */
+    public final @NotNull QueryPageResponse<E> getPage(@Nullable QueryPageRequest<E> queryPageRequest) {
+        return getPage(queryPageRequest, null);
     }
 
     /**

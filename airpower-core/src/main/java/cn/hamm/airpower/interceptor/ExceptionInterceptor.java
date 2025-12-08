@@ -70,8 +70,9 @@ public class ExceptionInterceptor {
         )));
         return responseError(PARAM_INVALID, stringBuilder.toString())
                 .setData(errors.stream().map(item -> String.format(
-                        MESSAGE_AND_DESCRIPTION, item.getDefaultMessage(), item.getField()
-                )));
+                                MESSAGE_AND_DESCRIPTION, item.getDefaultMessage(), item.getField()
+                        )).toList()
+                );
     }
 
     /**

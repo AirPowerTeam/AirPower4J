@@ -1,5 +1,15 @@
 # AirPower4J 版本发布日志
 
+## v4.0.4
+
+### 🎁 Features
+
+- [Null]
+
+### 🐛 Bug Fixes
+
+- [Null]
+
 ## v4.0.3
 
 ### 🎁 Features

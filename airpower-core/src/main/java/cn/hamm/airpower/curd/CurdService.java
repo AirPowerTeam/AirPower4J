@@ -90,7 +90,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param queryPageRequest 请求查询的分页参数
      * @return 导出任务ID
      */
-    public final String createExportTask(QueryPageRequest<E> queryPageRequest) {
+    public final String createExportTask(@Nullable QueryPageRequest<E> queryPageRequest) {
+        final QueryPageRequest<E> finalQueryPageRequest = requireQueryRequestNonElse(queryPageRequest, new QueryPageRequest<>());
         return exportHelper.createExportTask(() -> {
             ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
             // 获取导出字段列表
@@ -104,7 +105,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             saveCsvListToFile(exportFile, header);
 
             // 查询数据并保存到导出文件
-            queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
+            queryPageToSaveExportFile(finalQueryPageRequest, fieldList, exportFile);
             return exportFile.getRelativeFile();
         });
     }
@@ -387,7 +388,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterGetList(List)
      */
     public final @NotNull List<E> getList(QueryListRequest<E> queryListRequest) {
-        queryListRequest = requireWithFilterNonNullElse(queryListRequest, new QueryListRequest<>());
+        queryListRequest = requireQueryRequestNonElse(queryListRequest, new QueryListRequest<>());
         queryListRequest = beforeGetList(queryListRequest);
         List<E> list = query(queryListRequest);
         return afterGetList(list);
@@ -557,6 +558,39 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 获取非空的分页对象
+     *
+     * @param page 分页对象
+     * @return 分页对象
+     */
+    private @NotNull Page requirePageNonNull(@Nullable Page page) {
+        page = Objects.requireNonNullElse(page, new Page());
+        if (page.getPageSize() <= 0) {
+            page.setPageSize(curdConfig.getDefaultPageSize());
+        }
+        return page;
+    }
+
+    /**
+     * 获取非空的排序对象
+     *
+     * @param sort 排序对象
+     * @return 排序对象
+     */
+    private @NotNull Sort requireSortNonNull(@Nullable Sort sort) {
+        sort = Objects.requireNonNullElse(sort, new Sort());
+        if (!StringUtils.hasText(sort.getField())) {
+            sort.setField(curdConfig.getDefaultSortField());
+        }
+        if (!Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
+            sort.setDirection(Sort.DESC);
+        } else {
+            sort.setDirection(Sort.ASC);
+        }
+        return sort;
+    }
+
+    /**
      * 查询分页数据
      *
      * @param predicate 查询条件
@@ -622,8 +656,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page, @Nullable Sort sort) {
         QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
-        queryPageRequest.setPage(page);
-        queryPageRequest.setSort(sort);
+        queryPageRequest.setSort(requireSortNonNull(sort));
+        queryPageRequest.setFilter(requireFilterNonNull(queryPageRequest.getFilter()));
         org.springframework.data.domain.Page<E> pageData = repository.findAll(
                 (root, criteriaQuery, builder) -> predicate.apply(root, builder),
                 createPageable(queryPageRequest)
@@ -674,7 +708,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             @Nullable Function<QueryPageRequest<E>, QueryPageRequest<E>> before,
             @NotNull Function<List<E>, List<RES>> after
     ) {
-        queryPageRequest = requireWithFilterNonNullElse(queryPageRequest, new QueryPageRequest<>());
+        queryPageRequest = requireQueryRequestNonElse(queryPageRequest, new QueryPageRequest<>());
         queryPageRequest = beforeGetPage(queryPageRequest);
         if (Objects.nonNull(before)) {
             queryPageRequest = before.apply(queryPageRequest);
@@ -844,22 +878,26 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     private @NotNull List<E> find(@Nullable E filter, @Nullable Sort sort, boolean isEquals) {
         return repository.findAll(
-                createSpecification(requireFilterNonNullElse(filter), isEquals),
+                createSpecification(filter, isEquals),
                 createSort(sort)
         );
     }
 
     /**
-     * 验证非空查询请求且非空过滤器请求
+     * 验证非空查询请求
      *
      * @param queryListRequest 查询请求
      * @param newInstance      新实例
      * @return 检查后的查询请求
      */
-    private <Q extends QueryListRequest<E>> @NotNull Q requireWithFilterNonNullElse(
+    private <Q extends QueryListRequest<E>> @NotNull Q requireQueryRequestNonElse(
             Q queryListRequest, Q newInstance) {
         queryListRequest = Objects.requireNonNullElse(queryListRequest, newInstance);
-        queryListRequest.setFilter(requireFilterNonNullElse(queryListRequest.getFilter()));
+        queryListRequest.setFilter(requireFilterNonNull(queryListRequest.getFilter()));
+        queryListRequest.setSort(requireSortNonNull(queryListRequest.getSort()));
+        if (queryListRequest instanceof QueryPageRequest<?> queryPageRequest) {
+            queryPageRequest.setPage(requirePageNonNull(queryPageRequest.getPage()));
+        }
         return queryListRequest;
     }
 
@@ -869,7 +907,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param filter 过滤器
      * @return 检查后的过滤器
      */
-    private E requireFilterNonNullElse(@Nullable E filter) {
+    private E requireFilterNonNull(@Nullable E filter) {
         return Objects.requireNonNullElse(filter, getEntityInstance());
     }
 
@@ -1085,12 +1123,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return Sort {@code Spring} 的排序对象
      */
     private @NotNull org.springframework.data.domain.Sort createSort(@Nullable Sort sort) {
-        sort = Objects.requireNonNullElse(sort, new Sort());
-        if (!StringUtils.hasText(sort.getField())) {
-            sort.setField(curdConfig.getDefaultSortField());
-        }
-
-        if (Objects.isNull(sort.getDirection()) || !Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
+        sort = requireSortNonNull(sort);
+        if (!Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
             // 未传入 或者传入不是明确的 ASC，那就DESC
             return org.springframework.data.domain.Sort.by(
                     org.springframework.data.domain.Sort.Order.desc(sort.getField())
@@ -1108,7 +1142,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return Spring 分页对象
      */
     private @NotNull Pageable createPageable(@NotNull QueryPageRequest<E> queryPageData) {
-        Page page = Objects.requireNonNullElse(queryPageData.getPage(), new Page());
+        Page page = requirePageNonNull(queryPageData.getPage());
         page.setPageNum(Objects.requireNonNullElse(page.getPageNum(), 1))
                 .setPageSize(
                         Objects.requireNonNullElse(page.getPageSize(), curdConfig.getDefaultPageSize())
@@ -1233,9 +1267,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 查询对象
      */
     @Contract(pure = true)
-    private @NotNull Specification<E> createSpecification(@NotNull E filter, boolean isEqual) {
+    private @NotNull Specification<E> createSpecification(@Nullable E filter, boolean isEqual) {
+        final E finalFilter = requireFilterNonNull(filter);
         return (root, criteriaQuery, criteriaBuilder) ->
-                createPredicate(root, criteriaQuery, criteriaBuilder, filter, isEqual);
+                createPredicate(root, criteriaQuery, criteriaBuilder, finalFilter, isEqual);
     }
 
     /**

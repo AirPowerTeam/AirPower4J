@@ -64,6 +64,7 @@ public class QueryPageResponse<M extends RootModel<M>> extends RootModel<QueryPa
                 .setList(page.getContent())
                 .setTotal(Math.toIntExact(page.getTotalElements()))
                 .setPageCount(page.getTotalPages())
+                .setSort(new Sort())
                 .setPage(new Page()
                         .setPageSize(page.getPageable().getPageSize())
                         .setPageNum(page.getPageable().getPageNumber() + 1)

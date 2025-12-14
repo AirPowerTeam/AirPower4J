@@ -227,20 +227,22 @@ public class FileUtil {
     /**
      * 删除当前文件夹以及当前文件夹内的文件
      *
-     * @param pathName 文件夹路径
+     * @param directory 文件夹路径
      */
-    public static void deleteDirectory(String pathName) {
+    public static void deleteDirectory(String directory) {
         // 判断文件夹是否存在
-        Path path = Paths.get(pathName);
-        if (Files.exists(path)) {
-            try (Stream<Path> walk = Files.walk(path)) {
-                //noinspection ResultOfMethodCallIgnored
-                walk.sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
+        directory = formatDirectory(directory);
+        Path path = Paths.get(directory);
+        if (!Files.exists(path)) {
+            return;
+        }
+        try (Stream<Path> walk = Files.walk(path)) {
+            //noinspection ResultOfMethodCallIgnored
+            walk.sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
         }
     }
 }

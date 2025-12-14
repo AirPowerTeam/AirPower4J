@@ -4,7 +4,7 @@
 
 ### 🎁 Features
 
-- [Null]
+- feat(core): 引入TraceID跟踪机制优化日志记录
 
 ### 🐛 Bug Fixes
 

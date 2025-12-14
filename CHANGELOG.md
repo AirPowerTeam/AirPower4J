@@ -9,6 +9,7 @@
 ### 🐛 Bug Fixes
 
 - refactor(file): 优化删除文件夹方法
+- refactor(curd): 优化查询请求参数处理逻辑
 
 ## v4.0.3
 

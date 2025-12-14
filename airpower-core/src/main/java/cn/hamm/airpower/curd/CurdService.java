@@ -565,8 +565,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     private @NotNull Page requirePageNonNull(@Nullable Page page) {
         page = Objects.requireNonNullElse(page, new Page());
-        if (page.getPageSize() <= 0) {
+        if (Objects.isNull(page.getPageSize()) || page.getPageSize() <= 0) {
             page.setPageSize(curdConfig.getDefaultPageSize());
+        }
+        if (Objects.isNull(page.getPageNum()) || page.getPageNum() <= 0) {
+            page.setPageNum(1);
         }
         return page;
     }
@@ -1143,10 +1146,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     private @NotNull Pageable createPageable(@NotNull QueryPageRequest<E> queryPageData) {
         Page page = requirePageNonNull(queryPageData.getPage());
-        page.setPageNum(Objects.requireNonNullElse(page.getPageNum(), 1))
-                .setPageSize(
-                        Objects.requireNonNullElse(page.getPageSize(), curdConfig.getDefaultPageSize())
-                );
         int pageNumber = Math.max(0, page.getPageNum() - 1);
         int pageSize = Math.max(1, page.getPageSize());
         return PageRequest.of(pageNumber, pageSize, createSort(queryPageData.getSort()));

@@ -94,7 +94,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         return exportHelper.createExportTask(() -> {
             ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
             // 获取导出字段列表
-            List<Field> fieldList = CollectionUtil.getExportFieldList(getFirstParameterizedTypeClass());
+            List<Field> fieldList = CollectionUtil.getExportFieldList(getEntityClass());
             // 获取一行用作于表头
             List<String> rowList = CollectionUtil.getCsvHeaderList(fieldList);
             String headerString = String.join(CollectionUtil.CSV_COLUMN_DELIMITER, rowList);
@@ -513,7 +513,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     ) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<RESULT> query = builder.createQuery(resultClass);
-        Root<E> root = query.from(getFirstParameterizedTypeClass());
+        Root<E> root = query.from(getEntityClass());
         Path<FIELD> field = root.get(fieldName);
         query.select(function.apply(builder, field)).where(predicate.apply(root, builder));
         TypedQuery<RESULT> typedQuery = entityManager.createQuery(query);
@@ -646,7 +646,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         E entity = get(id);
         FORBIDDEN_DISABLED.when(
                 entity.getIsDisabled(),
-                String.format(FORBIDDEN_DISABLED.getMessage(), id, ReflectUtil.getDescription(getFirstParameterizedTypeClass()))
+                String.format(FORBIDDEN_DISABLED.getMessage(), id, getEntityDescription())
         );
         return entity;
     }
@@ -746,11 +746,17 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     protected final long updateToDatabase(@NotNull E source, boolean withNull) {
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
-        PARAM_MISSING.whenNull(source.getId(), String.format(
-                "修改失败，请传入%s的ID!",
-                ReflectUtil.getDescription(getFirstParameterizedTypeClass())
-        ));
+        PARAM_MISSING.whenNull(source.getId(), String.format("修改失败，请传入%s的ID!", getEntityDescription()));
         return saveToDatabase(source, withNull);
+    }
+
+    /**
+     * 获取实体描述
+     *
+     * @return 实体描述
+     */
+    private String getEntityDescription() {
+        return ReflectUtil.getDescription(getEntityClass());
     }
 
     /**
@@ -837,9 +843,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectPage(BiFunction)
      */
     private @NotNull List<E> find(@Nullable E filter, @Nullable Sort sort, boolean isEquals) {
-        filter = Objects.requireNonNullElse(filter, ReflectUtil.newInstance(getFirstParameterizedTypeClass()));
         return repository.findAll(
-                createSpecification(filter, isEquals),
+                createSpecification(requireFilterNonNullElse(filter), isEquals),
                 createSort(sort)
         );
     }
@@ -854,11 +859,18 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private <Q extends QueryListRequest<E>> @NotNull Q requireWithFilterNonNullElse(
             Q queryListRequest, Q newInstance) {
         queryListRequest = Objects.requireNonNullElse(queryListRequest, newInstance);
-        queryListRequest.setFilter(Objects.requireNonNullElse(
-                queryListRequest.getFilter(),
-                ReflectUtil.newInstance(getFirstParameterizedTypeClass()))
-        );
+        queryListRequest.setFilter(requireFilterNonNullElse(queryListRequest.getFilter()));
         return queryListRequest;
+    }
+
+    /**
+     * 验证非空过滤器请求
+     *
+     * @param filter 过滤器
+     * @return 检查后的过滤器
+     */
+    private E requireFilterNonNullElse(@Nullable E filter) {
+        return Objects.requireNonNullElse(filter, getEntityInstance());
     }
 
     /**
@@ -888,13 +900,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 实体
      */
     private @NotNull E getById(Long id) {
-        PARAM_MISSING.whenNull(id, String.format(
-                "查询失败，请传入%s的ID！",
-                ReflectUtil.getDescription(getFirstParameterizedTypeClass())
-        ));
+        String description = getEntityDescription();
+        PARAM_MISSING.whenNull(id, String.format("查询失败，请传入%s的ID！", description));
         Optional<E> optional = repository.findById(id);
         if (optional.isEmpty()) {
-            throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getFirstParameterizedTypeClass())));
+            throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, description));
         }
         return optional.get();
     }
@@ -959,7 +969,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @apiNote 仅供 {@link #saveToDatabase(E, boolean)} 调用
      */
     private long saveAndFlush(@NotNull E entity) {
-        E target = ReflectUtil.newInstance(getFirstParameterizedTypeClass());
+        E target = getEntityInstance();
         BeanUtils.copyProperties(entity, target);
         target = beforeSaveToDatabase(target);
         target = repository.saveAndFlush(target);
@@ -982,12 +992,21 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 获取实体类
+     *
+     * @return 实体类
+     */
+    private @NotNull Class<E> getEntityClass() {
+        return getFirstParameterizedTypeClass();
+    }
+
+    /**
      * 判断是否唯一
      *
      * @param entity 实体
      */
     private void checkUnique(@NotNull E entity) {
-        List<Field> fields = ReflectUtil.getFieldList(getFirstParameterizedTypeClass());
+        List<Field> fields = ReflectUtil.getFieldList(getEntityClass());
         fields.forEach(field -> {
             Column annotation = ReflectUtil.getAnnotation(Column.class, field);
             if (Objects.isNull(annotation)) {
@@ -1003,7 +1022,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                 // 没有值 不校验
                 return;
             }
-            E search = ReflectUtil.newInstance(getFirstParameterizedTypeClass());
+            E search = getEntityInstance();
             ReflectUtil.setFieldValue(search, field, fieldValue);
             Example<E> example = Example.of(search);
             Optional<E> exist = repository.findOne(example);
@@ -1019,6 +1038,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                     ReflectUtil.getDescription(field), fieldValue)
             );
         });
+    }
+
+    /**
+     * 新建一个实体
+     *
+     * @return 实体
+     */
+    private @NotNull E getEntityInstance() {
+        return ReflectUtil.newInstance(getEntityClass());
     }
 
     /**

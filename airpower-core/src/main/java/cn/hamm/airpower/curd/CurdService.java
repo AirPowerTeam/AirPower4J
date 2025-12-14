@@ -91,7 +91,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 导出任务ID
      */
     public final String createExportTask(@Nullable QueryPageRequest<E> queryPageRequest) {
-        final QueryPageRequest<E> finalQueryPageRequest = requireQueryRequestNonElse(queryPageRequest, new QueryPageRequest<>());
+        final QueryPageRequest<E> finalQueryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
         return exportHelper.createExportTask(() -> {
             ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
             // 获取导出字段列表
@@ -388,7 +388,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterGetList(List)
      */
     public final @NotNull List<E> getList(QueryListRequest<E> queryListRequest) {
-        queryListRequest = requireQueryRequestNonElse(queryListRequest, new QueryListRequest<>());
+        queryListRequest = requireQueryRequestNonNullElse(queryListRequest, new QueryListRequest<>());
         queryListRequest = beforeGetList(queryListRequest);
         List<E> list = query(queryListRequest);
         return afterGetList(list);
@@ -708,7 +708,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             @Nullable Function<QueryPageRequest<E>, QueryPageRequest<E>> before,
             @NotNull Function<List<E>, List<RES>> after
     ) {
-        queryPageRequest = requireQueryRequestNonElse(queryPageRequest, new QueryPageRequest<>());
+        queryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
         queryPageRequest = beforeGetPage(queryPageRequest);
         if (Objects.nonNull(before)) {
             queryPageRequest = before.apply(queryPageRequest);
@@ -890,7 +890,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param newInstance      新实例
      * @return 检查后的查询请求
      */
-    private <Q extends QueryListRequest<E>> @NotNull Q requireQueryRequestNonElse(
+    private <Q extends QueryListRequest<E>> @NotNull Q requireQueryRequestNonNullElse(
             Q queryListRequest, Q newInstance) {
         queryListRequest = Objects.requireNonNullElse(queryListRequest, newInstance);
         queryListRequest.setFilter(requireFilterNonNull(queryListRequest.getFilter()));

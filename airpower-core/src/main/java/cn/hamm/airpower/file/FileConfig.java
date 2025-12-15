@@ -16,7 +16,7 @@ public class FileConfig {
     /**
      * 上传文件目录
      */
-    private String fileDirectory = "/home/";
+    private String fileDirectory = "/home/static/";
 
     /**
      * 导出文件目录

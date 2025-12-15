@@ -20,5 +20,5 @@ public class QueryListRequest<M extends RootModel<M>> extends QueryRequest<M> {
      * 排序对象
      */
     @Description("排序对象")
-    private Sort sort = null;
+    private Sort sort;
 }

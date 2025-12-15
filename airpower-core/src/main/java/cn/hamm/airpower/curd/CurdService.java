@@ -90,11 +90,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param queryPageRequest 请求查询的分页参数
      * @return 导出任务ID
      */
-    public final String createExportTask(QueryPageRequest<E> queryPageRequest) {
+    public final String createExportTask(@Nullable QueryPageRequest<E> queryPageRequest) {
+        final QueryPageRequest<E> finalQueryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
         return exportHelper.createExportTask(() -> {
             ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
             // 获取导出字段列表
-            List<Field> fieldList = CollectionUtil.getExportFieldList(getFirstParameterizedTypeClass());
+            List<Field> fieldList = CollectionUtil.getExportFieldList(getEntityClass());
             // 获取一行用作于表头
             List<String> rowList = CollectionUtil.getCsvHeaderList(fieldList);
             String headerString = String.join(CollectionUtil.CSV_COLUMN_DELIMITER, rowList);
@@ -104,7 +105,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             saveCsvListToFile(exportFile, header);
 
             // 查询数据并保存到导出文件
-            queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
+            queryPageToSaveExportFile(finalQueryPageRequest, fieldList, exportFile);
             return exportFile.getRelativeFile();
         });
     }
@@ -387,7 +388,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterGetList(List)
      */
     public final @NotNull List<E> getList(QueryListRequest<E> queryListRequest) {
-        queryListRequest = requireWithFilterNonNullElse(queryListRequest, new QueryListRequest<>());
+        queryListRequest = requireQueryRequestNonNullElse(queryListRequest, new QueryListRequest<>());
         queryListRequest = beforeGetList(queryListRequest);
         List<E> list = query(queryListRequest);
         return afterGetList(list);
@@ -513,7 +514,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     ) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<RESULT> query = builder.createQuery(resultClass);
-        Root<E> root = query.from(getFirstParameterizedTypeClass());
+        Root<E> root = query.from(getEntityClass());
         Path<FIELD> field = root.get(fieldName);
         query.select(function.apply(builder, field)).where(predicate.apply(root, builder));
         TypedQuery<RESULT> typedQuery = entityManager.createQuery(query);
@@ -554,6 +555,42 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                 (root, criteriaQuery, builder) -> predicate.apply(root, builder),
                 createSort(sort)
         );
+    }
+
+    /**
+     * 获取非空的分页对象
+     *
+     * @param page 分页对象
+     * @return 分页对象
+     */
+    private @NotNull Page requirePageNonNull(@Nullable Page page) {
+        page = Objects.requireNonNullElse(page, new Page());
+        if (Objects.isNull(page.getPageSize()) || page.getPageSize() <= 0) {
+            page.setPageSize(curdConfig.getDefaultPageSize());
+        }
+        if (Objects.isNull(page.getPageNum()) || page.getPageNum() <= 0) {
+            page.setPageNum(1);
+        }
+        return page;
+    }
+
+    /**
+     * 获取非空的排序对象
+     *
+     * @param sort 排序对象
+     * @return 排序对象
+     */
+    private @NotNull Sort requireSortNonNull(@Nullable Sort sort) {
+        sort = Objects.requireNonNullElse(sort, new Sort());
+        if (!StringUtils.hasText(sort.getField())) {
+            sort.setField(curdConfig.getDefaultSortField());
+        }
+        if (!Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
+            sort.setDirection(Sort.DESC);
+        } else {
+            sort.setDirection(Sort.ASC);
+        }
+        return sort;
     }
 
     /**
@@ -622,8 +659,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page, @Nullable Sort sort) {
         QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
-        queryPageRequest.setPage(page);
-        queryPageRequest.setSort(sort);
+        queryPageRequest.setSort(requireSortNonNull(sort));
+        queryPageRequest.setFilter(requireFilterNonNull(queryPageRequest.getFilter()));
         org.springframework.data.domain.Page<E> pageData = repository.findAll(
                 (root, criteriaQuery, builder) -> predicate.apply(root, builder),
                 createPageable(queryPageRequest)
@@ -646,7 +683,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         E entity = get(id);
         FORBIDDEN_DISABLED.when(
                 entity.getIsDisabled(),
-                String.format(FORBIDDEN_DISABLED.getMessage(), id, ReflectUtil.getDescription(getFirstParameterizedTypeClass()))
+                String.format(FORBIDDEN_DISABLED.getMessage(), id, getEntityDescription())
         );
         return entity;
     }
@@ -674,7 +711,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             @Nullable Function<QueryPageRequest<E>, QueryPageRequest<E>> before,
             @NotNull Function<List<E>, List<RES>> after
     ) {
-        queryPageRequest = requireWithFilterNonNullElse(queryPageRequest, new QueryPageRequest<>());
+        queryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
         queryPageRequest = beforeGetPage(queryPageRequest);
         if (Objects.nonNull(before)) {
             queryPageRequest = before.apply(queryPageRequest);
@@ -746,11 +783,17 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     protected final long updateToDatabase(@NotNull E source, boolean withNull) {
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
-        PARAM_MISSING.whenNull(source.getId(), String.format(
-                "修改失败，请传入%s的ID!",
-                ReflectUtil.getDescription(getFirstParameterizedTypeClass())
-        ));
+        PARAM_MISSING.whenNull(source.getId(), String.format("修改失败，请传入%s的ID!", getEntityDescription()));
         return saveToDatabase(source, withNull);
+    }
+
+    /**
+     * 获取实体描述
+     *
+     * @return 实体描述
+     */
+    private String getEntityDescription() {
+        return ReflectUtil.getDescription(getEntityClass());
     }
 
     /**
@@ -837,7 +880,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectPage(BiFunction)
      */
     private @NotNull List<E> find(@Nullable E filter, @Nullable Sort sort, boolean isEquals) {
-        filter = Objects.requireNonNullElse(filter, ReflectUtil.newInstance(getFirstParameterizedTypeClass()));
         return repository.findAll(
                 createSpecification(filter, isEquals),
                 createSort(sort)
@@ -845,20 +887,31 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 验证非空查询请求且非空过滤器请求
+     * 验证非空查询请求
      *
      * @param queryListRequest 查询请求
      * @param newInstance      新实例
      * @return 检查后的查询请求
      */
-    private <Q extends QueryListRequest<E>> @NotNull Q requireWithFilterNonNullElse(
+    private <Q extends QueryListRequest<E>> @NotNull Q requireQueryRequestNonNullElse(
             Q queryListRequest, Q newInstance) {
         queryListRequest = Objects.requireNonNullElse(queryListRequest, newInstance);
-        queryListRequest.setFilter(Objects.requireNonNullElse(
-                queryListRequest.getFilter(),
-                ReflectUtil.newInstance(getFirstParameterizedTypeClass()))
-        );
+        queryListRequest.setFilter(requireFilterNonNull(queryListRequest.getFilter()));
+        queryListRequest.setSort(requireSortNonNull(queryListRequest.getSort()));
+        if (queryListRequest instanceof QueryPageRequest<?> queryPageRequest) {
+            queryPageRequest.setPage(requirePageNonNull(queryPageRequest.getPage()));
+        }
         return queryListRequest;
+    }
+
+    /**
+     * 验证非空过滤器请求
+     *
+     * @param filter 过滤器
+     * @return 检查后的过滤器
+     */
+    private E requireFilterNonNull(@Nullable E filter) {
+        return Objects.requireNonNullElse(filter, getEntityInstance());
     }
 
     /**
@@ -888,13 +941,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 实体
      */
     private @NotNull E getById(Long id) {
-        PARAM_MISSING.whenNull(id, String.format(
-                "查询失败，请传入%s的ID！",
-                ReflectUtil.getDescription(getFirstParameterizedTypeClass())
-        ));
+        String description = getEntityDescription();
+        PARAM_MISSING.whenNull(id, String.format("查询失败，请传入%s的ID！", description));
         Optional<E> optional = repository.findById(id);
         if (optional.isEmpty()) {
-            throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getFirstParameterizedTypeClass())));
+            throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, description));
         }
         return optional.get();
     }
@@ -959,7 +1010,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @apiNote 仅供 {@link #saveToDatabase(E, boolean)} 调用
      */
     private long saveAndFlush(@NotNull E entity) {
-        E target = ReflectUtil.newInstance(getFirstParameterizedTypeClass());
+        E target = getEntityInstance();
         BeanUtils.copyProperties(entity, target);
         target = beforeSaveToDatabase(target);
         target = repository.saveAndFlush(target);
@@ -982,12 +1033,21 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 获取实体类
+     *
+     * @return 实体类
+     */
+    private @NotNull Class<E> getEntityClass() {
+        return getFirstParameterizedTypeClass();
+    }
+
+    /**
      * 判断是否唯一
      *
      * @param entity 实体
      */
     private void checkUnique(@NotNull E entity) {
-        List<Field> fields = ReflectUtil.getFieldList(getFirstParameterizedTypeClass());
+        List<Field> fields = ReflectUtil.getFieldList(getEntityClass());
         fields.forEach(field -> {
             Column annotation = ReflectUtil.getAnnotation(Column.class, field);
             if (Objects.isNull(annotation)) {
@@ -1003,7 +1063,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                 // 没有值 不校验
                 return;
             }
-            E search = ReflectUtil.newInstance(getFirstParameterizedTypeClass());
+            E search = getEntityInstance();
             ReflectUtil.setFieldValue(search, field, fieldValue);
             Example<E> example = Example.of(search);
             Optional<E> exist = repository.findOne(example);
@@ -1019,6 +1079,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                     ReflectUtil.getDescription(field), fieldValue)
             );
         });
+    }
+
+    /**
+     * 新建一个实体
+     *
+     * @return 实体
+     */
+    private @NotNull E getEntityInstance() {
+        return ReflectUtil.newInstance(getEntityClass());
     }
 
     /**
@@ -1057,12 +1126,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return Sort {@code Spring} 的排序对象
      */
     private @NotNull org.springframework.data.domain.Sort createSort(@Nullable Sort sort) {
-        sort = Objects.requireNonNullElse(sort, new Sort());
-        if (!StringUtils.hasText(sort.getField())) {
-            sort.setField(curdConfig.getDefaultSortField());
-        }
-
-        if (Objects.isNull(sort.getDirection()) || !Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
+        sort = requireSortNonNull(sort);
+        if (!Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
             // 未传入 或者传入不是明确的 ASC，那就DESC
             return org.springframework.data.domain.Sort.by(
                     org.springframework.data.domain.Sort.Order.desc(sort.getField())
@@ -1080,11 +1145,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return Spring 分页对象
      */
     private @NotNull Pageable createPageable(@NotNull QueryPageRequest<E> queryPageData) {
-        Page page = Objects.requireNonNullElse(queryPageData.getPage(), new Page());
-        page.setPageNum(Objects.requireNonNullElse(page.getPageNum(), 1))
-                .setPageSize(
-                        Objects.requireNonNullElse(page.getPageSize(), curdConfig.getDefaultPageSize())
-                );
+        Page page = requirePageNonNull(queryPageData.getPage());
         int pageNumber = Math.max(0, page.getPageNum() - 1);
         int pageSize = Math.max(1, page.getPageSize());
         return PageRequest.of(pageNumber, pageSize, createSort(queryPageData.getSort()));
@@ -1205,9 +1266,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 查询对象
      */
     @Contract(pure = true)
-    private @NotNull Specification<E> createSpecification(@NotNull E filter, boolean isEqual) {
+    private @NotNull Specification<E> createSpecification(@Nullable E filter, boolean isEqual) {
+        final E finalFilter = requireFilterNonNull(filter);
         return (root, criteriaQuery, criteriaBuilder) ->
-                createPredicate(root, criteriaQuery, criteriaBuilder, filter, isEqual);
+                createPredicate(root, criteriaQuery, criteriaBuilder, finalFilter, isEqual);
     }
 
     /**

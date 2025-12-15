@@ -22,4 +22,9 @@ public class ApiConfig {
      * 输出响应包体日志
      */
     private Boolean responseLog = false;
+
+    /**
+     * 响应 Trace 到返回包体
+     */
+    private Boolean bodyTraceId = true;
 }

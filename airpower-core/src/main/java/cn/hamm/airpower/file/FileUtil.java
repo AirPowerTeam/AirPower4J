@@ -105,13 +105,11 @@ public class FileUtil {
     /**
      * 获取今日文件夹
      *
-     * @param directory 文件夹路径
      * @return 今日文件夹路径
      */
-    public static @NotNull String getTodayDirectory(String directory) {
+    public static @NotNull String getTodayDirectory() {
         String todayDirectory = FULL_DATE.formatCurrent().replaceAll("-", "");
-        directory = formatDirectory(directory);
-        return directory + todayDirectory + File.separator;
+        return formatDirectory(todayDirectory);
     }
 
     /**

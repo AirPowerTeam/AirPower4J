@@ -95,6 +95,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         final QueryPageRequest<E> finalQueryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
         String traceId = TraceUtil.getTraceId();
         return exportHelper.createExportTask(() -> {
+            TraceUtil.setTraceId(traceId);
             ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
             // 获取导出字段列表
             List<Field> fieldList = CollectionUtil.getExportFieldList(getEntityClass());
@@ -105,7 +106,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             header.add(headerString);
             // 保存表头到CSV文件
             saveCsvListToFile(exportFile, header);
-            TraceUtil.setTraceId(traceId);
             // 查询数据并保存到导出文件
             queryPageToSaveExportFile(finalQueryPageRequest, fieldList, exportFile);
             return exportFile.getRelativeFile();

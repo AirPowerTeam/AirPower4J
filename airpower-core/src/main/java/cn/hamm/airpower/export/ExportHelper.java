@@ -117,11 +117,11 @@ public class ExportHelper {
      * @return 文件相对路径
      */
     public final @NotNull ExportFile getExportFilePath(String extension) {
-        final String exportRootDirectory = FileUtil.formatDirectory(fileConfig.getExportDirectory());
+        final String exportRootDirectory = fileConfig.getFileDirectory();
         SERVICE_ERROR.when(!StringUtils.hasText(exportRootDirectory), "导出失败，未配置导出文件目录");
 
         // 相对目录 默认为今天的文件夹
-        String relativeDirectory = FileUtil.getTodayDirectory();
+        String relativeDirectory = fileConfig.getExportDirectory() + FileUtil.getTodayDirectory();
 
         // 存储的文件名
         final String fileName = FULL_TIME.formatCurrent().replaceAll(":", "") +

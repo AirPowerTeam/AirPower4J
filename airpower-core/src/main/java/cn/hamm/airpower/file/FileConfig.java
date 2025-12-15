@@ -19,12 +19,21 @@ public class FileConfig {
     private String fileDirectory = "/home/";
 
     /**
-     * 获取上传文件目录
-     *
-     * @return 上传文件目录
+     * 导出文件目录
      */
-    public String getUploadDirectory() {
-        return FileUtil.formatDirectory(fileDirectory) + "/upload/";
+    private String exportDirectory = "export";
+    /**
+     * 上传文件目录
+     */
+    private String uploadDirectory = "upload";
+
+    /**
+     * 获取文件目录
+     *
+     * @return 文件目录
+     */
+    public String getFileDirectory() {
+        return FileUtil.formatDirectory(fileDirectory);
     }
 
     /**
@@ -33,6 +42,15 @@ public class FileConfig {
      * @return 导出文件目录
      */
     public String getExportDirectory() {
-        return FileUtil.formatDirectory(fileDirectory) + "/export/";
+        return FileUtil.formatDirectory(exportDirectory);
+    }
+
+    /**
+     * 获取上传文件目录
+     *
+     * @return 上传文件目录
+     */
+    public String getUploadDirectory() {
+        return FileUtil.formatDirectory(uploadDirectory);
     }
 }

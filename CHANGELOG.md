@@ -8,7 +8,7 @@
 
 ### 🐛 Bug Fixes
 
-- [null]
+- refactor(curd): 调整导出任务中的链路追踪ID设置时机
 
 ## v4.0.7
 

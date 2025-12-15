@@ -9,12 +9,12 @@ import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.request.HttpConstant;
 import cn.hamm.airpower.root.RootModel;
 import cn.hamm.airpower.util.CollectionUtil;
+import cn.hamm.airpower.util.TraceUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -88,8 +88,8 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
         } else {
             responseResult = beforeResponseFinished(getResult(body, method), request, response);
         }
-        String requestId = MDC.get(HttpConstant.Header.REQUEST_ID);
-        response.getHeaders().set(HttpConstant.Header.REQUEST_ID, requestId);
+        String traceId = TraceUtil.getTraceId();
+        response.getHeaders().set(HttpConstant.Header.TRACE_ID, traceId);
         if (method != null) {
             DisableLog disableLog = ReflectUtil.getAnnotation(DisableLog.class, method);
             if (Objects.nonNull(disableLog) && disableLog.value()) {
@@ -98,11 +98,9 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             }
         }
         if (apiConfig.getRequestLog()) {
-            log.info("请求头部 {}", request.getHeaders());
             log.info("请求包体 {}", getRequestBody(((ServletServerHttpRequest) request).getServletRequest()));
         }
         if (apiConfig.getResponseLog()) {
-            log.info("响应头部 {}", response.getHeaders());
             log.info("响应包体 {}", Json.toString(responseResult));
         }
         return responseResult;
@@ -123,6 +121,7 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             // 返回不是JsonData 原样返回
             return result;
         }
+        json.setTraceId(TraceUtil.getTraceId());
         Object data = json.getData();
         if (Objects.isNull(data)) {
             return json;

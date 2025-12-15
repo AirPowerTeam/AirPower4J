@@ -54,6 +54,7 @@ public class HttpConstant {
         public static final String CONTENT_TYPE = "Content-Type";
         public static final String COOKIE = "Cookie";
         public static final String REQUEST_ID = "X-Request-ID";
+        public static final String TRACE_ID = "X-Trace-ID";
         public static final String AUTHORIZATION = "Authorization";
         public static final String USER_AGENT = "User-Agent";
     }

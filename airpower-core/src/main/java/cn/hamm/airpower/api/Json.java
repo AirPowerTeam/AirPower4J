@@ -55,6 +55,10 @@ public class Json {
     @Description("返回数据")
     private Object data;
 
+    @Description("TraceID")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String traceId;
+
     @Contract(pure = true)
     private Json() {
         // 禁止外部实例化

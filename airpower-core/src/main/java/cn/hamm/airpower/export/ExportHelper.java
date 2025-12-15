@@ -1,5 +1,6 @@
 package cn.hamm.airpower.export;
 
+import cn.hamm.airpower.file.FileConfig;
 import cn.hamm.airpower.file.FileUtil;
 import cn.hamm.airpower.redis.RedisHelper;
 import cn.hamm.airpower.util.RandomUtil;
@@ -45,6 +46,9 @@ public class ExportHelper {
 
     @Autowired
     private ExportConfig exportConfig;
+
+    @Autowired
+    private FileConfig fileConfig;
 
     /**
      * 创建异步任务
@@ -113,11 +117,11 @@ public class ExportHelper {
      * @return 文件相对路径
      */
     public final @NotNull ExportFile getExportFilePath(String extension) {
-        final String exportRootDirectory = FileUtil.formatDirectory(exportConfig.getSaveFilePath());
+        final String exportRootDirectory = FileUtil.formatDirectory(fileConfig.getExportDirectory());
         SERVICE_ERROR.when(!StringUtils.hasText(exportRootDirectory), "导出失败，未配置导出文件目录");
 
         // 相对目录 默认为今天的文件夹
-        String relativeDirectory = FileUtil.getTodayDirectory(EXPORT_DIR);
+        String relativeDirectory = FileUtil.getTodayDirectory();
 
         // 存储的文件名
         final String fileName = FULL_TIME.formatCurrent().replaceAll(":", "") +

@@ -1,5 +1,11 @@
 # AirPower4J 版本发布日志
 
+## v4.0.7
+
+### 🐛 Bug Fixes
+
+- refactor(file): 重构上传和导出文件路径配置逻辑
+
 ## v4.0.6
 
 ### 🐛 Bug Fixes

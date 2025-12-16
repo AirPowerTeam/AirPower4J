@@ -14,6 +14,7 @@ import cn.hamm.airpower.root.RootModel;
 import cn.hamm.airpower.root.RootService;
 import cn.hamm.airpower.util.CollectionUtil;
 import cn.hamm.airpower.util.TaskUtil;
+import cn.hamm.airpower.util.TraceUtil;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +93,9 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     public final String createExportTask(@Nullable QueryPageRequest<E> queryPageRequest) {
         final QueryPageRequest<E> finalQueryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
+        String traceId = TraceUtil.getTraceId();
         return exportHelper.createExportTask(() -> {
+            TraceUtil.setTraceId(traceId);
             ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
             // 获取导出字段列表
             List<Field> fieldList = CollectionUtil.getExportFieldList(getEntityClass());
@@ -103,7 +106,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             header.add(headerString);
             // 保存表头到CSV文件
             saveCsvListToFile(exportFile, header);
-
             // 查询数据并保存到导出文件
             queryPageToSaveExportFile(finalQueryPageRequest, fieldList, exportFile);
             return exportFile.getRelativeFile();

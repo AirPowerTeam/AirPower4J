@@ -95,7 +95,7 @@ public class RootModel<M extends RootModel<M>> {
             return;
         }
         Meta meta = ReflectUtil.getAnnotation(Meta.class, field);
-        if (Objects.nonNull(meta)) {
+        if (Objects.isNull(meta)) {
             // 判断 Getter 是否被标记
             String fieldGetter = ReflectUtil.getFieldGetter(field);
             try {

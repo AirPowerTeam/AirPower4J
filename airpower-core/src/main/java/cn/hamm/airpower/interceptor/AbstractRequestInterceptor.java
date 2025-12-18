@@ -38,6 +38,11 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
      */
     protected static final String REQUEST_METHOD_KEY = "REQUEST_METHOD_KEY";
 
+    /**
+     * 缓存的 {@code REQUEST_METHOD_KEY}
+     */
+    protected static final String REQUEST_CONTROLLER_KEY = "REQUEST_CONTROLLER_KEY";
+
     @Autowired
     protected AccessConfig accessConfig;
 
@@ -63,6 +68,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
         Class<?> clazz = handlerMethod.getBeanType();
         Method method = handlerMethod.getMethod();
         setShareData(REQUEST_METHOD_KEY, method);
+        setShareData(REQUEST_CONTROLLER_KEY, handlerMethod.getBean());
         handleRequest(request, response, clazz, method);
         return true;
     }

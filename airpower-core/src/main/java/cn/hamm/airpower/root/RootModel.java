@@ -4,6 +4,7 @@ import cn.hamm.airpower.annotation.ReadOnly;
 import cn.hamm.airpower.desensitize.Desensitize;
 import cn.hamm.airpower.desensitize.DesensitizeUtil;
 import cn.hamm.airpower.exception.ServiceException;
+import cn.hamm.airpower.meta.Meta;
 import cn.hamm.airpower.reflect.ReflectUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -12,8 +13,10 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 
 /**
  * <h1>数据根模型</h1>
@@ -67,32 +70,62 @@ public class RootModel<M extends RootModel<M>> {
     }
 
     /**
-     * 脱敏
-     *
-     * @return 实体
+     * 处理字段值
      */
-    public final M desensitize() {
+    public final void fieldValueResolver(BiConsumer<M, Field> consumer) {
         Class<M> clazz = (Class<M>) getClass();
         List<Field> allFields = ReflectUtil.getFieldList(clazz);
-        allFields.forEach(this::desensitize);
-        return (M) this;
+        allFields.forEach(field -> {
+            consumer.accept((M) this, field);
+        });
     }
 
     /**
-     * 字段脱敏
+     * 排除非元数据的字段
      *
      * @param field 字段
      */
-    private void desensitize(@NotNull Field field) {
-        Object value = ReflectUtil.getFieldValue(this, field);
+    public final void excludeFieldNotMeta(M instance, @NotNull Field field) {
+        Object value = ReflectUtil.getFieldValue(instance, field);
         if (Objects.isNull(value)) {
             return;
         }
         if (isModel(value.getClass())) {
-            // 如果是模型，则递归脱敏
-            ((RootModel<?>) value).desensitize();
+            ((RootModel<?>) value).excludeFieldNotMeta();
             return;
         }
+        Meta meta = ReflectUtil.getAnnotation(Meta.class, field);
+        if (Objects.isNull(meta)) {
+            // 判断 Getter 是否被标记
+            String fieldGetter = ReflectUtil.getFieldGetter(field);
+            try {
+                Method getter = instance.getClass().getMethod(fieldGetter);
+                meta = ReflectUtil.getAnnotation(Meta.class, getter);
+                if (Objects.isNull(meta)) {
+                    ReflectUtil.setFieldValue(this, field, null);
+                }
+            } catch (NoSuchMethodException ignored) {
+            }
+        }
+    }
+
+    /**
+     * 忽略非元数据的字段
+     *
+     * @return 当前实例
+     */
+    public final M excludeFieldNotMeta() {
+        fieldValueResolver((model, field) -> excludeFieldNotMeta((M) this, field));
+        return (M) this;
+    }
+
+    /**
+     * 脱敏
+     *
+     * @param field 字段
+     * @param value 值
+     */
+    public final void desensitize(Field field, @NotNull Object value) {
         Desensitize desensitize = ReflectUtil.getAnnotation(Desensitize.class, field);
         if (Objects.isNull(desensitize)) {
             return;

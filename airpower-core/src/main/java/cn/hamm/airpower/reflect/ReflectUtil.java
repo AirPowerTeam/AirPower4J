@@ -168,7 +168,7 @@ public class ReflectUtil {
     }
 
     /**
-     * 递归获取字段的注解
+     * 获取字段的注解
      *
      * @param annotationClass 注解类
      * @param field           字段

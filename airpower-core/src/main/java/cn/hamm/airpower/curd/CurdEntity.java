@@ -4,6 +4,7 @@ import cn.hamm.airpower.annotation.Description;
 import cn.hamm.airpower.annotation.ReadOnly;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.export.Export;
+import cn.hamm.airpower.meta.Meta;
 import cn.hamm.airpower.root.RootModel;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -62,6 +63,7 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
     @Min(value = 0, message = "ID必须大于{value}")
     @Export(value = NUMBER, sort = 99)
     @NotNull(groups = {WhenUpdate.class, WhenIdRequired.class}, message = "ID不能为空")
+    @Meta
     private Long id;
 
     @Description("是否禁用")

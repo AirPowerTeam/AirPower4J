@@ -406,7 +406,7 @@ public class CurdController<
      * @return 类
      */
     @SuppressWarnings("unchecked")
-    private Class<E> getEntityClass() {
+    public final Class<E> getEntityClass() {
         return (Class<E>) ((ParameterizedType) getClass()
                 .getGenericSuperclass())
                 .getActualTypeArguments()[0];

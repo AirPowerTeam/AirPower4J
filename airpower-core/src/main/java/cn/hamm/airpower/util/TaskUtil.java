@@ -63,15 +63,13 @@ public class TaskUtil {
      * @apiNote 如需异步事务处理，可在此参数传入的方法中自行调用 {@link TransactionHelper#run(TransactionHelper.Function)}
      */
     public static void runAsync(Runnable runnable, Runnable... moreRunnable) {
-        getRunnableList(runnable, moreRunnable).forEach((run) -> {
-            EXECUTOR.submit(() -> {
-                try {
-                    run.run();
-                } catch (Exception exception) {
-                    log.error("异步执行任务失败, {}", exception.getMessage(), exception);
-                }
-            });
-        });
+        getRunnableList(runnable, moreRunnable).forEach((run) -> EXECUTOR.submit(() -> {
+            try {
+                run.run();
+            } catch (Exception exception) {
+                log.error("异步执行任务失败, {}", exception.getMessage(), exception);
+            }
+        }));
     }
 
     /**

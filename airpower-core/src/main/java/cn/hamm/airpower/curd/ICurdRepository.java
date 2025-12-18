@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static jakarta.persistence.LockModeType.PESSIMISTIC_WRITE;
@@ -22,7 +23,7 @@ public interface ICurdRepository<E extends CurdEntity<E>> extends JpaRepository<
      * @param id ID
      * @return 实体
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
     @Lock(PESSIMISTIC_WRITE)
     E getForUpdateById(Long id);
 }

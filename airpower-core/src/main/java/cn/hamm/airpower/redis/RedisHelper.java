@@ -4,6 +4,8 @@ import cn.hamm.airpower.api.Json;
 import cn.hamm.airpower.curd.CurdEntity;
 import cn.hamm.airpower.root.RootModel;
 import jakarta.annotation.Resource;
+import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static cn.hamm.airpower.exception.ServiceError.REDIS_ERROR;
@@ -32,6 +35,101 @@ public class RedisHelper {
 
     @Autowired
     private RedisConfig redisConfig;
+
+    /**
+     * 释放锁
+     *
+     * @param lock 锁
+     */
+    public final void releaseLock(@NotNull Lock lock) {
+        REDIS_ERROR.whenNull(lock, "释放锁失败，传入的锁为空");
+        final String key = lock.getKey();
+        REDIS_ERROR.whenEmpty(key, "释放锁失败，传入的锁的 key 为空");
+        REDIS_ERROR.whenEmpty(lock.getValue(), "释放锁失败，传入的锁的 value 为空");
+        if (Objects.equals(redisTemplate.opsForValue().get(lock.getKey()), lock.getValue())) {
+            redisTemplate.delete(key);
+        }
+    }
+
+    /**
+     * 获取锁
+     *
+     * @param key 锁的 key
+     * @return 锁的 key
+     */
+    public final @NotNull Lock lock(String key) {
+        return lock(key, redisConfig.getLockTimeout());
+    }
+
+    /**
+     * 获取锁
+     *
+     * @param entity 实体
+     * @return 锁的 key
+     */
+    public final @NotNull <E extends CurdEntity<E>> Lock lockEntity(@NotNull E entity) {
+        return lockEntity(entity, redisConfig.getLockTimeout());
+    }
+
+    /**
+     * 获取锁
+     *
+     * @param entity  实体
+     * @param timeout 锁超时时间(毫秒)
+     * @return 锁的 key
+     */
+    public final @NotNull <E extends CurdEntity<E>> Lock lockEntity(@NotNull E entity, Integer timeout) {
+        REDIS_ERROR.whenNull(entity, "获取锁失败，传入的实体为空");
+        REDIS_ERROR.whenNull(entity.getId(), "获取锁失败，传入的实体的ID为空");
+        @SuppressWarnings("unchecked")
+        Class<E> clazz = (Class<E>) entity.getClass();
+        return lockEntity(clazz, entity.getId(), timeout);
+    }
+
+    /**
+     * 获取实体锁
+     *
+     * @param clazz    实体类
+     * @param entityId 实体ID
+     * @return 锁的 key
+     */
+    public final @NotNull <E extends CurdEntity<E>> Lock lockEntity(@NotNull Class<E> clazz, Long entityId) {
+        return lockEntity(clazz, entityId, redisConfig.getLockTimeout());
+    }
+
+    /**
+     * 获取实体锁
+     *
+     * @param clazz    实体类
+     * @param entityId 实体ID
+     * @param timeout  锁超时时间(毫秒)
+     * @return 锁的 key
+     */
+    public final @NotNull <E extends CurdEntity<E>> Lock lockEntity(@NotNull Class<E> clazz, Long entityId, Integer timeout) {
+        return lock(redisConfig.getLockPrefix() + ":" + getCacheKey(clazz, entityId), timeout);
+    }
+
+    /**
+     * 获取锁
+     *
+     * @param key     锁的 key
+     * @param timeout 锁超时时间(毫秒)
+     * @return 锁的 key
+     */
+    public final @NotNull Lock lock(String key, Integer timeout) {
+        String value = UUID.randomUUID().toString();
+        while (true) {
+            Boolean lock = redisTemplate.opsForValue().setIfAbsent(key, value, timeout, TimeUnit.MILLISECONDS);
+            if (Boolean.TRUE.equals(lock)) {
+                return new Lock().setKey(key).setValue(value);
+            }
+            try {
+                //noinspection BusyWait
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {
+            }
+        }
+    }
 
     /**
      * 从缓存中获取实体
@@ -269,5 +367,22 @@ public class RedisHelper {
     private <T extends CurdEntity<T>> @NotNull String getEntityCacheKey(@NotNull T entity) {
         //noinspection unchecked
         return getCacheKey(entity.getClass(), entity.getId());
+    }
+
+    /**
+     * 锁
+     */
+    @Data
+    @Accessors(chain = true)
+    public static class Lock {
+        /**
+         * 锁的 key
+         */
+        private String key;
+
+        /**
+         * 锁的值
+         */
+        private String value;
     }
 }

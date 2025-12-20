@@ -1,5 +1,15 @@
 # AirPower4J 版本发布日志
 
+## v4.1.1
+
+### 🎁 Features
+
+- feat(redis): 添加分布式锁功能支持
+
+### 🐛 Bug Fixes
+
+- [null]
+
 ## v4.1.0
 
 ### 🎁 Features

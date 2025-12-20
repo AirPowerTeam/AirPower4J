@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cn.hamm</groupId>
     <artifactId>airpower</artifactId>
-    <version>4.1.0</version>
+    <version>4.1.1</version>
     <name>airpower</name>
     <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA.</description>
     <properties>

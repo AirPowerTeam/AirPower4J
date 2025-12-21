@@ -4,11 +4,15 @@
 
 ### 🎁 Features
 
+- feat(core): 新增加锁获取数据功能
 - feat(redis): 添加分布式锁功能支持
+- feat(util): 添加基于Redis的分布式锁任务执行功能
 
 ### 🐛 Bug Fixes
 
-- [null]
+- refactor(curd): 重构CURD服务以优化更新逻辑和事务处理
+- refactor(curd): 优化实体更新逻辑并改进字段处理
+- refactor(redis): 优化实体锁获取逻辑并调整方法可见性
 
 ## v4.1.0
 

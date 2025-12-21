@@ -1,10 +1,13 @@
 package cn.hamm.airpower.util;
 
 import cn.hamm.airpower.helper.TransactionHelper;
+import cn.hamm.airpower.redis.RedisHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +22,13 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * @author Hamm.cn
  */
 @Slf4j
+@Service
 public class TaskUtil {
+    /**
+     * 全局锁的key
+     */
+    private static final String GLOBAL_LOCK_KEY = "GLOBAL_LOCK";
+
     /**
      * 线程池
      */
@@ -32,10 +41,17 @@ public class TaskUtil {
     );
 
     /**
+     * RedisHelper
+     */
+    private static RedisHelper redisHelper;
+
+    /**
      * 禁止外部实例化
      */
     @Contract(pure = true)
-    private TaskUtil() {
+    @Autowired
+    private TaskUtil(RedisHelper redisHelper) {
+        TaskUtil.redisHelper = redisHelper;
     }
 
     /**
@@ -84,5 +100,32 @@ public class TaskUtil {
         runnableList.add(runnable);
         runnableList.addAll(Arrays.asList(moreRunnable));
         return runnableList;
+    }
+
+    /**
+     * 加锁运行任务
+     *
+     * @param task 任务
+     */
+    public static void runWithLock(Runnable task) {
+        runWithLock(GLOBAL_LOCK_KEY, task);
+    }
+
+    /**
+     * 加锁运行任务
+     *
+     * @param key  锁的key
+     * @param task 任务
+     */
+    public static void runWithLock(String key, Runnable task) {
+        RedisHelper.Lock lock = redisHelper.lock(key);
+        try {
+            task.run();
+        } catch (Exception e) {
+            log.error("加锁执行任务失败, {}", e.getMessage(), e);
+            throw e;
+        } finally {
+            redisHelper.releaseLock(lock);
+        }
     }
 }

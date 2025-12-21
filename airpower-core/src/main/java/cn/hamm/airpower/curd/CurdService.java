@@ -808,7 +808,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param source 原始实体
      * @return 更新的主键
      */
-    protected final long updateToDatabase(@NotNull E source) {
+    public final long updateToDatabase(@NotNull E source) {
         return updateToDatabase(source, false);
     }
 
@@ -819,7 +819,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param withNull 是否更新空值
      * @return 更新的主键
      */
-    protected final long updateToDatabase(@NotNull E source, boolean withNull) {
+    public final long updateToDatabase(@NotNull E source, boolean withNull) {
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
         PARAM_MISSING.whenNull(source.getId(), String.format("修改失败，请传入%s的ID!", getEntityDescription()));
         return saveToDatabase(source, withNull);

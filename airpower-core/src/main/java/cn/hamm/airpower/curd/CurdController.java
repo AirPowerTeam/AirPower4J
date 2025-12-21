@@ -87,8 +87,8 @@ public class CurdController<
      *
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeAdd(E)
-     * @see #afterAdd(E, E)
-     * @see #afterSaved(E, E)
+     * @see #afterAdd(long, E)
+     * @see #afterSaved(long, E)
      */
     @Description("添加")
     @PostMapping("add")
@@ -97,12 +97,12 @@ public class CurdController<
         source.ignoreReadOnlyFields();
         source = beforeAdd(source);
         final E finalSource = source;
-        final E entity = service.add(source);
+        long id = service.add(source);
         TaskUtil.run(
-                () -> afterAdd(entity, finalSource),
-                () -> afterSaved(entity, finalSource)
+                () -> afterAdd(id, finalSource),
+                () -> afterSaved(id, finalSource)
         );
-        return Json.entity(entity.getId(), "添加成功");
+        return Json.entity(id, "添加成功");
     }
 
     /**
@@ -110,8 +110,8 @@ public class CurdController<
      *
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeUpdate(E)
-     * @see #afterUpdate(E, E)
-     * @see #afterSaved(E, E)
+     * @see #afterUpdate(long, E)
+     * @see #afterSaved(long, E)
      */
     @Description("修改")
     @PostMapping("update")
@@ -120,13 +120,13 @@ public class CurdController<
         source.ignoreReadOnlyFields();
         source = beforeUpdate(source);
 
-        final E entity = service.update(source);
+        service.update(source);
         final E finalSource = source;
         TaskUtil.run(
-                () -> afterUpdate(entity, finalSource),
-                () -> afterSaved(entity, finalSource)
+                () -> afterUpdate(finalSource.getId(), finalSource),
+                () -> afterSaved(finalSource.getId(), finalSource)
         );
-        return Json.entity(entity.getId(), "修改成功");
+        return Json.entity(source.getId(), "修改成功");
     }
 
     /**
@@ -165,17 +165,18 @@ public class CurdController<
      *
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeDisable(E)
-     * @see #afterDisable(E)
+     * @see #afterDisable(long)
      */
     @Description("禁用")
     @PostMapping("disable")
     public Json disable(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
         Disable.checkApiAvailable(this);
-        E entity = service.get(source.getId());
+        long id = source.getId();
+        E entity = service.get(id);
         beforeDisable(entity);
-        final E finalEntity = service.disable(entity.getId());
-        TaskUtil.run(() -> afterDisable(finalEntity));
-        return Json.entity(finalEntity.getId(), "禁用成功");
+        service.disable(entity.getId());
+        TaskUtil.run(() -> afterDisable(id));
+        return Json.entity(id, "禁用成功");
     }
 
     /**
@@ -183,17 +184,18 @@ public class CurdController<
      *
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeEnable(E)
-     * @see #afterEnable(E)
+     * @see #afterEnable(long)
      */
     @Description("启用")
     @PostMapping("enable")
     public Json enable(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
         Enable.checkApiAvailable(this);
-        E entity = service.get(source.getId());
+        long id = source.getId();
+        E entity = service.get(id);
         beforeEnable(entity);
-        final E finalEntity = service.enable(entity.getId());
-        TaskUtil.run(() -> afterEnable(finalEntity));
-        return Json.entity(finalEntity.getId(), "启用成功");
+        service.enable(id);
+        TaskUtil.run(() -> afterEnable(id));
+        return Json.entity(id, "启用成功");
     }
 
     /**
@@ -286,12 +288,12 @@ public class CurdController<
     /**
      * 新增后置方法
      *
-     * @param entity 保存后的实体
+     * @param id     主键 ID
      * @param source 原始实体
      * @apiNote 可重写后执行新增后的其他业务
      */
     @SuppressWarnings({"unused", "EmptyMethod"})
-    protected void afterAdd(@NotNull E entity, @NotNull E source) {
+    protected void afterAdd(long id, @NotNull E source) {
     }
 
     /**
@@ -308,23 +310,23 @@ public class CurdController<
     /**
      * 修改后置方法
      *
-     * @param entity 修改后的实体
+     * @param id     主键 ID
      * @param source 原始实体
      * @apiNote 可重写后执行修改之后的其他业务
      */
     @SuppressWarnings({"unused", "EmptyMethod"})
-    protected void afterUpdate(@NotNull E entity, @NotNull E source) {
+    protected void afterUpdate(long id, @NotNull E source) {
     }
 
     /**
      * 保存后置方法
      *
-     * @param entity 保存后的实体
+     * @param id     主键 ID
      * @param source 原始实体
      * @apiNote 新增和修改最后触发
      */
     @SuppressWarnings("unused")
-    protected void afterSaved(@NotNull E entity, @NotNull E source) {
+    protected void afterSaved(long id, @NotNull E source) {
     }
 
     /**
@@ -360,11 +362,11 @@ public class CurdController<
     /**
      * 禁用后置方法
      *
-     * @param entity 禁用后的实体
+     * @param id 主键 ID
      * @apiNote 可重写后执行禁用之后的其他业务
      */
     @SuppressWarnings("unused")
-    protected void afterDisable(@NotNull E entity) {
+    protected void afterDisable(long id) {
     }
 
     /**
@@ -379,10 +381,11 @@ public class CurdController<
     /**
      * 启用后置方法
      *
-     * @param entity 启用后的实体
+     * @param id 主键 ID
+     * @apiNote 可重写后执行启用之后其他业务
      */
     @SuppressWarnings("unused")
-    protected void afterEnable(@NotNull E entity) {
+    protected void afterEnable(long id) {
     }
 
     /**

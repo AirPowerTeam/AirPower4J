@@ -64,7 +64,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 实体管理器
      */
-    @Autowired
+    @PersistenceContext
     protected EntityManager entityManager;
 
     /**
@@ -83,6 +83,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         String rowString = String.join(CollectionUtil.CSV_ROW_DELIMITER, valueList);
         // 写入文件
         FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), rowString + CollectionUtil.CSV_ROW_DELIMITER, StandardOpenOption.APPEND);
+    }
+
+    /**
+     * 加锁获取一个用于更新的实体
+     *
+     * @return 实体类
+     */
+    public final E getForUpdate(long id) {
+        return repository.getForUpdateById(id);
     }
 
     /**
@@ -1029,8 +1038,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 目标实体
      */
     protected @NotNull E getEntityForUpdate(@NotNull E sourceEntity, @NotNull E exist) {
-        String[] updateFieldNames = getUpdateFieldNames(sourceEntity);
-        BeanUtils.copyProperties(sourceEntity, exist, updateFieldNames);
+        String[] ignoreProperties = getUpdateIgnoreFields(sourceEntity);
+        BeanUtils.copyProperties(sourceEntity, exist, ignoreProperties);
         return desensitize(exist);
     }
 
@@ -1093,32 +1102,33 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 获取需要更新实体的字段名称列表
+     * 获取忽略更新的字段名称列表
      *
      * @param source 来源对象
-     * @return 需要更新的属性列表
+     * @return 需要忽略更新的属性列表
      */
-    private String @NotNull [] getUpdateFieldNames(@NotNull E source) {
+    private String @NotNull [] getUpdateIgnoreFields(@NotNull E source) {
         // 获取Bean
         BeanWrapper srcBean = new BeanWrapperImpl(source);
-        List<String> list = new ArrayList<>();
+        List<String> ignoreList = new ArrayList<>();
         Arrays.stream(srcBean.getPropertyDescriptors()).map(PropertyDescriptor::getName).forEach(name -> {
             // 获取属性的Field
             Field field = ReflectUtil.getField(name, source.getClass());
             if (Objects.isNull(field)) {
-                // 为空 则忽略 不更新
+                // 获取属性失败，允许更新
                 return;
             }
             NullEnable nullEnable = ReflectUtil.getAnnotation(NullEnable.class, field);
             if (Objects.nonNull(nullEnable) && nullEnable.value()) {
-                // 标记了可以允许null更新，则跳过 不忽略
+                // 允许更新 null
                 return;
             }
             if (Objects.isNull(srcBean.getPropertyValue(name))) {
-                list.add(name);
+                // 没有值 忽略更新
+                ignoreList.add(name);
             }
         });
-        return list.toArray(new String[0]);
+        return ignoreList.toArray(new String[0]);
     }
 
     /**

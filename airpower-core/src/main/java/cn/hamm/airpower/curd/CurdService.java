@@ -267,10 +267,21 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     public final void updateWithLock(long id, Function<E, E> entity) {
         transactionHelper.run(() -> {
-            E exist = repository.getForUpdateById(id);
+            E exist = getForUpdate(id);
             exist = entity.apply(exist);
             updateToDatabase(exist);
         });
+    }
+
+    /**
+     * 加锁获取指定 ID 的数据用户更新
+     *
+     * @param id ID
+     * @return 加锁后的数据
+     * @see #updateWithLock(long, Function) 推荐
+     */
+    public final E getForUpdate(long id) {
+        return repository.getForUpdateById(id);
     }
 
     /**

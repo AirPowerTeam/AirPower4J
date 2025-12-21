@@ -809,7 +809,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 添加的主键
      */
     public final long addToDatabase(@NotNull E source) {
-        source.setId(null);
+        PARAM_MISSING.whenNotNull(source.getId(), String.format("添加失败，请不要传入%s的ID!", getEntityDescription()));
         return saveToDatabase(source, false);
     }
 

@@ -37,6 +37,7 @@ import java.lang.reflect.Field;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static cn.hamm.airpower.exception.ServiceError.*;
@@ -262,13 +263,13 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 加锁更新指定 ID 的数据 {@code 不触发前后置}、{@code 加锁}
      *
-     * @param id     ID
-     * @param entity 待更新的实体
+     * @param id       ID
+     * @param consumer 可消费实体
      */
-    public final void updateWithLock(long id, Function<E, E> entity) {
+    public final void updateWithLock(long id, Consumer<E> consumer) {
         transactionHelper.run(() -> {
             E exist = getForUpdate(id);
-            exist = entity.apply(exist);
+            consumer.accept(exist);
             updateToDatabase(exist);
         });
     }
@@ -278,7 +279,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param id ID
      * @return 加锁后的数据
-     * @see #updateWithLock(long, Function) 推荐
+     * @see #updateWithLock(long, Consumer) 推荐
      */
     public final E getForUpdate(long id) {
         return repository.getForUpdateById(id);
@@ -1104,8 +1105,18 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @return 实体
      */
-    private @NotNull E getEntityInstance() {
+    protected @NotNull E getEntityInstance() {
         return ReflectUtil.newInstance(getEntityClass());
+    }
+
+    /**
+     * 新建一个实体
+     *
+     * @param id 实体主键 ID
+     * @return 实体
+     */
+    protected @NotNull E getEntityInstance(long id) {
+        return getEntityInstance().setId(id);
     }
 
     /**

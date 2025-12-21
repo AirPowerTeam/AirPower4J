@@ -202,7 +202,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
 
         // 新增不允许带主键
         source.setId(null);
-        long id = saveToDatabase(source, false);
+        long id = addToDatabase(source);
         final E finalSource = source;
 
         // 新增完毕后的一些后置处理
@@ -803,13 +803,23 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 添加到数据库 {@code 不触发前后置}
+     *
+     * @param source 原始实体
+     * @return 添加的主键
+     */
+    public final long addToDatabase(@NotNull E source) {
+        source.setId(null);
+        return saveToDatabase(source, false);
+    }
+
+    /**
      * 更新到数据库 {@code 不触发前后置}
      *
      * @param source 原始实体
-     * @return 更新的主键
      */
-    public final long updateToDatabase(@NotNull E source) {
-        return updateToDatabase(source, false);
+    public final void updateToDatabase(@NotNull E source) {
+        updateToDatabase(source, false);
     }
 
     /**
@@ -817,12 +827,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param source   原始实体
      * @param withNull 是否更新空值
-     * @return 更新的主键
      */
-    public final long updateToDatabase(@NotNull E source, boolean withNull) {
+    public final void updateToDatabase(@NotNull E source, boolean withNull) {
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
         PARAM_MISSING.whenNull(source.getId(), String.format("修改失败，请传入%s的ID!", getEntityDescription()));
-        return saveToDatabase(source, withNull);
+        saveToDatabase(source, withNull);
     }
 
     /**

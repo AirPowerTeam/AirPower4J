@@ -83,30 +83,7 @@ public class RedisHelper {
         REDIS_ERROR.whenNull(entity.getId(), "获取锁失败，传入的实体的ID为空");
         @SuppressWarnings("unchecked")
         Class<E> clazz = (Class<E>) entity.getClass();
-        return lockEntity(clazz, entity.getId(), timeout);
-    }
-
-    /**
-     * 获取实体锁
-     *
-     * @param clazz    实体类
-     * @param entityId 实体ID
-     * @return 锁的 key
-     */
-    public final @NotNull <E extends CurdEntity<E>> Lock lockEntity(@NotNull Class<E> clazz, Long entityId) {
-        return lockEntity(clazz, entityId, redisConfig.getLockTimeout());
-    }
-
-    /**
-     * 获取实体锁
-     *
-     * @param clazz    实体类
-     * @param entityId 实体ID
-     * @param timeout  锁超时时间(毫秒)
-     * @return 锁的 key
-     */
-    public final @NotNull <E extends CurdEntity<E>> Lock lockEntity(@NotNull Class<E> clazz, Long entityId, Integer timeout) {
-        return lock(redisConfig.getLockPrefix() + ":" + getCacheKey(clazz, entityId), timeout);
+        return lock(getCacheKey(clazz, entity.getId()), timeout);
     }
 
     /**
@@ -118,6 +95,7 @@ public class RedisHelper {
      */
     public final @NotNull Lock lock(String key, Integer timeout) {
         String value = UUID.randomUUID().toString();
+        key = redisConfig.getLockPrefix() + ":" + key;
         while (true) {
             Boolean lock = redisTemplate.opsForValue().setIfAbsent(key, value, timeout, TimeUnit.MILLISECONDS);
             if (Boolean.TRUE.equals(lock)) {
@@ -353,7 +331,7 @@ public class RedisHelper {
      * @param id    ID
      * @return key
      */
-    private @NotNull <T extends RootModel<T>> String getCacheKey(@NotNull Class<T> clazz, Long id) {
+    public final @NotNull <T extends RootModel<T>> String getCacheKey(@NotNull Class<T> clazz, Long id) {
         REDIS_ERROR.whenNull(id, "ID不能为空");
         return clazz.getSimpleName() + "_" + id;
     }
@@ -364,7 +342,7 @@ public class RedisHelper {
      * @param entity 实体
      * @return key
      */
-    private <T extends CurdEntity<T>> @NotNull String getEntityCacheKey(@NotNull T entity) {
+    public final <T extends CurdEntity<T>> @NotNull String getEntityCacheKey(@NotNull T entity) {
         //noinspection unchecked
         return getCacheKey(entity.getClass(), entity.getId());
     }

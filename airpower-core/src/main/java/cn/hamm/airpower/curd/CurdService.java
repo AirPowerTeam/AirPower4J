@@ -9,6 +9,7 @@ import cn.hamm.airpower.curd.query.QueryPageResponse;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.export.ExportHelper;
 import cn.hamm.airpower.file.FileUtil;
+import cn.hamm.airpower.helper.TransactionHelper;
 import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.root.RootModel;
 import cn.hamm.airpower.root.RootService;
@@ -64,7 +65,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 实体管理器
      */
-    @Autowired
+    @PersistenceContext
     protected EntityManager entityManager;
 
     /**
@@ -72,6 +73,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     @Autowired
     private CurdConfig curdConfig;
+
+    /**
+     * 事务管理器
+     */
+    @Autowired
+    private TransactionHelper transactionHelper;
 
     /**
      * 保存CSV数据
@@ -169,7 +176,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 添加一条数据
+     * 添加一条数据 {@code 触发前后置}
      *
      * @param source 原始实体
      * @return 保存后的主键
@@ -184,7 +191,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
 
         // 新增不允许带主键
         source.setId(null);
-        long id = saveToDatabaseIgnoreNull(source);
+        long id = saveToDatabase(source, false);
         final E entity = get(id);
         final E finalSource = source;
 
@@ -216,39 +223,72 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 修改一条已经存在的数据
+     * 修改一条已经存在的数据 {@code 触发前后置}
      *
-     * @param source 保存的实体
+     * @param source 修改的实体
      * @return 修改后的数据
      * @see #beforeUpdate(E)
+     * @see #beforeSaveToDatabase(E)
      * @see #afterUpdate(E, E)
      * @see #afterSaved(E, E)
-     * @see #updateWithNull(E)
      */
     public final @NotNull E update(@NotNull E source) {
-        return updateToDatabase(false, source);
+        return update(source, false);
     }
 
     /**
-     * 修改一条已经存在的数据
+     * 修改一条已经存在的数据 {@code 触发前后置}
      *
-     * @param source 保存的实体
+     * @param source 修改的实体
      * @return 修改后的数据
-     * @apiNote 此方法的 {@code null} 属性依然会被更新到数据库
      * @see #beforeUpdate(E)
+     * @see #beforeSaveToDatabase(E)
      * @see #afterUpdate(E, E)
      * @see #afterSaved(E, E)
-     * @see #update(E)
      */
-    public final @NotNull E updateWithNull(@NotNull E source) {
-        return updateToDatabase(true, source);
+    public final @NotNull E update(@NotNull E source, boolean withNull) {
+        long id = source.getId();
+        source = beforeUpdate(source);
+        updateToDatabase(source, withNull);
+        final E entity = get(id);
+        final E finalSource = source;
+        TaskUtil.run(
+                () -> afterUpdate(entity, finalSource),
+                () -> afterSaved(entity, finalSource)
+        );
+        return entity;
+    }
+
+    /**
+     * 加锁更新指定 ID 的数据 {@code 不触发前后置}、{@code 加锁}
+     *
+     * @param id     ID
+     * @param entity 待更新的实体
+     */
+    public final void updateWithLock(long id, Function<E, E> entity) {
+        transactionHelper.run(() -> {
+            E exist = getForUpdate(id);
+            exist = entity.apply(exist);
+            updateToDatabase(exist);
+        });
+    }
+
+    /**
+     * 加锁获取指定 ID 的数据用户更新
+     *
+     * @param id ID
+     * @return 加锁后的数据
+     * @see #updateWithLock(long, Function) 推荐
+     */
+    public final E getForUpdate(long id) {
+        return repository.getForUpdateById(id);
     }
 
     /**
      * 修改后置方法
      *
      * <p>
-     * 请不要在重写此方法后再次调用 {@link #update(E)  } 与 {@link #updateWithNull(E)} 以 {@code 避免循环} 调用
+     * 请不要在重写此方法后再次调用 {@link #update(E)} 以 {@code 避免循环调用}
      * </p>
      * <p>
      * 如需再次保存，请调用 {@link #updateToDatabase(E)}
@@ -289,7 +329,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     public final @NotNull E disable(long id) {
         E entity = get(id);
         beforeDisable(entity);
-        saveToDatabaseIgnoreNull(entity.setIsDisabled(true));
+        saveToDatabase(entity.setIsDisabled(true));
 
         final E finalEntity = get(id);
         TaskUtil.run(() -> afterDisable(finalEntity));
@@ -324,7 +364,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     public final @NotNull E enable(long id) {
         E entity = get(id);
         beforeEnable(entity);
-        saveToDatabaseIgnoreNull(entity.setIsDisabled(false));
+        saveToDatabase(entity.setIsDisabled(false));
         final E finalEntity = get(id);
         TaskUtil.run(() -> afterEnable(finalEntity));
         return finalEntity;
@@ -766,22 +806,17 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param source 原始实体
      * @return 更新的主键
-     * @see #update(E)
-     * @see #updateWithNull(E)
      */
     protected final long updateToDatabase(@NotNull E source) {
         return updateToDatabase(source, false);
     }
 
     /**
-     * 更新到数据库 {@code 触发前后置}
+     * 更新到数据库 {@code 不触发前后置}
      *
      * @param source   原始实体
      * @param withNull 是否更新空值
      * @return 更新的主键
-     * @apiNote 请注意，此方法不会触发前后置
-     * @see #update(E)
-     * @see #updateWithNull(E)
      */
     protected final long updateToDatabase(@NotNull E source, boolean withNull) {
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
@@ -917,26 +952,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 更新到数据库
-     *
-     * @param withNull 是否更新 {@code null} 属性
-     * @param source   原始数据
-     * @return 更新后的数据
-     */
-    private @NotNull E updateToDatabase(boolean withNull, @NotNull E source) {
-        long id = source.getId();
-        source = beforeUpdate(source);
-        updateToDatabase(source, withNull);
-        final E entity = get(id);
-        final E finalSource = source;
-        TaskUtil.run(
-                () -> afterUpdate(entity, finalSource),
-                () -> afterSaved(entity, finalSource)
-        );
-        return entity;
-    }
-
-    /**
      * 根据主键查询对应的实体
      *
      * @param id 主键
@@ -973,7 +988,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param entity 待保存实体
      * @return 保存的主键
      */
-    private long saveToDatabaseIgnoreNull(@NotNull E entity) {
+    @SuppressWarnings("UnusedReturnValue")
+    private long saveToDatabase(@NotNull E entity) {
         return saveToDatabase(entity, false);
     }
 
@@ -1029,8 +1045,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 目标实体
      */
     protected @NotNull E getEntityForUpdate(@NotNull E sourceEntity, @NotNull E exist) {
-        String[] updateFieldNames = getUpdateFieldNames(sourceEntity);
-        BeanUtils.copyProperties(sourceEntity, exist, updateFieldNames);
+        String[] ignoreProperties = getUpdateIgnoreFields(sourceEntity);
+        BeanUtils.copyProperties(sourceEntity, exist, ignoreProperties);
         return desensitize(exist);
     }
 
@@ -1093,32 +1109,33 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 获取需要更新实体的字段名称列表
+     * 获取忽略更新的字段名称列表
      *
      * @param source 来源对象
-     * @return 需要更新的属性列表
+     * @return 需要忽略更新的属性列表
      */
-    private String @NotNull [] getUpdateFieldNames(@NotNull E source) {
+    private String @NotNull [] getUpdateIgnoreFields(@NotNull E source) {
         // 获取Bean
         BeanWrapper srcBean = new BeanWrapperImpl(source);
-        List<String> list = new ArrayList<>();
+        List<String> ignoreList = new ArrayList<>();
         Arrays.stream(srcBean.getPropertyDescriptors()).map(PropertyDescriptor::getName).forEach(name -> {
             // 获取属性的Field
             Field field = ReflectUtil.getField(name, source.getClass());
             if (Objects.isNull(field)) {
-                // 为空 则忽略 不更新
+                // 获取属性失败，允许更新
                 return;
             }
             NullEnable nullEnable = ReflectUtil.getAnnotation(NullEnable.class, field);
             if (Objects.nonNull(nullEnable) && nullEnable.value()) {
-                // 标记了可以允许null更新，则跳过 不忽略
+                // 允许更新 null
                 return;
             }
             if (Objects.isNull(srcBean.getPropertyValue(name))) {
-                list.add(name);
+                // 没有值 忽略更新
+                ignoreList.add(name);
             }
         });
-        return list.toArray(new String[0]);
+        return ignoreList.toArray(new String[0]);
     }
 
     /**

@@ -23,4 +23,16 @@ public class RedisConfig {
      * 生成文件的目录
      */
     private String saveFilePath = "";
+
+    /**
+     * 锁的前缀
+     */
+    private String lockPrefix = "airpower:lock";
+
+    /**
+     * 锁的过期时间
+     *
+     * @apiNote 单位毫秒
+     */
+    private Integer lockTimeout = 5000;
 }

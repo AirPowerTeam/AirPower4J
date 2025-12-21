@@ -191,6 +191,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param source 原始实体
      * @return 主键 ID
+     * @apiNote 如需绕过前后置处理，请使用 {@link #addToDatabase(E)}
      * @see #beforeAdd(E)
      * @see #beforeSaveToDatabase(E)
      * @see #afterAdd(long, E)
@@ -236,6 +237,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 修改一条已经存在的数据 {@code 触发前后置}
      *
      * @param source 修改的实体
+     * @apiNote 如需绕过前后置处理，请使用 {@link #updateToDatabase(E)}
      * @see #beforeUpdate(E)
      * @see #beforeSaveToDatabase(E)
      * @see #afterUpdate(long, E)
@@ -248,7 +250,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 修改一条已经存在的数据 {@code 触发前后置}
      *
-     * @param source 修改的实体
+     * @param source 原始实体
+     * @apiNote 如需绕过前后置处理，请使用 {@link #updateToDatabase(E)}
      * @see #beforeUpdate(E)
      * @see #beforeSaveToDatabase(E)
      * @see #afterUpdate(long, E)
@@ -284,7 +287,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param id 主键 ID
      * @return 加锁后的数据
-     * @see #updateWithLock(long, Consumer) 推荐
+     * @see #updateWithLock(long, Consumer)
      */
     public final E getForUpdate(long id) {
         return repository.getForUpdateById(id);
@@ -335,7 +338,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     public final void disable(long id) {
         E entity = get(id);
         beforeDisable(entity);
-        saveToDatabase(getEntityInstance(id).setIsDisabled(true));
+        updateToDatabase(getEntityInstance(id).setIsDisabled(true));
         TaskUtil.run(() -> afterDisable(id));
     }
 
@@ -367,7 +370,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     public final void enable(long id) {
         E entity = get(id);
         beforeEnable(entity);
-        saveToDatabase(getEntityInstance(id).setIsDisabled(false));
+        updateToDatabase(getEntityInstance(id).setIsDisabled(false));
         TaskUtil.run(() -> afterEnable(id));
     }
 
@@ -548,6 +551,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param <FIELD>     结果类型
      * @return 计算结果
      */
+    @SuppressWarnings("unused")
     public final <FIELD, RESULT> RESULT selectAndCalculate(
             @NotNull BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
             String fieldName,
@@ -576,6 +580,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectList(BiFunction)
      * @see #selectPage(BiFunction)
      */
+    @SuppressWarnings("unused")
     public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
         return selectList(predicate, null);
     }
@@ -648,6 +653,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectList(BiFunction)
      * @see #selectPage(BiFunction)
      */
+    @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
         return selectPage(predicate, null, null);
     }
@@ -665,6 +671,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectList(BiFunction)
      * @see #selectPage(BiFunction)
      */
+    @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
         return selectPage(predicate, null, sort);
     }
@@ -682,6 +689,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectList(BiFunction)
      * @see #selectPage(BiFunction)
      */
+    @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page) {
         return selectPage(predicate, page, null);
     }
@@ -700,6 +708,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectList(BiFunction)
      * @see #selectPage(BiFunction)
      */
+    @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page, @Nullable Sort sort) {
         QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
         queryPageRequest.setSort(requireSortNonNull(sort));
@@ -807,6 +816,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param source 原始实体
      * @return 添加的主键
+     * @see #add(CurdEntity) 触发前后置的添加方法
      */
     public final long addToDatabase(@NotNull E source) {
         PARAM_MISSING.whenNotNull(source.getId(), String.format("添加失败，请不要传入%s的ID!", getEntityDescription()));
@@ -817,6 +827,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 更新到数据库 {@code 不触发前后置}
      *
      * @param source 原始实体
+     * @see #update(CurdEntity) 触发前后置的修改方法
      */
     public final void updateToDatabase(@NotNull E source) {
         updateToDatabase(source, false);
@@ -995,20 +1006,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 保存到数据库
      *
-     * @param entity 待保存实体
-     * @return 保存的主键
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    private long saveToDatabase(@NotNull E entity) {
-        return saveToDatabase(entity, false);
-    }
-
-    /**
-     * 保存到数据库
-     *
      * @param entity   待保存实体
      * @param withNull 是否保存空值
      * @return 保存的主键
+     * @see #addToDatabase(CurdEntity)
+     * @see #updateToDatabase(CurdEntity)
      */
     private long saveToDatabase(@NotNull E entity, boolean withNull) {
         checkUnique(entity);

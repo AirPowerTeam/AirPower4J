@@ -1,5 +1,6 @@
 package cn.hamm.airpower.util;
 
+import cn.hamm.airpower.curd.CurdEntity;
 import cn.hamm.airpower.helper.TransactionHelper;
 import cn.hamm.airpower.redis.RedisHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -106,6 +107,10 @@ public class TaskUtil {
      * 加锁运行任务
      *
      * @param task 任务
+     * @apiNote 可根据下列方法自行实现获取和释放锁
+     * @see RedisHelper#lock(String)
+     * @see RedisHelper#lockEntity(CurdEntity)
+     * @see RedisHelper#releaseLock(RedisHelper.Lock)
      */
     public static void runWithLock(Runnable task) {
         runWithLock(GLOBAL_LOCK_KEY, task);
@@ -116,6 +121,10 @@ public class TaskUtil {
      *
      * @param key  锁的key
      * @param task 任务
+     * @apiNote 可根据下列方法自行实现获取和释放锁
+     * @see RedisHelper#lock(String)
+     * @see RedisHelper#lockEntity(CurdEntity)
+     * @see RedisHelper#releaseLock(RedisHelper.Lock)
      */
     public static void runWithLock(String key, Runnable task) {
         RedisHelper.Lock lock = redisHelper.lock(key);

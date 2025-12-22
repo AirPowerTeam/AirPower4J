@@ -96,14 +96,21 @@ public class RedisHelper {
     public final @NotNull Lock lock(String key, Integer timeout) {
         String value = UUID.randomUUID().toString();
         key = redisConfig.getLockPrefix() + ":" + key;
+        int currentIndex = 0;
+        int step = 50;
         while (true) {
+            currentIndex++;
             Boolean lock = redisTemplate.opsForValue().setIfAbsent(key, value, timeout, TimeUnit.MILLISECONDS);
             if (Boolean.TRUE.equals(lock)) {
                 return new Lock().setKey(key).setValue(value);
             }
+            if (currentIndex * step >= timeout) {
+                log.error("获取锁超时，实在点背。{}", key);
+                throw new RuntimeException("系统繁忙，请稍后重试");
+            }
             try {
                 //noinspection BusyWait
-                Thread.sleep(50);
+                Thread.sleep(step);
             } catch (InterruptedException ignored) {
             }
         }

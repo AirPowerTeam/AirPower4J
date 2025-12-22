@@ -37,6 +37,7 @@ import java.lang.reflect.Field;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static cn.hamm.airpower.exception.ServiceError.*;
@@ -176,40 +177,50 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 添加并获取
+     *
+     * @param source 原始实体
+     * @return 添加后的实体
+     */
+    public final @NotNull E addAndGet(@NotNull E source) {
+        return get(add(source));
+    }
+
+    /**
      * 添加一条数据 {@code 触发前后置}
      *
      * @param source 原始实体
-     * @return 保存后的主键
+     * @return 主键 ID
+     * @apiNote 如需绕过前后置处理，请使用 {@link #addToDatabase(E)}
      * @see #beforeAdd(E)
      * @see #beforeSaveToDatabase(E)
-     * @see #afterAdd(E, E)
-     * @see #afterSaved(E, E)
+     * @see #afterAdd(long, E)
+     * @see #afterSaved(long, E)
      */
-    public final @NotNull E add(@NotNull E source) {
+    public final long add(@NotNull E source) {
         source = beforeAdd(source);
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
 
         // 新增不允许带主键
         source.setId(null);
-        long id = saveToDatabase(source, false);
-        final E entity = get(id);
+        long id = addToDatabase(source);
         final E finalSource = source;
 
         // 新增完毕后的一些后置处理
         TaskUtil.run(
-                () -> afterAdd(entity, finalSource),
-                () -> afterSaved(entity, finalSource)
+                () -> afterAdd(id, finalSource),
+                () -> afterSaved(id, finalSource)
         );
-        return entity;
+        return id;
     }
 
     /**
      * 添加后置方法
      *
-     * @param entity 添加后的实体
+     * @param id     主键 ID
      * @param source 原始实体
      */
-    protected void afterAdd(@NotNull E entity, @NotNull E source) {
+    protected void afterAdd(long id, @NotNull E source) {
     }
 
     /**
@@ -226,49 +237,47 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 修改一条已经存在的数据 {@code 触发前后置}
      *
      * @param source 修改的实体
-     * @return 修改后的数据
+     * @apiNote 如需绕过前后置处理，请使用 {@link #updateToDatabase(E)}
      * @see #beforeUpdate(E)
      * @see #beforeSaveToDatabase(E)
-     * @see #afterUpdate(E, E)
-     * @see #afterSaved(E, E)
+     * @see #afterUpdate(long, E)
+     * @see #afterSaved(long, E)
      */
-    public final @NotNull E update(@NotNull E source) {
-        return update(source, false);
+    public final void update(@NotNull E source) {
+        update(source, false);
     }
 
     /**
      * 修改一条已经存在的数据 {@code 触发前后置}
      *
-     * @param source 修改的实体
-     * @return 修改后的数据
+     * @param source 原始实体
+     * @apiNote 如需绕过前后置处理，请使用 {@link #updateToDatabase(E)}
      * @see #beforeUpdate(E)
      * @see #beforeSaveToDatabase(E)
-     * @see #afterUpdate(E, E)
-     * @see #afterSaved(E, E)
+     * @see #afterUpdate(long, E)
+     * @see #afterSaved(long, E)
      */
-    public final @NotNull E update(@NotNull E source, boolean withNull) {
+    public final void update(@NotNull E source, boolean withNull) {
         long id = source.getId();
         source = beforeUpdate(source);
         updateToDatabase(source, withNull);
-        final E entity = get(id);
         final E finalSource = source;
         TaskUtil.run(
-                () -> afterUpdate(entity, finalSource),
-                () -> afterSaved(entity, finalSource)
+                () -> afterUpdate(id, finalSource),
+                () -> afterSaved(id, finalSource)
         );
-        return entity;
     }
 
     /**
      * 加锁更新指定 ID 的数据 {@code 不触发前后置}、{@code 加锁}
      *
-     * @param id     ID
-     * @param entity 待更新的实体
+     * @param id       主键 ID
+     * @param consumer 可消费实体
      */
-    public final void updateWithLock(long id, Function<E, E> entity) {
+    public final void updateWithLock(long id, Consumer<E> consumer) {
         transactionHelper.run(() -> {
             E exist = getForUpdate(id);
-            exist = entity.apply(exist);
+            consumer.accept(exist);
             updateToDatabase(exist);
         });
     }
@@ -276,12 +285,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 加锁获取指定 ID 的数据用户更新
      *
-     * @param id ID
+     * @param id 主键 ID
      * @return 加锁后的数据
-     * @see #updateWithLock(long, Function) 推荐
+     * @see #updateWithLock(long, Consumer)
      */
-    public final E getForUpdate(long id) {
-        return repository.getForUpdateById(id);
+    public final @NotNull E getForUpdate(long id) {
+        entityManager.clear();
+        E forUpdate = repository.getForUpdateById(id);
+        DATA_NOT_FOUND.whenNull(forUpdate, String.format("没有查询到ID为%s的%s", id, getEntityDescription()));
+        return forUpdate;
     }
 
     /**
@@ -294,21 +306,21 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 如需再次保存，请调用 {@link #updateToDatabase(E)}
      * </p>
      *
-     * @param entity 更新后的数据
+     * @param id     更新的 ID
      * @param source 更新前的数据
      */
-    protected void afterUpdate(@NotNull E entity, @NotNull E source) {
+    protected void afterUpdate(long id, @NotNull E source) {
     }
 
     /**
      * 保存后置方法
      *
-     * @param entity 保存后的数据
+     * @param id     主键 ID
      * @param source 保存前的原数据
      * @apiNote 添加或修改后最后触发
      */
     @SuppressWarnings("unused")
-    protected void afterSaved(@NotNull E entity, @NotNull E source) {
+    protected void afterSaved(long id, @NotNull E source) {
     }
 
     /**
@@ -322,27 +334,24 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 禁用指定的数据
      *
-     * @param id 主键
+     * @param id 主键 ID
      * @see #beforeDisable(E)
-     * @see #afterDisable(E)
+     * @see #afterDisable(long)
      */
-    public final @NotNull E disable(long id) {
+    public final void disable(long id) {
         E entity = get(id);
         beforeDisable(entity);
-        saveToDatabase(entity.setIsDisabled(true));
-
-        final E finalEntity = get(id);
-        TaskUtil.run(() -> afterDisable(finalEntity));
-        return finalEntity;
+        updateToDatabase(getEntityInstance(id).setIsDisabled(true));
+        TaskUtil.run(() -> afterDisable(id));
     }
 
     /**
      * 禁用后置方法
      *
-     * @param entity 禁用后的数据
+     * @param id 主键 ID
      */
     @SuppressWarnings("unused")
-    protected void afterDisable(@NotNull E entity) {
+    protected void afterDisable(long id) {
     }
 
     /**
@@ -357,26 +366,24 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 启用指定的数据
      *
-     * @param id 主键
+     * @param id 主键 ID
      * @see #beforeEnable(E)
-     * @see #afterEnable(E)
+     * @see #afterEnable(long)
      */
-    public final @NotNull E enable(long id) {
+    public final void enable(long id) {
         E entity = get(id);
         beforeEnable(entity);
-        saveToDatabase(entity.setIsDisabled(false));
-        final E finalEntity = get(id);
-        TaskUtil.run(() -> afterEnable(finalEntity));
-        return finalEntity;
+        updateToDatabase(getEntityInstance(id).setIsDisabled(false));
+        TaskUtil.run(() -> afterEnable(id));
     }
 
     /**
      * 启用后置方法
      *
-     * @param entity 启用后的数据
+     * @param id 主键 ID
      */
     @SuppressWarnings("unused")
-    protected void afterEnable(@NotNull E entity) {
+    protected void afterEnable(long id) {
     }
 
     /**
@@ -547,6 +554,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param <FIELD>     结果类型
      * @return 计算结果
      */
+    @SuppressWarnings("unused")
     public final <FIELD, RESULT> RESULT selectAndCalculate(
             @NotNull BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
             String fieldName,
@@ -575,6 +583,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectList(BiFunction)
      * @see #selectPage(BiFunction)
      */
+    @SuppressWarnings("unused")
     public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
         return selectList(predicate, null);
     }
@@ -647,6 +656,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectList(BiFunction)
      * @see #selectPage(BiFunction)
      */
+    @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
         return selectPage(predicate, null, null);
     }
@@ -664,6 +674,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectList(BiFunction)
      * @see #selectPage(BiFunction)
      */
+    @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
         return selectPage(predicate, null, sort);
     }
@@ -681,6 +692,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectList(BiFunction)
      * @see #selectPage(BiFunction)
      */
+    @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page) {
         return selectPage(predicate, page, null);
     }
@@ -699,6 +711,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectList(BiFunction)
      * @see #selectPage(BiFunction)
      */
+    @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page, @Nullable Sort sort) {
         QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
         queryPageRequest.setSort(requireSortNonNull(sort));
@@ -802,13 +815,25 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 添加到数据库 {@code 不触发前后置}
+     *
+     * @param source 原始实体
+     * @return 添加的主键
+     * @see #add(CurdEntity) 触发前后置的添加方法
+     */
+    public final long addToDatabase(@NotNull E source) {
+        PARAM_MISSING.whenNotNull(source.getId(), String.format("添加失败，请不要传入%s的ID!", getEntityDescription()));
+        return saveToDatabase(source, false);
+    }
+
+    /**
      * 更新到数据库 {@code 不触发前后置}
      *
      * @param source 原始实体
-     * @return 更新的主键
+     * @see #update(CurdEntity) 触发前后置的修改方法
      */
-    protected final long updateToDatabase(@NotNull E source) {
-        return updateToDatabase(source, false);
+    public final void updateToDatabase(@NotNull E source) {
+        updateToDatabase(source, false);
     }
 
     /**
@@ -816,12 +841,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param source   原始实体
      * @param withNull 是否更新空值
-     * @return 更新的主键
      */
-    protected final long updateToDatabase(@NotNull E source, boolean withNull) {
+    public final void updateToDatabase(@NotNull E source, boolean withNull) {
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
         PARAM_MISSING.whenNull(source.getId(), String.format("修改失败，请传入%s的ID!", getEntityDescription()));
-        return saveToDatabase(source, withNull);
+        saveToDatabase(source, withNull);
     }
 
     /**
@@ -947,6 +971,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param filter 过滤器
      * @return 检查后的过滤器
      */
+    @Contract("!null -> param1")
     private E requireFilterNonNull(@Nullable E filter) {
         return Objects.requireNonNullElse(filter, getEntityInstance());
     }
@@ -960,6 +985,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private @NotNull E getById(Long id) {
         String description = getEntityDescription();
         PARAM_MISSING.whenNull(id, String.format("查询失败，请传入%s的ID！", description));
+        entityManager.clear();
         Optional<E> optional = repository.findById(id);
         if (optional.isEmpty()) {
             throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, description));
@@ -985,20 +1011,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 保存到数据库
      *
-     * @param entity 待保存实体
-     * @return 保存的主键
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    private long saveToDatabase(@NotNull E entity) {
-        return saveToDatabase(entity, false);
-    }
-
-    /**
-     * 保存到数据库
-     *
      * @param entity   待保存实体
      * @param withNull 是否保存空值
      * @return 保存的主键
+     * @see #addToDatabase(CurdEntity)
+     * @see #updateToDatabase(CurdEntity)
      */
     private long saveToDatabase(@NotNull E entity, boolean withNull) {
         checkUnique(entity);
@@ -1008,16 +1025,14 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             entity.setCreateTime(System.currentTimeMillis())
                     .setIsDisabled(false);
             // 新增
-            return saveAndFlush(entity);
+            return saveToDatabase(entity);
         }
         // 更新 不允许修改创建时间
         entity.setCreateTime(null);
-        // 修改前清掉JPA缓存，避免查询到旧数据
-        entityManager.clear();
         // 有ID 走修改 且不允许修改下列字段
         E existEntity = getById(entity.getId());
         entity = withNull ? entity : getEntityForUpdate(entity, existEntity);
-        return saveAndFlush(entity);
+        return saveToDatabase(entity);
     }
 
     /**
@@ -1027,13 +1042,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 保存的主键
      * @apiNote 仅供 {@link #saveToDatabase(E, boolean)} 调用
      */
-    private long saveAndFlush(@NotNull E entity) {
+    private long saveToDatabase(@NotNull E entity) {
         E target = getEntityInstance();
         BeanUtils.copyProperties(entity, target);
         target = beforeSaveToDatabase(target);
         target = repository.saveAndFlush(target);
-        // 新增完毕，清掉查询缓存，避免查询到旧数据
-        entityManager.clear();
         return target.getId();
     }
 
@@ -1044,7 +1057,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param exist        已存在实体
      * @return 目标实体
      */
-    protected @NotNull E getEntityForUpdate(@NotNull E sourceEntity, @NotNull E exist) {
+    private @NotNull E getEntityForUpdate(@NotNull E sourceEntity, @NotNull E exist) {
         String[] ignoreProperties = getUpdateIgnoreFields(sourceEntity);
         BeanUtils.copyProperties(sourceEntity, exist, ignoreProperties);
         return desensitize(exist);
@@ -1104,8 +1117,18 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @return 实体
      */
-    private @NotNull E getEntityInstance() {
+    protected @NotNull E getEntityInstance() {
         return ReflectUtil.newInstance(getEntityClass());
+    }
+
+    /**
+     * 新建一个实体
+     *
+     * @param id 实体主键 ID
+     * @return 实体
+     */
+    protected @NotNull E getEntityInstance(long id) {
+        return getEntityInstance().setId(id);
     }
 
     /**

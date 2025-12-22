@@ -289,8 +289,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 加锁后的数据
      * @see #updateWithLock(long, Consumer)
      */
-    public final E getForUpdate(long id) {
-        return repository.getForUpdateById(id);
+    public final @NotNull E getForUpdate(long id) {
+        entityManager.clear();
+        E forUpdate = repository.getForUpdateById(id);
+        DATA_NOT_FOUND.whenNull(forUpdate, String.format("没有查询到ID为%s的%s", id, getEntityDescription()));
+        return forUpdate;
     }
 
     /**
@@ -968,6 +971,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param filter 过滤器
      * @return 检查后的过滤器
      */
+    @Contract("!null -> param1")
     private E requireFilterNonNull(@Nullable E filter) {
         return Objects.requireNonNullElse(filter, getEntityInstance());
     }
@@ -981,6 +985,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private @NotNull E getById(Long id) {
         String description = getEntityDescription();
         PARAM_MISSING.whenNull(id, String.format("查询失败，请传入%s的ID！", description));
+        entityManager.clear();
         Optional<E> optional = repository.findById(id);
         if (optional.isEmpty()) {
             throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, description));
@@ -1020,16 +1025,14 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             entity.setCreateTime(System.currentTimeMillis())
                     .setIsDisabled(false);
             // 新增
-            return saveAndFlush(entity);
+            return saveToDatabase(entity);
         }
         // 更新 不允许修改创建时间
         entity.setCreateTime(null);
-        // 修改前清掉JPA缓存，避免查询到旧数据
-        entityManager.clear();
         // 有ID 走修改 且不允许修改下列字段
         E existEntity = getById(entity.getId());
         entity = withNull ? entity : getEntityForUpdate(entity, existEntity);
-        return saveAndFlush(entity);
+        return saveToDatabase(entity);
     }
 
     /**
@@ -1039,13 +1042,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 保存的主键
      * @apiNote 仅供 {@link #saveToDatabase(E, boolean)} 调用
      */
-    private long saveAndFlush(@NotNull E entity) {
+    private long saveToDatabase(@NotNull E entity) {
         E target = getEntityInstance();
         BeanUtils.copyProperties(entity, target);
         target = beforeSaveToDatabase(target);
         target = repository.saveAndFlush(target);
-        // 新增完毕，清掉查询缓存，避免查询到旧数据
-        entityManager.clear();
         return target.getId();
     }
 

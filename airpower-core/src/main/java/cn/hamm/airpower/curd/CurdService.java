@@ -9,6 +9,7 @@ import cn.hamm.airpower.curd.query.QueryPageResponse;
 import cn.hamm.airpower.exception.ServiceException;
 import cn.hamm.airpower.export.ExportHelper;
 import cn.hamm.airpower.file.FileUtil;
+import cn.hamm.airpower.helper.TransactionHelper;
 import cn.hamm.airpower.reflect.ReflectUtil;
 import cn.hamm.airpower.root.RootService;
 import cn.hamm.airpower.util.CollectionUtil;
@@ -34,6 +35,7 @@ import java.lang.reflect.Field;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 import static cn.hamm.airpower.exception.ServiceError.*;
 
@@ -852,6 +854,9 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         );
     }
 
+    @Autowired
+    private TransactionHelper transactionHelper;
+
     /**
      * 根据 ID 查询对应的实体
      *
@@ -863,11 +868,43 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                 "查询失败，请传入%s的ID！",
                 ReflectUtil.getDescription(getFirstParameterizedTypeClass())
         ));
+        entityManager.clear();
         Optional<E> optional = repository.findById(id);
         if (optional.isEmpty()) {
             throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getFirstParameterizedTypeClass())));
         }
         return optional.get();
+    }
+
+    /**
+     * 加锁更新数据
+     *
+     * @param id       主键 ID
+     * @param consumer 更新方法
+     */
+    public final void updateWithLock(Long id, Consumer<E> consumer) {
+        transactionHelper.run(() -> {
+            E forUpdate = getForUpdate(id);
+            consumer.accept(forUpdate);
+            updateToDatabase(forUpdate);
+        });
+    }
+
+    /**
+     * 加锁查询实体
+     *
+     * @param id 主键 ID
+     * @return 实体
+     */
+    public final @NotNull E getForUpdate(Long id) {
+        PARAM_MISSING.whenNull(id, String.format(
+                "查询失败，请传入%s的ID！",
+                ReflectUtil.getDescription(getFirstParameterizedTypeClass())
+        ));
+        entityManager.clear();
+        E forUpdate = repository.getForUpdateById(id);
+        DATA_NOT_FOUND.whenNull(forUpdate, String.format("没有查询到ID为%s的%s", id, ReflectUtil.getDescription(getFirstParameterizedTypeClass())));
+        return forUpdate;
     }
 
     /**
@@ -905,19 +942,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private long saveToDatabase(@NotNull E entity, boolean withNull) {
         checkUnique(entity);
         entity.setUpdateTime(System.currentTimeMillis());
-        if (Objects.nonNull(entity.getId())) {
-            // 修改前清掉JPA缓存，避免查询到旧数据
-            entityManager.clear();
-            // 有ID 走修改 且不允许修改下列字段
-            E existEntity = getById(entity.getId());
-            entity = withNull ? entity : getEntityForUpdate(entity, existEntity);
-        }
         if (Objects.isNull(entity.getId())) {
             // 新增
             return saveAndFlush(entity);
         }
-        // 修改前清掉JPA缓存，避免查询到旧数据
-        entityManager.clear();
         // 有ID 走修改 且不允许修改下列字段
         E existEntity = getById(entity.getId());
         entity = withNull ? entity : getEntityForUpdate(entity, existEntity);
@@ -936,8 +964,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         BeanUtils.copyProperties(entity, target);
         target = beforeSaveToDatabase(target);
         target = repository.saveAndFlush(target);
-        // 新增完毕，清掉查询缓存，避免查询到旧数据
-        entityManager.clear();
         return target.getId();
     }
 

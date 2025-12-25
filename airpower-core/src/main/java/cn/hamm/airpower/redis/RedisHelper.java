@@ -37,6 +37,28 @@ public class RedisHelper {
     private RedisConfig redisConfig;
 
     /**
+     * 自增
+     *
+     * @param key   自增 key
+     * @param delta 增量
+     * @return 值
+     */
+    public final long increment(String key, long delta) {
+        //noinspection DataFlowIssue
+        return redisTemplate.opsForValue().increment(key, delta);
+    }
+
+    /**
+     * 自增 {@code 1}
+     *
+     * @param key 锁的 key
+     * @return 值
+     */
+    public final long increment(String key) {
+        return increment(key, 1);
+    }
+
+    /**
      * 释放锁
      *
      * @param lock 锁

@@ -14,6 +14,7 @@ import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -230,6 +231,12 @@ public class ExceptionInterceptor {
     public Json maxUploadSizeExceededExceptionHandle(@NotNull MaxUploadSizeExceededException exception) {
         logException(exception);
         return responseError(FORBIDDEN_UPLOAD_MAX_SIZE);
+    }
+
+    @ExceptionHandler(value = ObjectOptimisticLockingFailureException.class)
+    public Json objectOptimisticLockingFailureExceptionHandle(@NotNull ObjectOptimisticLockingFailureException exception) {
+        logException(exception);
+        return responseError(DATABASE_CONCURRENT_ERROR);
     }
 
     /**

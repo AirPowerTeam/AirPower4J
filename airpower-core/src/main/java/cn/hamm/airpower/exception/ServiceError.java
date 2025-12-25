@@ -44,6 +44,7 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
     FORBIDDEN_DISABLED(4036, "ID %s 的 %s 已被禁用"),
     FORBIDDEN_OPEN_APP_DISABLED(4037, "当前应用已被禁用"),
     FORBIDDEN_DISABLED_NOT_ALLOWED(4038, "不允许禁用"),
+    DATABASE_CONCURRENT_ERROR(4039, "系统繁忙，请稍后重试！"),
 
     // 404 没有查到数据代码
     DATA_NOT_FOUND(404, "没有查到相关的数据"),

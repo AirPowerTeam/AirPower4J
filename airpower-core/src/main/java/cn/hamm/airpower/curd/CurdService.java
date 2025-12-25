@@ -70,16 +70,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     protected EntityManager entityManager;
 
     /**
+     * 事务管理器
+     */
+    @Autowired
+    protected TransactionHelper transactionHelper;
+    /**
      * CURD配置
      */
     @Autowired
     private CurdConfig curdConfig;
-
-    /**
-     * 事务管理器
-     */
-    @Autowired
-    private TransactionHelper transactionHelper;
 
     /**
      * 保存CSV数据

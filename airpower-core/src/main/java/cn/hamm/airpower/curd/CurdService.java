@@ -970,15 +970,16 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 获取用于更新的实体
      *
-     * @param sourceEntity 来源实体
-     * @param exist        已存在实体
+     * @param source 来源实体
+     * @param exist  已存在实体
      * @return 目标实体
      */
     @Contract("_, _ -> param2")
-    protected @NotNull E getEntityForUpdate(@NotNull E sourceEntity, @NotNull E exist) {
-        String[] updateFieldNames = getUpdateFieldNames(sourceEntity);
-        BeanUtils.copyProperties(sourceEntity, exist, updateFieldNames);
-        return desensitize(exist);
+    protected @NotNull E getEntityForUpdate(@NotNull E source, @NotNull E exist) {
+        desensitize(source);
+        String[] updateFieldNames = getUpdateFieldNames(source);
+        BeanUtils.copyProperties(source, exist, updateFieldNames);
+        return exist;
     }
 
     /**

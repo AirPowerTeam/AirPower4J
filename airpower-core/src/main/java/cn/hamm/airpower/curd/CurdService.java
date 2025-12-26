@@ -403,8 +403,20 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     public final void delete(long id) {
         E entity = get(id);
         beforeDelete(entity);
+        if (isSoftDelete()) {
+            updateToDatabase(getEntityInstance(id).setIsDisabled(true));
+            TaskUtil.run(() -> afterDelete(id));
+            return;
+        }
         repository.deleteById(id);
         TaskUtil.run(() -> afterDelete(id));
+    }
+
+    /**
+     * 是否是软删除
+     */
+    public boolean isSoftDelete() {
+        return curdConfig.getDisableAsDelete();
     }
 
     /**
@@ -989,7 +1001,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         if (optional.isEmpty()) {
             throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, description));
         }
-        return optional.get();
+        E entity = optional.get();
+        if (isSoftDelete()) {
+            // 软删除
+            DATA_NOT_FOUND.when(entity.getIsDisabled(), String.format("ID为%s的%s已被删除", id, description));
+        }
+        return entity;
     }
 
     /**
@@ -1339,6 +1356,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
 
         // 添加修改时间和创建时间的区间查询
         addCreateAndUpdateTimePredicate(root, builder, filter, predicateList);
+        if (isSoftDelete()) {
+            // 过滤软删除的数据
+            addPredicateNonNull(root, predicateList, CurdEntity.STRING_IS_DISABLED, builder::equal, false);
+        }
         Predicate[] predicates = new Predicate[predicateList.size()];
         criteriaQuery.where(builder.and(predicateList.toArray(predicates)));
         return criteriaQuery.getRestriction();

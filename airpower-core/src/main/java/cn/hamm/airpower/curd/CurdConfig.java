@@ -24,4 +24,11 @@ public class CurdConfig {
      * 默认排序字段
      */
     private String defaultSortField = STRING_ID;
+
+    /**
+     * 使用禁用标识删除(软删除默认实现)
+     *
+     * @apiNote 如开启此项，则被删除的数据会被标记为已禁用，且在列表查询、详情查询时均被过滤掉。
+     */
+    private Boolean disableAsDelete = false;
 }

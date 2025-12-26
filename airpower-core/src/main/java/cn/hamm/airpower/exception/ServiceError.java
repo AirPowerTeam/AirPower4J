@@ -61,7 +61,7 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
 
     // 501 API 服务暂不支持
     API_SERVICE_UNSUPPORTED(501, "请求的接口暂未实现"),
-    API_DOWN(5011, "API网关暂不可用，请稍后再试"),
+    API_DOWN(5011, "服务网关维护中，请稍后再试"),
 
 
     // 502 内部错误代码

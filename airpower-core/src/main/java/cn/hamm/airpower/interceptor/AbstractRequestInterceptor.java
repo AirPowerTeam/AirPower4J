@@ -4,6 +4,7 @@ import cn.hamm.airpower.access.Access;
 import cn.hamm.airpower.access.AccessConfig;
 import cn.hamm.airpower.access.AccessTokenUtil;
 import cn.hamm.airpower.access.PermissionUtil;
+import cn.hamm.airpower.api.ApiConfig;
 import cn.hamm.airpower.request.HttpConstant;
 import cn.hamm.airpower.util.TraceUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
+import static cn.hamm.airpower.exception.ServiceError.API_DOWN;
 import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
 
 /**
@@ -63,6 +65,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
         String traceId = request.getHeader(HttpConstant.Header.TRACE_ID);
         TraceUtil.setTraceId(traceId);
         log.info("请求地址 {}", request.getRequestURI());
+        API_DOWN.when(ApiConfig.isServerRunning);
         HandlerMethod handlerMethod = (HandlerMethod) object;
         //取出控制器和方法
         Class<?> clazz = handlerMethod.getBeanType();

@@ -45,7 +45,7 @@ public class RedisHelper {
      */
     public final long increment(String key, long delta) {
         //noinspection DataFlowIssue
-        return redisTemplate.opsForValue().increment(key, delta);
+        return redisTemplate.opsForValue().increment(getKey(key), delta);
     }
 
     /**
@@ -68,8 +68,8 @@ public class RedisHelper {
         final String key = lock.getKey();
         REDIS_ERROR.whenEmpty(key, "释放锁失败，传入的锁的 key 为空");
         REDIS_ERROR.whenEmpty(lock.getValue(), "释放锁失败，传入的锁的 value 为空");
-        if (Objects.equals(redisTemplate.opsForValue().get(lock.getKey()), lock.getValue())) {
-            redisTemplate.delete(key);
+        if (Objects.equals(get(key), lock.getValue())) {
+            redisTemplate.delete(getKey(key));
         }
     }
 
@@ -117,12 +117,11 @@ public class RedisHelper {
      */
     public final @NotNull Lock lock(String key, Integer timeout) {
         String value = UUID.randomUUID().toString();
-        key = redisConfig.getLockPrefix() + ":" + key;
         int currentIndex = 0;
         int step = 50;
         while (true) {
             currentIndex++;
-            Boolean lock = redisTemplate.opsForValue().setIfAbsent(key, value, timeout, TimeUnit.MILLISECONDS);
+            Boolean lock = redisTemplate.opsForValue().setIfAbsent(getKey(key), value, timeout, TimeUnit.MILLISECONDS);
             if (Boolean.TRUE.equals(lock)) {
                 return new Lock().setKey(key).setValue(value);
             }
@@ -136,6 +135,16 @@ public class RedisHelper {
             } catch (InterruptedException ignored) {
             }
         }
+    }
+
+    /**
+     * 获取缓存的 key
+     *
+     * @param key 缓存的 key
+     * @return 缓存的 key
+     */
+    private @NotNull String getKey(String key) {
+        return redisConfig.getPrefix() + key;
     }
 
     /**
@@ -227,7 +236,7 @@ public class RedisHelper {
     public final void setExpireSecond(String key, long second) {
         try {
             if (second > 0) {
-                redisTemplate.expire(key, second, TimeUnit.SECONDS);
+                redisTemplate.expire(getKey(key), second, TimeUnit.SECONDS);
             }
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
@@ -258,7 +267,7 @@ public class RedisHelper {
      */
     public final long getExpireSecond(String key) {
         try {
-            return redisTemplate.getExpire(key, TimeUnit.SECONDS);
+            return redisTemplate.getExpire(getKey(key), TimeUnit.SECONDS);
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
             REDIS_ERROR.show();
@@ -274,7 +283,7 @@ public class RedisHelper {
      */
     public final boolean hasKey(String key) {
         try {
-            return redisTemplate.hasKey(key);
+            return redisTemplate.hasKey(getKey(key));
         } catch (Exception ignored) {
             return false;
         }
@@ -287,7 +296,7 @@ public class RedisHelper {
      */
     public final void del(String key) {
         try {
-            redisTemplate.delete(key);
+            redisTemplate.delete(getKey(key));
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
             REDIS_ERROR.show();
@@ -302,7 +311,7 @@ public class RedisHelper {
      */
     public final @Nullable Object get(String key) {
         try {
-            return redisTemplate.opsForValue().get(key);
+            return redisTemplate.opsForValue().get(getKey(key));
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
             REDIS_ERROR.show();
@@ -331,7 +340,7 @@ public class RedisHelper {
     public final void set(String key, Object value, long second) {
         try {
             if (second > 0) {
-                redisTemplate.opsForValue().set(key, value.toString(), second, TimeUnit.SECONDS);
+                redisTemplate.opsForValue().set(getKey(key), value.toString(), second, TimeUnit.SECONDS);
             } else {
                 set(key, value);
             }

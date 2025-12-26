@@ -65,7 +65,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
         String traceId = request.getHeader(HttpConstant.Header.TRACE_ID);
         TraceUtil.setTraceId(traceId);
         log.info("请求地址 {}", request.getRequestURI());
-        API_DOWN.when(ApiConfig.isServerRunning);
+        API_DOWN.when(!ApiConfig.isServerRunning);
         HandlerMethod handlerMethod = (HandlerMethod) object;
         //取出控制器和方法
         Class<?> clazz = handlerMethod.getBeanType();

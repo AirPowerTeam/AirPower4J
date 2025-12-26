@@ -49,7 +49,6 @@ import static cn.hamm.airpower.exception.ServiceError.*;
  * @param <R> 数据源
  * @author Hamm.cn
  */
-@SuppressWarnings({"SpringJavaInjectionPointsAutowiringInspection"})
 @Slf4j
 public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> extends RootService<E> {
     /**
@@ -60,7 +59,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 数据源
      */
-    @Autowired
+    @Autowired(required = false)
     protected R repository;
 
     /**

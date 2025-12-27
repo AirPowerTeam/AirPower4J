@@ -14,6 +14,11 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("airpower.api")
 public class ApiConfig {
     /**
+     * 服务是否运行
+     */
+    public static boolean isServerRunning = true;
+
+    /**
      * 输出请求包体日志
      */
     private Boolean requestLog = false;

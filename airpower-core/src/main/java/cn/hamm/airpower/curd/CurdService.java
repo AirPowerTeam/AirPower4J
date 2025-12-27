@@ -49,7 +49,6 @@ import static cn.hamm.airpower.exception.ServiceError.*;
  * @param <R> 数据源
  * @author Hamm.cn
  */
-@SuppressWarnings({"SpringJavaInjectionPointsAutowiringInspection"})
 @Slf4j
 public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> extends RootService<E> {
     /**
@@ -60,7 +59,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 数据源
      */
-    @Autowired
+    @Autowired(required = false)
     protected R repository;
 
     /**
@@ -70,16 +69,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     protected EntityManager entityManager;
 
     /**
+     * 事务管理器
+     */
+    @Autowired
+    protected TransactionHelper transactionHelper;
+    /**
      * CURD配置
      */
     @Autowired
     private CurdConfig curdConfig;
-
-    /**
-     * 事务管理器
-     */
-    @Autowired
-    private TransactionHelper transactionHelper;
 
     /**
      * 保存CSV数据
@@ -404,8 +402,20 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     public final void delete(long id) {
         E entity = get(id);
         beforeDelete(entity);
+        if (isSoftDelete()) {
+            updateToDatabase(getEntityInstance(id).setIsDisabled(true));
+            TaskUtil.run(() -> afterDelete(id));
+            return;
+        }
         repository.deleteById(id);
         TaskUtil.run(() -> afterDelete(id));
+    }
+
+    /**
+     * 是否是软删除
+     */
+    public boolean isSoftDelete() {
+        return curdConfig.getDisableAsDelete();
     }
 
     /**
@@ -990,7 +1000,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         if (optional.isEmpty()) {
             throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, description));
         }
-        return optional.get();
+        E entity = optional.get();
+        if (isSoftDelete()) {
+            // 软删除
+            DATA_NOT_FOUND.when(entity.getIsDisabled(), String.format("ID为%s的%s已被删除", id, description));
+        }
+        return entity;
     }
 
     /**
@@ -1053,14 +1068,16 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 获取用于更新的实体
      *
-     * @param sourceEntity 来源实体
-     * @param exist        已存在实体
+     * @param source 来源实体
+     * @param exist  已存在实体
      * @return 目标实体
      */
-    private @NotNull E getEntityForUpdate(@NotNull E sourceEntity, @NotNull E exist) {
-        String[] ignoreProperties = getUpdateIgnoreFields(sourceEntity);
-        BeanUtils.copyProperties(sourceEntity, exist, ignoreProperties);
-        return desensitize(exist);
+    @Contract("_, _ -> param2")
+    private @NotNull E getEntityForUpdate(@NotNull E source, @NotNull E exist) {
+        desensitize(source);
+        String[] ignoreProperties = getUpdateIgnoreFields(source);
+        BeanUtils.copyProperties(source, exist, ignoreProperties);
+        return exist;
     }
 
     /**
@@ -1338,6 +1355,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
 
         // 添加修改时间和创建时间的区间查询
         addCreateAndUpdateTimePredicate(root, builder, filter, predicateList);
+        if (isSoftDelete()) {
+            // 过滤软删除的数据
+            addPredicateNonNull(root, predicateList, CurdEntity.STRING_IS_DISABLED, builder::equal, false);
+        }
         Predicate[] predicates = new Predicate[predicateList.size()];
         criteriaQuery.where(builder.and(predicateList.toArray(predicates)));
         return criteriaQuery.getRestriction();

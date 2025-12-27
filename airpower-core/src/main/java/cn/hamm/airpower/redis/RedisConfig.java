@@ -25,9 +25,9 @@ public class RedisConfig {
     private String saveFilePath = "";
 
     /**
-     * 锁的前缀
+     * Redis前缀
      */
-    private String lockPrefix = "airpower:lock";
+    private String prefix = "airpower:";
 
     /**
      * 锁的过期时间

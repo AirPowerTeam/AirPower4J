@@ -44,6 +44,7 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
     FORBIDDEN_DISABLED(4036, "ID %s 的 %s 已被禁用"),
     FORBIDDEN_OPEN_APP_DISABLED(4037, "当前应用已被禁用"),
     FORBIDDEN_DISABLED_NOT_ALLOWED(4038, "不允许禁用"),
+    DATABASE_CONCURRENT_ERROR(4039, "系统繁忙，请稍后重试！"),
 
     // 404 没有查到数据代码
     DATA_NOT_FOUND(404, "没有查到相关的数据"),
@@ -58,10 +59,12 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
     ENCRYPT_DATA_FAIL(5002, "数据加密失败"),
     JSON_DECODE_FAIL(5003, "JSON解码失败，请确认有效的JSON数据格式"),
 
+    // 501 API 服务暂不支持
     API_SERVICE_UNSUPPORTED(501, "请求的接口暂未实现"),
+    API_DOWN(5011, "服务网关维护中，请稍后再试"),
+
 
     // 502 内部错误代码
-
     // 5021 数据库相关代码
     DATABASE_ERROR(5021, "数据库服务连接失败，请稍后再试"),
     DATABASE_UNKNOWN_FIELD(50211, "不支持的数据库字段"),

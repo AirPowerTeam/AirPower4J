@@ -56,6 +56,11 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
      */
     public static final String STRING_UPDATE_TIME = "updateTime";
 
+    /**
+     * 被禁用字段名
+     */
+    public static final String STRING_IS_DISABLED = "isDisabled";
+
     @Description("ID")
     @Id
     @GeneratedValue(strategy = IDENTITY)

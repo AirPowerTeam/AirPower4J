@@ -39,8 +39,7 @@ public class CurdController<
         E extends CurdEntity<E>,
         S extends CurdService<E, R>,
         R extends ICurdRepository<E>> extends ApiController implements ICurdAction {
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    @Autowired
+    @Autowired(required = false)
     protected S service;
 
     @Autowired

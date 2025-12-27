@@ -38,7 +38,7 @@ public class WebSocketConfig {
     /**
      * 发布订阅的频道前缀
      */
-    private String channelPrefix;
+    private String channelPrefix = "airpower:";
 
     /**
      * WebSocket 允许的跨域

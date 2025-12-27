@@ -34,7 +34,12 @@ import static org.springframework.core.io.support.ResourcePatternResolver.CLASSP
  */
 @Slf4j
 public class CurdUtil {
-
+    /**
+     * <h1>扫描实体</h1>
+     *
+     * @param packageName 包名
+     * @return 扫描到的实体列表
+     */
     public static @NotNull List<EntityMeta> scanEntity(
             String packageName
     ) {

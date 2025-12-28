@@ -73,14 +73,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     @Autowired
     protected TransactionHelper transactionHelper;
+
     /**
-     * CURD配置
+     * CURD 配置
      */
     @Autowired
     private CurdConfig curdConfig;
 
     /**
-     * 保存CSV数据
+     * 保存 CSV 数据
      *
      * @param exportFile 导出文件
      * @param valueList  数据列表
@@ -95,7 +96,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 创建导出任务
      *
      * @param queryPageRequest 请求查询的分页参数
-     * @return 导出任务ID
+     * @return 导出任务 ID
      */
     public final String createExportTask(@Nullable QueryPageRequest<E> queryPageRequest) {
         final QueryPageRequest<E> finalQueryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
@@ -110,7 +111,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             String headerString = String.join(CollectionUtil.CSV_COLUMN_DELIMITER, rowList);
             List<String> header = new ArrayList<>();
             header.add(headerString);
-            // 保存表头到CSV文件
+            // 保存表头到 CSV 文件
             saveCsvListToFile(exportFile, header);
             // 查询数据并保存到导出文件
             queryPageToSaveExportFile(finalQueryPageRequest, fieldList, exportFile);
@@ -131,10 +132,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         List<E> list = page.getList();
         list = afterExportQuery(list);
 
-        // 获取CSV值列表
+        // 获取 CSV 值列表
         List<String> valuelist = CollectionUtil.getCsvValueList(list, fieldList);
 
-        // 保存CSV数据
+        // 保存 CSV 数据
         saveCsvListToFile(exportFile, valuelist);
 
         if (page.getPage().getPageNum() < page.getPageCount()) {
@@ -442,7 +443,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 不分页查询数据
      *
      * @param queryListRequest 列表请求对象
-     * @return List数据
+     * @return List 数据
      * @see #beforeGetList(QueryListRequest)
      * @see #afterGetList(List)
      */
@@ -457,7 +458,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 全匹配查询数据
      *
      * @param filter 过滤器
-     * @return List数据
+     * @return List 数据
      * @see #filter(CurdEntity)
      * @see #query(CurdEntity)
      * @see #query(QueryListRequest)
@@ -474,7 +475,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param filter 过滤器
      * @param sort   排序
-     * @return List数据
+     * @return List 数据
      * @see #filter(CurdEntity)
      * @see #query(CurdEntity)
      * @see #query(QueryListRequest)
@@ -1155,11 +1156,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 需要忽略更新的属性列表
      */
     private String @NotNull [] getUpdateIgnoreFields(@NotNull E source) {
-        // 获取Bean
+        // 获取 Bean
         BeanWrapper srcBean = new BeanWrapperImpl(source);
         List<String> ignoreList = new ArrayList<>();
         Arrays.stream(srcBean.getPropertyDescriptors()).map(PropertyDescriptor::getName).forEach(name -> {
-            // 获取属性的Field
+            // 获取属性的 Field
             Field field = ReflectUtil.getField(name, source.getClass());
             if (Objects.isNull(field)) {
                 // 获取属性失败，允许更新

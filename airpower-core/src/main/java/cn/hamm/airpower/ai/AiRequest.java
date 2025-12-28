@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <h1>AI请求</h1>
+ * <h1>AI 请求</h1>
  *
  * @author Hamm.cn
  */
@@ -24,7 +24,7 @@ public class AiRequest {
     @Setter(AccessLevel.PACKAGE)
     private Boolean stream = false;
     /**
-     * 最大Token
+     * 最大 Token
      */
     @JsonProperty("max_tokens")
     private Integer maxToken;

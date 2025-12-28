@@ -115,7 +115,7 @@ public class HttpUtil {
     }
 
     /**
-     * 发送GET请求
+     * 发送 GET 请求
      *
      * @return HttpResponse
      */

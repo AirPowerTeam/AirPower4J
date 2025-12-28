@@ -125,13 +125,13 @@ public class PermissionUtil {
             for (Resource resource : resources) {
                 // 用于读取类信息
                 MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(resource);
-                // 扫描到的class
+                // 扫描到的类
                 String className = metadataReader.getClassMetadata().getClassName();
                 Class<?> clazz = Class.forName(className);
 
                 Api api = clazz.getAnnotation(Api.class);
                 if (Objects.isNull(api)) {
-                    // 不是rest控制器或者是指定的几个白名单控制器
+                    // 不是 Rest 控制器或者是指定的几个白名单控制器
                     continue;
                 }
 

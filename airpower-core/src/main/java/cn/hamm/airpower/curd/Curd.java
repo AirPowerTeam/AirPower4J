@@ -82,10 +82,10 @@ public enum Curd implements IDictionary {
     private final String methodName;
 
     /**
-     * 获取控制器的可用API列表
+     * 获取控制器的可用 API 列表
      *
      * @param clazz 类
-     * @return 可用API列表
+     * @return 可用 API 列表
      */
     public static @NotNull List<Curd> getCurdList(@NotNull Class<?> clazz) {
         List<Curd> whiteList = new ArrayList<>();
@@ -94,12 +94,12 @@ public enum Curd implements IDictionary {
     }
 
     /**
-     * 获取控制器的可用API列表
+     * 获取控制器的可用 API 列表
      *
      * @param clazz     类
      * @param whiteList 已经可用的列表
      * @param blackList 已经排除的列表
-     * @return 可用API列表
+     * @return 可用 API 列表
      */
     private static @NotNull List<Curd> getCurdList(@NotNull Class<?> clazz, List<Curd> whiteList, List<Curd> blackList) {
         if (ReflectUtil.isTheRootClass(clazz)) {

@@ -79,7 +79,7 @@ public class TreeUtil {
     }
 
     /**
-     * 根据父级ID获取所有子节点
+     * 根据父级 ID 获取所有子节点
      *
      * @param service  服务
      * @param parentId 父级 ID
@@ -112,7 +112,7 @@ public class TreeUtil {
      *
      * @param parentId 父 ID
      * @param service  服务类
-     * @return ID集合
+     * @return ID 集合
      */
     public static <
             E extends CurdEntity<E> & ITree<E>,

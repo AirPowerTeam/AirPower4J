@@ -67,7 +67,7 @@ public class WebsocketHelper {
             switch (websocketConfig.getSupport()) {
                 case REDIS -> redisHelper.publish(targetChannel, Json.toString(event));
                 case MQTT -> mqttHelper.publish(targetChannel, Json.toString(event));
-                default -> throw new RuntimeException("WebSocket暂不支持");
+                default -> throw new RuntimeException("WebSocket 暂不支持");
             }
         } catch (MqttException e) {
             throw new RuntimeException("发布消息失败", e);

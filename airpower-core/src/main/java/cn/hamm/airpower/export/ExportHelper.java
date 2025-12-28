@@ -45,9 +45,6 @@ public class ExportHelper {
     private RedisHelper redisHelper;
 
     @Autowired
-    private ExportConfig exportConfig;
-
-    @Autowired
     private FileConfig fileConfig;
 
     /**

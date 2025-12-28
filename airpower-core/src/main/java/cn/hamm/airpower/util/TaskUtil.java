@@ -26,7 +26,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @Service
 public class TaskUtil {
     /**
-     * 全局锁的key
+     * 全局锁的 key
      */
     private static final String GLOBAL_LOCK_KEY = "GLOBAL_LOCK";
 
@@ -119,7 +119,7 @@ public class TaskUtil {
     /**
      * 加锁运行任务
      *
-     * @param key  锁的key
+     * @param key  锁的 key
      * @param task 任务
      * @apiNote 可根据下列方法自行实现获取和释放锁
      * @see RedisHelper#lock(String)

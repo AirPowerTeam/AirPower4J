@@ -27,7 +27,7 @@ public class OpenRequest {
     /**
      * AppKey
      */
-    @NotBlank(message = "AppKey不能为空")
+    @NotBlank(message = "AppKey 不能为空")
     @Getter
     private String appKey;
 

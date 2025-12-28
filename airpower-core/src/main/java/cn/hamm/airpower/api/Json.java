@@ -275,7 +275,7 @@ public class Json {
             objectMapper = new ObjectMapper();
             // 忽略未声明的属性
             objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-            // 忽略值为null的属性
+            // 忽略值为 null 的属性
             objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
             // 忽略没有属性的类
             objectMapper.configure(FAIL_ON_EMPTY_BEANS, false);

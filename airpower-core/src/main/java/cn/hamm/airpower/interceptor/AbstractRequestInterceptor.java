@@ -116,7 +116,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
         UNAUTHORIZED.whenEmpty(accessToken);
         AccessTokenUtil.VerifiedToken verifiedToken = getVerifiedToken(accessToken);
 
-        //需要RBAC
+        //需要 RBAC
         if (access.isAuthorize()) {
             //验证用户是否有接口的访问权限
             checkUserPermission(verifiedToken, PermissionUtil.getPermissionIdentity(clazz, method), request);

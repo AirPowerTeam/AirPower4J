@@ -392,7 +392,7 @@ public class CurdController<
      *
      * @param queryListRequest 传入的查询请求
      * @param newInstance      新实例
-     * @param <Q>              QueryRequest子类
+     * @param <Q>              QueryRequest 子类
      * @return 处理后的查询请求
      */
     private <Q extends QueryListRequest<E>> @NotNull Q requireQueryAndFilterNonNullElse(

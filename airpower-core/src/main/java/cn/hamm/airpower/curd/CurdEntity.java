@@ -67,7 +67,7 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
     @Column(nullable = false, columnDefinition = "bigint UNSIGNED comment 'ID'")
     @Min(value = 0, message = "ID必须大于{value}")
     @Export(value = NUMBER, sort = 99)
-    @NotNull(groups = {WhenUpdate.class, WhenIdRequired.class}, message = "ID不能为空")
+    @NotNull(groups = {WhenUpdate.class, WhenIdRequired.class}, message = "ID 不能为空")
     @Meta
     private Long id;
 

@@ -36,6 +36,13 @@ public class RedisHelper {
     @Autowired
     private RedisConfig redisConfig;
 
+    private RedisTemplate<String, Object> getRedisTemplate() {
+        StringRedisSerializer serializer = new StringRedisSerializer();
+        redisTemplate.setKeySerializer(serializer);
+        redisTemplate.setHashKeySerializer(serializer);
+        return redisTemplate;
+    }
+
     /**
      * 自增
      *
@@ -45,7 +52,7 @@ public class RedisHelper {
      */
     public final long increment(String key, long delta) {
         //noinspection DataFlowIssue
-        return redisTemplate.opsForValue().increment(getKey(key), delta);
+        return getRedisTemplate().opsForValue().increment(getKey(key), delta);
     }
 
     /**
@@ -69,7 +76,7 @@ public class RedisHelper {
         REDIS_ERROR.whenEmpty(key, "释放锁失败，传入的锁的 key 为空");
         REDIS_ERROR.whenEmpty(lock.getValue(), "释放锁失败，传入的锁的 value 为空");
         if (Objects.equals(get(key), lock.getValue())) {
-            redisTemplate.delete(getKey(key));
+            getRedisTemplate().delete(getKey(key));
         }
     }
 
@@ -121,7 +128,7 @@ public class RedisHelper {
         int step = 50;
         while (true) {
             currentIndex++;
-            Boolean lock = redisTemplate.opsForValue().setIfAbsent(getKey(key), value, timeout, TimeUnit.MILLISECONDS);
+            Boolean lock = getRedisTemplate().opsForValue().setIfAbsent(getKey(key), value, timeout, TimeUnit.MILLISECONDS);
             if (Boolean.TRUE.equals(lock)) {
                 return new Lock().setKey(key).setValue(value);
             }
@@ -236,7 +243,7 @@ public class RedisHelper {
     public final void setExpireSecond(String key, long second) {
         try {
             if (second > 0) {
-                redisTemplate.expire(getKey(key), second, TimeUnit.SECONDS);
+                getRedisTemplate().expire(getKey(key), second, TimeUnit.SECONDS);
             }
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
@@ -251,8 +258,8 @@ public class RedisHelper {
      */
     public final void clearAll(String pattern) {
         try {
-            Set<String> keys = redisTemplate.keys(pattern);
-            redisTemplate.delete(keys);
+            Set<String> keys = getRedisTemplate().keys(pattern);
+            getRedisTemplate().delete(keys);
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
             REDIS_ERROR.show();
@@ -267,7 +274,7 @@ public class RedisHelper {
      */
     public final long getExpireSecond(String key) {
         try {
-            return redisTemplate.getExpire(getKey(key), TimeUnit.SECONDS);
+            return getRedisTemplate().getExpire(getKey(key), TimeUnit.SECONDS);
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
             REDIS_ERROR.show();
@@ -283,7 +290,7 @@ public class RedisHelper {
      */
     public final boolean hasKey(String key) {
         try {
-            return redisTemplate.hasKey(getKey(key));
+            return getRedisTemplate().hasKey(getKey(key));
         } catch (Exception ignored) {
             return false;
         }
@@ -296,7 +303,7 @@ public class RedisHelper {
      */
     public final void del(String key) {
         try {
-            redisTemplate.delete(getKey(key));
+            getRedisTemplate().delete(getKey(key));
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
             REDIS_ERROR.show();
@@ -311,7 +318,7 @@ public class RedisHelper {
      */
     public final @Nullable Object get(String key) {
         try {
-            return redisTemplate.opsForValue().get(getKey(key));
+            return getRedisTemplate().opsForValue().get(getKey(key));
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
             REDIS_ERROR.show();
@@ -340,7 +347,7 @@ public class RedisHelper {
     public final void set(String key, Object value, long second) {
         try {
             if (second > 0) {
-                redisTemplate.opsForValue().set(getKey(key), value.toString(), second, TimeUnit.SECONDS);
+                getRedisTemplate().opsForValue().set(getKey(key), value.toString(), second, TimeUnit.SECONDS);
             } else {
                 set(key, value);
             }
@@ -357,9 +364,9 @@ public class RedisHelper {
      * @param message 消息
      */
     public final void publish(String channel, String message) {
-        redisTemplate.setKeySerializer(new StringRedisSerializer(StandardCharsets.UTF_8));
-        redisTemplate.setValueSerializer(new StringRedisSerializer(StandardCharsets.UTF_8));
-        redisTemplate.convertAndSend(channel, message);
+        getRedisTemplate().setKeySerializer(new StringRedisSerializer(StandardCharsets.UTF_8));
+        getRedisTemplate().setValueSerializer(new StringRedisSerializer(StandardCharsets.UTF_8));
+        getRedisTemplate().convertAndSend(channel, message);
     }
 
     /**
@@ -370,7 +377,7 @@ public class RedisHelper {
      * @return key
      */
     public final @NotNull <T extends RootModel<T>> String getCacheKey(@NotNull Class<T> clazz, Long id) {
-        REDIS_ERROR.whenNull(id, "ID不能为空");
+        REDIS_ERROR.whenNull(id, "ID 不能为空");
         return clazz.getSimpleName() + "_" + id;
     }
 

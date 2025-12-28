@@ -36,6 +36,9 @@ public class RedisHelper {
     @Autowired
     private RedisConfig redisConfig;
 
+    /**
+     * 获取 RedisTemplate
+     */
     private RedisTemplate<String, Object> getRedisTemplate() {
         StringRedisSerializer serializer = new StringRedisSerializer();
         redisTemplate.setKeySerializer(serializer);

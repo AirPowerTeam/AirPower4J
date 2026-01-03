@@ -24,9 +24,9 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
     // 400 请求参数代码
     PARAM_MISSING(4001, "缺少必要的请求参数"),
     PARAM_INVALID(4002, "请求的参数验证失败"),
-    INVALID_APP_KEY(4003, "传入的AppKey无效"),
+    INVALID_APP_KEY(4003, "传入的 AppKey 无效"),
     SIGNATURE_INVALID(4004, "签名无效，请确认使用了正确的签名方式"),
-    REPEAT_REQUEST(4005, "重复的请求，请确认传入的nonce是否重复"),
+    REPEAT_REQUEST(4005, "重复的请求，请确认传入的 nonce 是否重复"),
     TIMESTAMP_INVALID(4006, "请求时间不在允许范围内(±5分钟)"),
     MISSING_REQUEST_ADDRESS(4007, "请求来源地址异常"),
     INVALID_REQUEST_ADDRESS(4008, "请求来源不在应用配置的白名单内"),
@@ -80,7 +80,7 @@ public enum ServiceError implements IException<ServiceException>, IDictionary {
     WEBSOCKET_ERROR(5024, "WebSocket服务发生错误，请稍后再试"),
 
     // 5025 AI相关代码
-    AI_ERROR(5025, "AI服务异常"),
+    AI_ERROR(5025, "AI 服务异常"),
     ;
 
     private final int code;

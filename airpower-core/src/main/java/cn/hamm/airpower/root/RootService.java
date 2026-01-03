@@ -33,7 +33,7 @@ public class RootService<E extends RootModel<E>> {
     protected ExportHelper exportHelper;
 
     /**
-     * Redis帮助类
+     * Redis 帮助类
      */
     @Autowired
     protected RedisHelper redisHelper;

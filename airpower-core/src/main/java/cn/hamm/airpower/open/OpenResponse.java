@@ -41,7 +41,7 @@ public class OpenResponse {
                         .publicKeyEncrypt(response);
                 case NO -> {
                 }
-                default -> throw new ServiceException(ENCRYPT_DATA_FAIL, "暂不支持的OpenApi加密算法");
+                default -> throw new ServiceException(ENCRYPT_DATA_FAIL, "暂不支持的 OpenApi 加密算法");
             }
         } catch (Exception e) {
             ENCRYPT_DATA_FAIL.show();

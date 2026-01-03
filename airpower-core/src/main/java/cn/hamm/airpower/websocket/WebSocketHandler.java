@@ -141,7 +141,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             case MQTT -> startMqttListener(session, userId);
             case NO -> {
             }
-            default -> throw new RuntimeException("WebSocket暂不支持");
+            default -> throw new RuntimeException("WebSocket 暂不支持");
         }
         userIdHashMap.put(session.getId(), userId);
         TaskUtil.run(() -> afterConnectSuccess(session));
@@ -234,7 +234,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
         try {
             session.close();
         } catch (IOException e) {
-            log.error("关闭Websocket失败");
+            log.error("关闭 Websocket 失败");
         }
     }
 

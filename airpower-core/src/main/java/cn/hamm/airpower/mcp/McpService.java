@@ -87,7 +87,7 @@ public class McpService {
             mcpToolName = method.getDeclaringClass().getSimpleName() + "_" + method.getName();
         }
         McpTool.InputSchema inputSchema = new McpTool.InputSchema();
-        // 获取Method的形参列表
+        // 获取 Method 的形参列表
         Class<?>[] parameterTypes = method.getParameterTypes();
         IntStream.range(0, parameterTypes.length).forEach(index -> {
             Class<?> parameterType = parameterTypes[index];

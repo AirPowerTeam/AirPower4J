@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * <h1>AI响应</h1>
+ * <h1>AI 响应</h1>
  *
  * @author Hamm.cn
  */

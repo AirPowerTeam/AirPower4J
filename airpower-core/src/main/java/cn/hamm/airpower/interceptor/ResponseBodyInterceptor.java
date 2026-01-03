@@ -180,9 +180,7 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             // 如果 data 分页对象
             @SuppressWarnings("unchecked")
             QueryPageResponse<M> queryPageResponse = (QueryPageResponse<M>) data;
-            queryPageResponse.getList().forEach(item -> {
-                dataResolver(item, exposeModelsFieldNotMeta, isDesensitize);
-            });
+            queryPageResponse.getList().forEach(item -> dataResolver(item, exposeModelsFieldNotMeta, isDesensitize));
             return queryPageResponse;
         }
         Class<?> dataCls = data.getClass();

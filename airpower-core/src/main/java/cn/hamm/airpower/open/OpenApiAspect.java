@@ -94,9 +94,9 @@ public class OpenApiAspect<S extends IOpenAppService> {
      */
     private @NotNull OpenRequest getOpenRequest(@NotNull ProceedingJoinPoint proceedingJoinPoint) {
         Object[] args = proceedingJoinPoint.getArgs();
-        SERVICE_ERROR.when(args.length != 1, "OpenApi必须接收一个参数");
+        SERVICE_ERROR.when(args.length != 1, "OpenApi 必须接收一个参数");
         if (!(args[0] instanceof OpenRequest openRequest)) {
-            throw new ServiceException("OpenApi必须接收一个OpenRequest参数");
+            throw new ServiceException("OpenApi 必须接收一个 OpenRequest参数");
         }
         checkTimestamp(openRequest.getTimestamp());
         checkNonce(openRequest.getNonce());
@@ -125,7 +125,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
      */
     private @NotNull IOpenApp getOpenApp(@NotNull OpenRequest openRequest) {
         INVALID_APP_KEY.when(!StringUtils.hasText(openRequest.getAppKey()));
-        SERVICE_ERROR.whenNull(openAppService, "注入OpenAppService失败");
+        SERVICE_ERROR.whenNull(openAppService, "注入 OpenAppService 失败");
         IOpenApp openApp = openAppService.getByAppKey(openRequest.getAppKey());
         INVALID_APP_KEY.whenNull(openApp);
         FORBIDDEN_OPEN_APP_DISABLED.when(openApp.getIsDisabled());
@@ -138,7 +138,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
     private void checkIpWhiteList(@NotNull IOpenApp openApp) {
         final String ipStr = openApp.getIpWhiteList();
         if (!StringUtils.hasText(ipStr)) {
-            // 未配置IP白名单
+            // 未配置 IP 白名单
             return;
         }
         final String[] ipList = ipStr.split("\n");

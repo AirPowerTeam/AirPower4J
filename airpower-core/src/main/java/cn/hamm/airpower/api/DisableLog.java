@@ -7,7 +7,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>标记的API不输出日志</h1>
+ * <h1>标记的 API 不输出日志</h1>
  *
  * @author Hamm.cn
  */

@@ -94,7 +94,7 @@ public class RequestUtil {
             if (!Objects.equals(HttpConstant.LOCAL_IP_ADDRESS, ipAddress)) {
                 return ipAddress;
             }
-            // 根据网卡取本机配置的IP
+            // 根据网卡取本机配置的 IP
             InetAddress inet;
             inet = InetAddress.getLocalHost();
             ipAddress = inet.getHostAddress();
@@ -103,7 +103,7 @@ public class RequestUtil {
             }
             return ipAddress;
         } catch (Exception exception) {
-            FORBIDDEN.show("获取IP地址异常");
+            FORBIDDEN.show("获取 IP 地址异常");
         }
         return HttpConstant.LOCAL_IP_ADDRESS;
     }
@@ -120,9 +120,9 @@ public class RequestUtil {
     }
 
     /**
-     * 是否是有效的IP地址
+     * 是否是有效的 IP 地址
      *
-     * @param ipAddress IP地址
+     * @param ipAddress IP 地址
      * @return 判定结果
      */
     private static boolean isValidAddress(String ipAddress) {

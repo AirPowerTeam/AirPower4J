@@ -162,11 +162,11 @@ public class FileUtil {
     }
 
     /**
-     * 将整个文件夹压缩为ZIP文件
+     * 将整个文件夹压缩为 ZIP 文件
      *
      * @param sourceDirPath 源文件夹路径
-     * @param zipFilePath   ZIP文件输出路径
-     * @throws IOException IO异常
+     * @param zipFilePath   ZIP 文件输出路径
+     * @throws IOException IO 异常
      */
     public static void zip(String sourceDirPath, String zipFilePath) throws IOException {
         Path sourceDir = Paths.get(sourceDirPath);
@@ -184,8 +184,8 @@ public class FileUtil {
      *
      * @param dir     要压缩的目录
      * @param dirName 当前目录名称
-     * @param zos     ZIP输出流
-     * @throws IOException IO异常
+     * @param zos     ZIP 输出流
+     * @throws IOException IO 异常
      */
     private static void zipDirectory(Path dir, String dirName, @NotNull ZipOutputStream zos) throws IOException {
         // 添加目录条目

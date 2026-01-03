@@ -34,7 +34,7 @@ import static cn.hamm.airpower.request.HttpConstant.Header.AUTHORIZATION;
 import static cn.hamm.airpower.request.HttpConstant.Header.CONTENT_TYPE;
 
 /**
- * <h1>AI模型</h1>
+ * <h1>AI 模型</h1>
  *
  * @author Hamm.cn
  */
@@ -69,7 +69,7 @@ public class Ai {
     private String model = "Qwen/Qwen3-8B";
 
     /**
-     * 最大Token
+     * 最大 Token
      */
     private Integer maxToken = 4096;
 
@@ -164,10 +164,10 @@ public class Ai {
     }
 
     /**
-     * 获取输入流HTTP响应
+     * 获取输入流 HTTP 响应
      *
      * @param request 模型请求参数
-     * @return 输入流HTTP响应
+     * @return 输入流 HTTP 响应
      */
     private @NotNull HttpResponse<InputStream> getInputStreamHttpResponse(@NotNull AiRequest request) {
         try {

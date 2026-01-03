@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * <h1>AI消息</h1>
+ * <h1>AI 消息</h1>
  *
  * @author Hamm.cn
  */

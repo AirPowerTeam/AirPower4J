@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * <h1>Redis配置文件</h1>
+ * <h1>Redis 配置文件</h1>
  *
  * @author Hamm.cn
  */
@@ -25,7 +25,7 @@ public class RedisConfig {
     private String saveFilePath = "";
 
     /**
-     * Redis前缀
+     * Redis 前缀
      */
     private String prefix = "airpower:";
 

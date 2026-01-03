@@ -123,7 +123,6 @@ public class AccessTokenUtil {
      * @param value 负载的 Value
      * @return AccessTokenUtil 实例
      */
-    @Contract("_, _ -> this")
     public final AccessTokenUtil addPayload(String key, Object value) {
         verifiedToken.getPayloads().put(key, value);
         return this;
@@ -135,7 +134,6 @@ public class AccessTokenUtil {
      * @param key 负载 Key
      * @return AccessTokenUtil 实例
      */
-    @Contract("_ -> this")
     public final AccessTokenUtil removePayload(String key) {
         verifiedToken.getPayloads().remove(key);
         return this;

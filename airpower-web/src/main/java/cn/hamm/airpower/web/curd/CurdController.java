@@ -93,7 +93,7 @@ public class CurdController<
     @PostMapping("add")
     public Json add(@RequestBody @Validated(WhenAdd.class) E source) {
         Add.checkApiAvailable(this);
-        source.ignoreReadOnlyFields();
+        source.excludeReadOnly();
         source = beforeAdd(source);
         final E finalSource = source;
         long id = service.add(source);
@@ -116,7 +116,7 @@ public class CurdController<
     @PostMapping("update")
     public Json update(@RequestBody @Validated(WhenUpdate.class) @NotNull E source) {
         Update.checkApiAvailable(this);
-        source.ignoreReadOnlyFields();
+        source.excludeReadOnly();
         source = beforeUpdate(source);
 
         service.update(source);

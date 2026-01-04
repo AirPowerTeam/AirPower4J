@@ -118,7 +118,7 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
      * @return 处理后的数据
      */
     @Contract("null, _, _ -> null")
-    private Object getResult(Object result, ApiController controller, Method method) {
+    private <M extends RootModel<M>> Object getResult(Object result, ApiController controller, Method method) {
         if (!(result instanceof Json json)) {
             // 返回不是JsonData 原样返回
             return result;
@@ -132,20 +132,21 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
         }
 
         // 获取暴露所有字段的类列表
-        @NotNull List<Class<? extends RootModel<?>>> exposeModelsFieldNotMeta;
+        @NotNull List<Class<? extends RootModel<?>>> whiteList;
         ExposeAll exposeAll = ReflectUtil.getAnnotation(ExposeAll.class, method);
         if (Objects.nonNull(exposeAll)) {
-            exposeModelsFieldNotMeta = Arrays.stream(exposeAll.value()).toList();
+            whiteList = Arrays.stream(exposeAll.value()).toList();
         } else {
-            exposeModelsFieldNotMeta = new ArrayList<>();
+            whiteList = new ArrayList<>();
             try {
-                Class<? extends RootModel<?>> entityClass = null;
+                Class<M> entityClass = null;
                 // 如果没有标记 自动读取实体类
                 if (controller instanceof CurdController<?, ?, ?> curdController) {
-                    entityClass = curdController.getEntityClass();
+                    //noinspection unchecked
+                    entityClass = (Class<M>) curdController.getEntityClass();
                 }
                 if (Objects.nonNull(entityClass)) {
-                    exposeModelsFieldNotMeta.add(entityClass);
+                    whiteList.add(entityClass);
                 }
             } catch (Exception exception) {
                 log.error(exception.getMessage(), exception);
@@ -156,52 +157,10 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
         DesensitizeIgnore desensitizeIgnore = ReflectUtil.getAnnotation(DesensitizeIgnore.class, method);
         boolean isDesensitize = Objects.isNull(desensitizeIgnore);
 
-        Object object = dataResolver(data, exposeModelsFieldNotMeta, isDesensitize);
+        Object object = filterModelValue(data, whiteList, isDesensitize);
         json.setData(object);
         // 其他数据 原样返回
         return json;
-    }
-
-    /**
-     * 数据处理
-     *
-     * @param data                     数据
-     * @param exposeModelsFieldNotMeta 暴露所有字段的类列表
-     * @param isDesensitize            是否需要脱敏
-     * @param <M>                      数据类型
-     * @return 处理后的数据
-     */
-    private <M extends RootModel<M>> @NotNull Object dataResolver(@NotNull Object data, @NotNull List<Class<? extends RootModel<?>>> exposeModelsFieldNotMeta, boolean isDesensitize) {
-        if (data instanceof QueryPageResponse) {
-            // 如果 data 分页对象
-            @SuppressWarnings("unchecked")
-            QueryPageResponse<M> queryPageResponse = (QueryPageResponse<M>) data;
-            queryPageResponse.getList().forEach(item -> dataResolver(item, exposeModelsFieldNotMeta, isDesensitize));
-            return queryPageResponse;
-        }
-        Class<?> dataCls = data.getClass();
-        if (data instanceof Collection) {
-            // 如果是集合
-            Collection<?> collection = CollectionUtil.getCollectWithoutNull(
-                    (Collection<?>) data, dataCls
-            );
-            collection.stream()
-                    .toList()
-                    .forEach(item -> {
-                        if (RootModel.isModel(item.getClass())) {
-                            dataResolver(item, exposeModelsFieldNotMeta, isDesensitize);
-                        }
-                    });
-            return collection;
-        }
-        if (RootModel.isModel(dataCls)) {
-            // 如果 data 是 Model
-            @SuppressWarnings("unchecked")
-            M model = ((M) data);
-            model.exclude(exposeModelsFieldNotMeta, isDesensitize);
-            return model;
-        }
-        return data;
     }
 
     /**
@@ -244,5 +203,51 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             requestBody = new String(bodyBytes, StandardCharsets.UTF_8);
         }
         return requestBody;
+    }
+
+    /**
+     * 模型数据过滤
+     *
+     * @param data          数据
+     * @param classList     暴露所有字段的类列表
+     * @param isDesensitize 是否需要脱敏
+     * @param <M>           数据类型
+     * @return 处理后的数据
+     */
+    private <M extends RootModel<M>> @NotNull Object filterModelValue(
+            @NotNull Object data,
+            @NotNull List<Class<? extends RootModel<?>>> classList,
+            boolean isDesensitize
+    ) {
+        if (data instanceof QueryPageResponse) {
+            // 如果 data 分页对象
+            @SuppressWarnings("unchecked")
+            QueryPageResponse<M> queryPageResponse = (QueryPageResponse<M>) data;
+            queryPageResponse.getList().forEach(item -> filterModelValue(item, classList, isDesensitize));
+            return queryPageResponse;
+        }
+        Class<?> dataCls = data.getClass();
+        if (data instanceof Collection) {
+            // 如果是集合
+            Collection<?> collection = CollectionUtil.getCollectWithoutNull(
+                    (Collection<?>) data, dataCls
+            );
+            collection.stream()
+                    .toList()
+                    .forEach(item -> {
+                        if (RootModel.isModel(item.getClass())) {
+                            filterModelValue(item, classList, isDesensitize);
+                        }
+                    });
+            return collection;
+        }
+        if (RootModel.isModel(dataCls)) {
+            // 如果 data 是 Model
+            @SuppressWarnings("unchecked")
+            M model = ((M) data);
+            model.excludeNotMetaAndDesensitize(classList, isDesensitize);
+            return model;
+        }
+        return data;
     }
 }

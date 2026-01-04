@@ -1,5 +1,7 @@
 package cn.hamm.airpower.file;
 
+import cn.hamm.airpower.exception.ServiceError;
+import cn.hamm.airpower.exception.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +45,7 @@ public class FileUtil {
     /**
      * 未知文件大小
      */
-    private static final String UNKNOWN_FILE_SIZE = "-";
+    private static final String UNKNOWN_FILE_SIZE = "错误的文件大小: %s";
 
     /**
      * 禁止外部实例化
@@ -69,10 +71,9 @@ public class FileUtil {
      * @param size 文件大小
      * @return 格式化后的文件大小
      */
-    public static String formatSize(long size) {
+    public static @NotNull String formatSize(long size) {
         if (size <= 0) {
-            log.error("错误的文件大小: {}", size);
-            return UNKNOWN_FILE_SIZE;
+            throw new ServiceException(ServiceError.PARAM_INVALID, String.format(UNKNOWN_FILE_SIZE, size));
         }
         double fileSize = size;
         DecimalFormat decimalFormat = new DecimalFormat("#.00");
@@ -82,7 +83,7 @@ public class FileUtil {
             }
             fileSize /= FILE_SCALE;
         }
-        return UNKNOWN_FILE_SIZE;
+        throw new ServiceException(ServiceError.PARAM_INVALID, String.format(UNKNOWN_FILE_SIZE, size));
     }
 
     /**
@@ -97,7 +98,7 @@ public class FileUtil {
                 Files.createDirectories(path);
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
-                throw new RuntimeException("自动创建文件夹失败，请确认权限是否正常");
+                throw new ServiceException(ServiceError.FORBIDDEN, "自动创建文件夹失败，请确认权限是否正常");
             }
         }
     }
@@ -145,7 +146,7 @@ public class FileUtil {
             Files.write(path, bytes, options);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
-            throw new RuntimeException("文件保存失败，请确认权限是否正常");
+            throw new ServiceException(ServiceError.FORBIDDEN, "文件保存失败，请确认权限是否正常");
         }
     }
 

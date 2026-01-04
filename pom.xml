@@ -9,7 +9,7 @@
     <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA.</description>
     <properties>
         <airpower.version>5.0.0</airpower.version>
-        <airpower-core.version>5.0.0-beta.2</airpower-core.version>
+        <airpower-core.version>5.0.0-beta.4</airpower-core.version>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -17,15 +17,15 @@
         <maven.compiler.target>17</maven.compiler.target>
         <springboot.version>3.4.4</springboot.version>
         <mysql.version>8.0.33</mysql.version>
-        <jetbrains.annotations.version>23.0.0</jetbrains.annotations.version>
+        <jetbrains.annotations.version>26.0.2</jetbrains.annotations.version>
         <commons.codec.version>1.13</commons.codec.version>
         <spring.integration.mqtt.version>6.3.3</spring.integration.mqtt.version>
         <springboot.integration.version>3.2.0</springboot.integration.version>
-        <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
-        <maven.source.plugin.version>3.3.1</maven.source.plugin.version>
-        <maven.central.publishing.plugin.version>0.5.0</maven.central.publishing.plugin.version>
-        <maven.javadoc.plugin.version>3.8.0</maven.javadoc.plugin.version>
-        <maven.gpg.plugin.version>3.2.5</maven.gpg.plugin.version>
+        <jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
+        <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
+        <maven.central.publishing.plugin.version>0.9.0</maven.central.publishing.plugin.version>
+        <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
+        <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
         <relections.version>0.10.1</relections.version>
     </properties>
     <packaging>pom</packaging>

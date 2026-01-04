@@ -1,6 +1,6 @@
 package cn.hamm.airpower.web.websocket;
 
-import cn.hamm.airpower.util.RandomUtil;
+import cn.hamm.airpower.core.RandomUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Contract;

@@ -1,6 +1,6 @@
 package cn.hamm.airpower.web;
 
-import cn.hamm.airpower.util.exception.ServiceException;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.interceptor.filter.RequestFilter;
 import cn.hamm.airpower.web.websocket.WebSocketConfig;
 import cn.hamm.airpower.web.websocket.WebSocketHandler;

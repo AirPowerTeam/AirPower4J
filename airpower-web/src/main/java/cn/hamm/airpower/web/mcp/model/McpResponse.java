@@ -1,6 +1,6 @@
 package cn.hamm.airpower.web.mcp.model;
 
-import cn.hamm.airpower.util.exception.ServiceException;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.mcp.common.McpJson;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;

@@ -1,7 +1,7 @@
 package cn.hamm.airpower.web.curd.query;
 
-import cn.hamm.airpower.util.RootModel;
-import cn.hamm.airpower.util.annotation.Description;
+import cn.hamm.airpower.core.RootModel;
+import cn.hamm.airpower.core.annotation.Description;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

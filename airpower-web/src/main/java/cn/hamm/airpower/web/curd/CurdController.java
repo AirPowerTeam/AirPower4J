@@ -1,17 +1,17 @@
 package cn.hamm.airpower.web.curd;
 
-import cn.hamm.airpower.util.ReflectUtil;
-import cn.hamm.airpower.util.annotation.Description;
+import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.ReflectUtil;
+import cn.hamm.airpower.core.TaskUtil;
+import cn.hamm.airpower.core.annotation.Description;
 import cn.hamm.airpower.web.access.Permission;
 import cn.hamm.airpower.web.api.ApiController;
 import cn.hamm.airpower.web.api.Extends;
-import cn.hamm.airpower.web.api.Json;
 import cn.hamm.airpower.web.curd.query.QueryExport;
 import cn.hamm.airpower.web.curd.query.QueryListRequest;
 import cn.hamm.airpower.web.curd.query.QueryPageRequest;
 import cn.hamm.airpower.web.curd.query.QueryPageResponse;
 import cn.hamm.airpower.web.export.ExportConfig;
-import cn.hamm.airpower.web.util.TaskUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,7 +101,7 @@ public class CurdController<
                 () -> afterAdd(id, finalSource),
                 () -> afterSaved(id, finalSource)
         );
-        return Json.entity(id, "添加成功");
+        return Json.data(service.getEntityInstance(id), "添加成功");
     }
 
     /**
@@ -125,7 +125,7 @@ public class CurdController<
                 () -> afterUpdate(finalSource.getId(), finalSource),
                 () -> afterSaved(finalSource.getId(), finalSource)
         );
-        return Json.entity(source.getId(), "修改成功");
+        return Json.data(service.getEntityInstance(source.getId()), "修改成功");
     }
 
     /**
@@ -143,7 +143,7 @@ public class CurdController<
         beforeDelete(entity);
         service.delete(entity.getId());
         TaskUtil.run(() -> afterDelete(entity.getId()));
-        return Json.entity(entity.getId(), "删除成功");
+        return Json.data(service.getEntityInstance(entity.getId()), "删除成功");
     }
 
     /**
@@ -175,7 +175,7 @@ public class CurdController<
         beforeDisable(entity);
         service.disable(entity.getId());
         TaskUtil.run(() -> afterDisable(id));
-        return Json.entity(id, "禁用成功");
+        return Json.data(service.getEntityInstance(id), "禁用成功");
     }
 
     /**
@@ -194,7 +194,7 @@ public class CurdController<
         beforeEnable(entity);
         service.enable(id);
         TaskUtil.run(() -> afterEnable(id));
-        return Json.entity(id, "启用成功");
+        return Json.data(service.getEntityInstance(id), "启用成功");
     }
 
     /**

@@ -1,6 +1,6 @@
 package cn.hamm.airpower.web.access;
 
-import cn.hamm.airpower.util.interfaces.ITree;
+import cn.hamm.airpower.core.interfaces.ITree;
 
 /**
  * <h1>权限接口</h1>

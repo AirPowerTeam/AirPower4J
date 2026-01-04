@@ -1,8 +1,8 @@
 package cn.hamm.airpower.web.util;
 
-import cn.hamm.airpower.util.StringUtil;
-import cn.hamm.airpower.util.constant.HttpConstant;
-import cn.hamm.airpower.util.exception.ServiceException;
+import cn.hamm.airpower.core.StringUtil;
+import cn.hamm.airpower.core.constant.HttpConstant;
+import cn.hamm.airpower.core.exception.ServiceException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static cn.hamm.airpower.util.constant.HttpConstant.ContentType.MULTIPART_FORM_DATA;
-import static cn.hamm.airpower.util.constant.HttpConstant.Proxy.Header;
+import static cn.hamm.airpower.core.constant.HttpConstant.ContentType.MULTIPART_FORM_DATA;
+import static cn.hamm.airpower.core.constant.HttpConstant.Proxy.Header;
 
 /**
  * <h1>请求工具类</h1>

@@ -1,9 +1,9 @@
 package cn.hamm.airpower.web.ai;
 
-import cn.hamm.airpower.util.HttpUtil;
-import cn.hamm.airpower.util.constant.HttpConstant;
-import cn.hamm.airpower.util.exception.ServiceException;
-import cn.hamm.airpower.web.api.Json;
+import cn.hamm.airpower.core.HttpUtil;
+import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.constant.HttpConstant;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.exception.ServiceError;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -27,10 +27,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static cn.hamm.airpower.util.constant.HttpConstant.ContentType.APPLICATION_JSON_UTF8;
-import static cn.hamm.airpower.util.constant.HttpConstant.GrantType.BEARER;
-import static cn.hamm.airpower.util.constant.HttpConstant.Header.AUTHORIZATION;
-import static cn.hamm.airpower.util.constant.HttpConstant.Header.CONTENT_TYPE;
+import static cn.hamm.airpower.core.constant.HttpConstant.ContentType.APPLICATION_JSON_UTF8;
+import static cn.hamm.airpower.core.constant.HttpConstant.GrantType.BEARER;
+import static cn.hamm.airpower.core.constant.HttpConstant.Header.AUTHORIZATION;
+import static cn.hamm.airpower.core.constant.HttpConstant.Header.CONTENT_TYPE;
 import static cn.hamm.airpower.web.exception.ServiceError.AI_ERROR;
 
 /**
@@ -93,7 +93,7 @@ public class Ai {
                 .setUrl(url)
                 .addHeader(AUTHORIZATION, getBearerToken())
                 .post(json);
-        AI_ERROR.whenNotEquals(httpResponse.statusCode(), HttpConstant.Status.OK, "请求失败，AI模型服务异常");
+        AI_ERROR.whenNotEquals(httpResponse.statusCode(), Json.SUCCESS_CODE, "请求失败，AI模型服务异常");
         String response = httpResponse.body();
         try {
             return Json.parse(response, AiResponse.class);

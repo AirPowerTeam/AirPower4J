@@ -1,7 +1,7 @@
 package cn.hamm.airpower.web.curd;
 
-import cn.hamm.airpower.util.ReflectUtil;
-import cn.hamm.airpower.util.interfaces.IDictionary;
+import cn.hamm.airpower.core.ReflectUtil;
+import cn.hamm.airpower.core.interfaces.IDictionary;
 import cn.hamm.airpower.web.api.Extends;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

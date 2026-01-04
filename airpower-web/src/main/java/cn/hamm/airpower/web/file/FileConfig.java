@@ -1,6 +1,6 @@
 package cn.hamm.airpower.web.file;
 
-import cn.hamm.airpower.util.FileUtil;
+import cn.hamm.airpower.core.FileUtil;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

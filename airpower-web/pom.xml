@@ -5,17 +5,17 @@
     <parent>
         <groupId>cn.hamm</groupId>
         <artifactId>airpower</artifactId>
-        <version>4.1.3</version>
+        <version>5.0.0</version>
     </parent>
     <artifactId>airpower-web</artifactId>
     <name>airpower-web</name>
-    <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA. It's the core of AirPower.
+    <description>AirPower-Api is a fast backend development tool based on SpringBoot3 and JPA.
     </description>
     <dependencies>
         <dependency>
             <groupId>cn.hamm</groupId>
-            <artifactId>airpower-util</artifactId>
-            <version>${airpower.version}</version>
+            <artifactId>airpower-core</artifactId>
+            <version>${airpower-core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

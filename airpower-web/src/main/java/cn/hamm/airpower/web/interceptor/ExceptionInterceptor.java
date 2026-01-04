@@ -1,8 +1,8 @@
 package cn.hamm.airpower.web.interceptor;
 
-import cn.hamm.airpower.util.exception.ServiceException;
-import cn.hamm.airpower.util.interfaces.IException;
-import cn.hamm.airpower.web.api.Json;
+import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.exception.ServiceException;
+import cn.hamm.airpower.core.interfaces.IException;
 import cn.hamm.airpower.web.exception.ServiceError;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

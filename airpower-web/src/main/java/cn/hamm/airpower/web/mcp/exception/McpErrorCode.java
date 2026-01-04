@@ -1,6 +1,6 @@
 package cn.hamm.airpower.web.mcp.exception;
 
-import cn.hamm.airpower.util.interfaces.IException;
+import cn.hamm.airpower.core.interfaces.IException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

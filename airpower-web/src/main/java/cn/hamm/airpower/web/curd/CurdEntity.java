@@ -1,10 +1,11 @@
 package cn.hamm.airpower.web.curd;
 
-import cn.hamm.airpower.util.Meta;
-import cn.hamm.airpower.util.RootModel;
-import cn.hamm.airpower.util.annotation.Description;
-import cn.hamm.airpower.util.annotation.ReadOnly;
-import cn.hamm.airpower.util.exception.ServiceException;
+import cn.hamm.airpower.core.RootModel;
+import cn.hamm.airpower.core.annotation.Description;
+import cn.hamm.airpower.core.annotation.Meta;
+import cn.hamm.airpower.core.annotation.ReadOnly;
+import cn.hamm.airpower.core.exception.ServiceException;
+import cn.hamm.airpower.core.interfaces.IEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
@@ -38,7 +39,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Slf4j
 @SuppressWarnings("unchecked")
 public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
-        implements Serializable, ICurdAction {
+        implements Serializable, ICurdAction, IEntity<E> {
     /**
      * 主键字段名
      */

@@ -1,6 +1,6 @@
 package cn.hamm.airpower.web.helper;
 
-import cn.hamm.airpower.web.util.TaskUtil;
+import cn.hamm.airpower.core.TaskUtil;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;

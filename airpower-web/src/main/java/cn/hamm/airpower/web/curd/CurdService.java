@@ -1,7 +1,7 @@
 package cn.hamm.airpower.web.curd;
 
-import cn.hamm.airpower.util.*;
-import cn.hamm.airpower.util.exception.ServiceException;
+import cn.hamm.airpower.core.*;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.annotation.NullEnable;
 import cn.hamm.airpower.web.annotation.Search;
 import cn.hamm.airpower.web.annotation.SearchEmpty;
@@ -11,7 +11,6 @@ import cn.hamm.airpower.web.curd.query.QueryPageResponse;
 import cn.hamm.airpower.web.export.ExportHelper;
 import cn.hamm.airpower.web.helper.TransactionHelper;
 import cn.hamm.airpower.web.root.RootService;
-import cn.hamm.airpower.web.util.TaskUtil;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;

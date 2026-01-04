@@ -131,7 +131,7 @@
 
 ### 9. `Utils`
 
-提供了大量的工具包以供使用，可以查看 `cn.hamm.airpower.util` 包下的类，也可以直接使用 `Utils.getXXX()` 直接获取工具类使用。
+提供了大量的工具包以供使用，可以查看 `cn.hamm.airpower.core` 包下的类，也可以直接使用 `Utils.getXXX()` 直接获取工具类使用。
 
 ## 🛎 四、问题反馈与建议
 

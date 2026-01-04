@@ -1,6 +1,6 @@
 package cn.hamm.airpower.web.redis;
 
-import cn.hamm.airpower.util.DateTimeUtil;
+import cn.hamm.airpower.core.DateTimeUtil;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

@@ -1,7 +1,7 @@
 package cn.hamm.airpower.web.mcp;
 
-import cn.hamm.airpower.util.ReflectUtil;
-import cn.hamm.airpower.util.exception.ServiceException;
+import cn.hamm.airpower.core.ReflectUtil;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.mcp.exception.McpErrorCode;
 import cn.hamm.airpower.web.mcp.method.McpMethod;
 import cn.hamm.airpower.web.mcp.method.McpMethods;

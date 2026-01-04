@@ -1,6 +1,6 @@
 package cn.hamm.airpower.web.ai;
 
-import cn.hamm.airpower.util.interfaces.IDictionary;
+import cn.hamm.airpower.core.interfaces.IDictionary;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;

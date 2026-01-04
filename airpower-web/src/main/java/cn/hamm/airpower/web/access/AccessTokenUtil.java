@@ -1,8 +1,9 @@
 package cn.hamm.airpower.web.access;
 
-import cn.hamm.airpower.util.DateTimeUtil;
-import cn.hamm.airpower.util.exception.ServiceException;
-import cn.hamm.airpower.web.api.Json;
+import cn.hamm.airpower.core.DateTimeUtil;
+import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.constant.Constant;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.curd.CurdEntity;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -90,7 +91,7 @@ public class AccessTokenUtil {
      * @apiNote 不设置令牌过期时间
      */
     public AccessTokenUtil setPayloadId(Long id) {
-        return addPayload(CurdEntity.STRING_ID, id);
+        return addPayload(Constant.ID, id);
     }
 
     /**

@@ -1,7 +1,7 @@
 package cn.hamm.airpower.web.redis;
 
-import cn.hamm.airpower.util.RootModel;
-import cn.hamm.airpower.web.api.Json;
+import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.RootModel;
 import cn.hamm.airpower.web.curd.CurdEntity;
 import jakarta.annotation.Resource;
 import lombok.Data;
@@ -30,6 +30,11 @@ import static cn.hamm.airpower.web.exception.ServiceError.REDIS_ERROR;
 @Component
 @Slf4j
 public class RedisHelper {
+    /**
+     * 全局锁的 key
+     */
+    private static final String GLOBAL_LOCK_KEY = "GLOBAL_LOCK";
+
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -37,13 +42,38 @@ public class RedisHelper {
     private RedisConfig redisConfig;
 
     /**
-     * 获取 RedisTemplate
+     * 加锁运行任务
+     *
+     * @param key  锁的 key
+     * @param task 任务
+     * @apiNote 可根据下列方法自行实现获取和释放锁
+     * @see #lock(String)
+     * @see #lockEntity(CurdEntity)
+     * @see #releaseLock(Lock)
      */
-    private RedisTemplate<String, Object> getRedisTemplate() {
-        StringRedisSerializer serializer = new StringRedisSerializer();
-        redisTemplate.setKeySerializer(serializer);
-        redisTemplate.setHashKeySerializer(serializer);
-        return redisTemplate;
+    public final void runWithLock(String key, Runnable task) {
+        Lock lock = lock(key);
+        try {
+            task.run();
+        } catch (Exception e) {
+            log.error("加锁执行任务失败, {}", e.getMessage(), e);
+            throw e;
+        } finally {
+            releaseLock(lock);
+        }
+    }
+
+    /**
+     * 加锁运行任务
+     *
+     * @param task 任务
+     * @apiNote 可根据下列方法自行实现获取和释放锁
+     * @see #lock(String)
+     * @see #lockEntity(CurdEntity)
+     * @see #releaseLock(Lock)
+     */
+    public final void runWithLock(Runnable task) {
+        runWithLock(GLOBAL_LOCK_KEY, task);
     }
 
     /**
@@ -379,7 +409,7 @@ public class RedisHelper {
      * @param id    ID
      * @return key
      */
-    public final @NotNull <T extends RootModel<T>> String getCacheKey(@NotNull Class<T> clazz, Long id) {
+    private @NotNull <T extends RootModel<T>> String getCacheKey(@NotNull Class<T> clazz, Long id) {
         REDIS_ERROR.whenNull(id, "ID 不能为空");
         return clazz.getSimpleName() + "_" + id;
     }
@@ -390,9 +420,19 @@ public class RedisHelper {
      * @param entity 实体
      * @return key
      */
-    public final <T extends CurdEntity<T>> @NotNull String getEntityCacheKey(@NotNull T entity) {
+    private <T extends CurdEntity<T>> @NotNull String getEntityCacheKey(@NotNull T entity) {
         //noinspection unchecked
         return getCacheKey(entity.getClass(), entity.getId());
+    }
+
+    /**
+     * 获取 RedisTemplate
+     */
+    private RedisTemplate<String, Object> getRedisTemplate() {
+        StringRedisSerializer serializer = new StringRedisSerializer();
+        redisTemplate.setKeySerializer(serializer);
+        redisTemplate.setHashKeySerializer(serializer);
+        return redisTemplate;
     }
 
     /**

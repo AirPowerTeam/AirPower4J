@@ -1,7 +1,7 @@
 package cn.hamm.airpower.web.websocket;
 
-import cn.hamm.airpower.util.exception.ServiceException;
-import cn.hamm.airpower.web.api.Json;
+import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.mqtt.MqttHelper;
 import cn.hamm.airpower.web.redis.RedisHelper;
 import lombok.extern.slf4j.Slf4j;

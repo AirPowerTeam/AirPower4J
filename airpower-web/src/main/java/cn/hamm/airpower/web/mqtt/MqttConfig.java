@@ -4,7 +4,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import static cn.hamm.airpower.util.constant.HttpConstant.LOCAL_IP_ADDRESS;
+import static cn.hamm.airpower.core.constant.HttpConstant.LOCAL_IP_ADDRESS;
 
 /**
  * <h1>MQTT 配置类</h1>

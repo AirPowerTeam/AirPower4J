@@ -1,9 +1,9 @@
 package cn.hamm.airpower.web.curd;
 
-import cn.hamm.airpower.util.DictionaryUtil;
-import cn.hamm.airpower.util.ReflectUtil;
-import cn.hamm.airpower.util.annotation.Dictionary;
-import cn.hamm.airpower.util.interfaces.IDictionary;
+import cn.hamm.airpower.core.DictionaryUtil;
+import cn.hamm.airpower.core.ReflectUtil;
+import cn.hamm.airpower.core.annotation.Dictionary;
+import cn.hamm.airpower.core.interfaces.IDictionary;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

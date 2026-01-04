@@ -1,6 +1,6 @@
 package cn.hamm.airpower.web.mcp.method;
 
-import cn.hamm.airpower.util.interfaces.IDictionary;
+import cn.hamm.airpower.core.interfaces.IDictionary;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

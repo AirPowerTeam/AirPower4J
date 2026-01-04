@@ -1,7 +1,7 @@
 package cn.hamm.airpower.web.interceptor;
 
-import cn.hamm.airpower.util.TraceUtil;
-import cn.hamm.airpower.util.constant.HttpConstant;
+import cn.hamm.airpower.core.TraceUtil;
+import cn.hamm.airpower.core.constant.HttpConstant;
 import cn.hamm.airpower.web.access.Access;
 import cn.hamm.airpower.web.access.AccessConfig;
 import cn.hamm.airpower.web.access.AccessTokenUtil;

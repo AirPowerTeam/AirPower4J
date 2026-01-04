@@ -1,7 +1,7 @@
 package cn.hamm.airpower.web.access;
 
-import cn.hamm.airpower.util.DictionaryUtil;
-import cn.hamm.airpower.util.ReflectUtil;
+import cn.hamm.airpower.core.DictionaryUtil;
+import cn.hamm.airpower.core.ReflectUtil;
 import cn.hamm.airpower.web.api.Api;
 import cn.hamm.airpower.web.curd.Curd;
 import lombok.extern.slf4j.Slf4j;

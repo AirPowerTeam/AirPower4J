@@ -1,10 +1,10 @@
 package cn.hamm.airpower.web.open;
 
-import cn.hamm.airpower.util.AesUtil;
-import cn.hamm.airpower.util.DictionaryUtil;
-import cn.hamm.airpower.util.RsaUtil;
-import cn.hamm.airpower.util.exception.ServiceException;
-import cn.hamm.airpower.web.api.Json;
+import cn.hamm.airpower.core.AesUtil;
+import cn.hamm.airpower.core.DictionaryUtil;
+import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.RsaUtil;
+import cn.hamm.airpower.core.exception.ServiceException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;

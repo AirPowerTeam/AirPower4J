@@ -1,7 +1,7 @@
 package cn.hamm.airpower.web.api;
 
+import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.web.access.AccessConfig;
-import cn.hamm.airpower.web.access.AccessTokenUtil;
 import cn.hamm.airpower.web.access.Permission;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;

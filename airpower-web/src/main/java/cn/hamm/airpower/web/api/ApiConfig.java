@@ -21,12 +21,12 @@ public class ApiConfig {
     /**
      * 输出请求包体日志
      */
-    private Boolean requestLog = false;
+    private Boolean requestLog = true;
 
     /**
      * 输出响应包体日志
      */
-    private Boolean responseLog = false;
+    private Boolean responseLog = true;
 
     /**
      * 响应 Trace 到返回包体

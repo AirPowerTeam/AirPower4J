@@ -1343,7 +1343,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         if (Objects.isNull(criteriaQuery)) {
             return null;
         }
-        E lastFilter = beforeCreatePredicate(filter);
+        E lastFilter = beforeCreatePredicate(filter.copyOnlyId());
         List<Predicate> predicateList = getPredicateList(root, builder, lastFilter, isEqual);
 
         // 添加更多自定义查询条件

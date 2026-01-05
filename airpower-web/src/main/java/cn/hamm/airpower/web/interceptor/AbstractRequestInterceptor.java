@@ -1,10 +1,10 @@
 package cn.hamm.airpower.web.interceptor;
 
+import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.TraceUtil;
 import cn.hamm.airpower.core.constant.HttpConstant;
 import cn.hamm.airpower.web.access.Access;
 import cn.hamm.airpower.web.access.AccessConfig;
-import cn.hamm.airpower.web.access.AccessTokenUtil;
 import cn.hamm.airpower.web.access.PermissionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

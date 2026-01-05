@@ -6,6 +6,7 @@ import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.annotation.NullEnable;
 import cn.hamm.airpower.web.annotation.Search;
 import cn.hamm.airpower.web.annotation.SearchEmpty;
+import cn.hamm.airpower.web.curd.query.PageData;
 import cn.hamm.airpower.web.curd.query.QueryListRequest;
 import cn.hamm.airpower.web.curd.query.QueryPageRequest;
 import cn.hamm.airpower.web.curd.query.QueryPageResponse;
@@ -32,6 +33,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -47,6 +49,14 @@ import static org.springframework.data.domain.Sort.by;
  * @param <E> 实体
  * @param <R> 数据源
  * @author Hamm.cn
+ * @see #getList(QueryListRequest) 通用列表查询 <code>getList(QueryListRequest)</code>
+ * @see #getPage(QueryPageRequest) 通用分页查询 <code>getPage(QueryPageRequest)</code>
+ * @see #filter(CurdEntity) 实体强匹配列表搜索 <code>filter(CurdEntity)</code>
+ * @see #query(CurdEntity) 实体模糊匹配列表搜索 <code>query(CurdEntity)</code>
+ * @see #query(BiFunction) 列表自定义高阶查询 <code>selectList(BiFunction)</code>
+ * @see #query(Page) 分页自定义高阶查询 <code>selectPage(BiFunction)</code>
+ * @see #find(CurdEntity, org.springframework.data.domain.Sort, boolean)  私有落地 <code>find(CurdEntity, Sort, boolean)</code>
+ * @see #repository 还实现不了？<code>repository</code> 给你，你自己来
  */
 @Slf4j
 public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> extends RootService<E> {
@@ -80,111 +90,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private CurdConfig curdConfig;
 
     /**
-     * 保存 CSV 数据
-     *
-     * @param exportFile 导出文件
-     * @param valueList  数据列表
-     */
-    private static void saveCsvListToFile(@NotNull ExportHelper.ExportFile exportFile, List<String> valueList) {
-        String rowString = String.join(CollectionUtil.CSV_ROW_DELIMITER, valueList);
-        // 写入文件
-        FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), rowString + CollectionUtil.CSV_ROW_DELIMITER, StandardOpenOption.APPEND);
-    }
-
-    /**
-     * 创建导出任务
-     *
-     * @param queryPageRequest 请求查询的分页参数
-     * @return 导出任务 ID
-     */
-    public final String createExportTask(@Nullable QueryPageRequest<E> queryPageRequest) {
-        final QueryPageRequest<E> finalQueryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
-        String traceId = TraceUtil.getTraceId();
-        return exportHelper.createExportTask(() -> {
-            TraceUtil.setTraceId(traceId);
-            ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
-            // 获取导出字段列表
-            List<Field> fieldList = CollectionUtil.getExportFieldList(getEntityClass());
-            // 获取一行用作于表头
-            List<String> rowList = CollectionUtil.getCsvHeaderList(fieldList);
-            String headerString = String.join(CollectionUtil.CSV_COLUMN_DELIMITER, rowList);
-            List<String> header = new ArrayList<>();
-            header.add(headerString);
-            // 保存表头到 CSV 文件
-            saveCsvListToFile(exportFile, header);
-            // 查询数据并保存到导出文件
-            queryPageToSaveExportFile(finalQueryPageRequest, fieldList, exportFile);
-            return exportFile.getRelativeFile();
-        });
-    }
-
-    /**
-     * 分页查询导出数据
-     *
-     * @param queryPageRequest 查询对象
-     */
-    private void queryPageToSaveExportFile(QueryPageRequest<E> queryPageRequest, List<Field> fieldList, ExportHelper.ExportFile exportFile) {
-        queryPageRequest = beforeExportQuery(queryPageRequest);
-        QueryPageResponse<E> page = getPage(queryPageRequest);
-        log.info("导出查询第 {} 页，本页 {} 条", page.getPage().getPageNum(), page.getList().size());
-        // 当前页查到的数据列表
-        List<E> list = page.getList();
-        list = afterExportQuery(list);
-
-        // 获取 CSV 值列表
-        List<String> valuelist = CollectionUtil.getCsvValueList(list, fieldList);
-
-        // 保存 CSV 数据
-        saveCsvListToFile(exportFile, valuelist);
-
-        if (page.getPage().getPageNum() < page.getPageCount()) {
-            // 继续分页
-            queryPageRequest.getPage().setPageNum(page.getPage().getPageNum() + 1);
-            queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
-        }
-    }
-
-    /**
-     * 导出查询后置方法
-     *
-     * @param exportList 导出的数据列表
-     * @return 处理后的数据列表
-     */
-    protected List<E> afterExportQuery(@NotNull List<E> exportList) {
-        return exportList;
-    }
-
-    /**
-     * 导出查询前置方法
-     *
-     * @param queryPageRequest 查询请求
-     * @return 处理后的查询请求
-     */
-    protected QueryPageRequest<E> beforeExportQuery(QueryPageRequest<E> queryPageRequest) {
-        return queryPageRequest;
-    }
-
-    /**
-     * 添加前置方法
-     *
-     * @param source 原始实体
-     * @return 处理后的实体
-     */
-    protected @NotNull E beforeAdd(@NotNull E source) {
-        return source;
-    }
-
-    /**
-     * 添加并获取
-     *
-     * @param source 原始实体
-     * @return 添加后的实体
-     */
-    public final @NotNull E addAndGet(@NotNull E source) {
-        return get(add(source));
-    }
-
-    /**
      * 添加一条数据 {@code 触发前后置}
      *
      * @param source 原始实体
@@ -213,22 +118,44 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 添加后置方法
+     * 添加到数据库 {@code 不触发前后置}
      *
-     * @param id     主键 ID
      * @param source 原始实体
+     * @return 添加的主键
+     * @see #add(CurdEntity) 触发前后置的添加方法
      */
-    protected void afterAdd(long id, @NotNull E source) {
+    public final long addToDatabase(@NotNull E source) {
+        PARAM_MISSING.whenNotNull(source.getId(), String.format("添加失败，请不要传入%s的ID!", getEntityDescription()));
+        return saveToDatabase(source, false);
     }
 
     /**
-     * 修改前置方法
+     * 添加并获取
      *
      * @param source 原始实体
-     * @return 处理后的实体
+     * @return 添加后的实体
      */
-    protected @NotNull E beforeUpdate(@NotNull E source) {
-        return source;
+    public final @NotNull E addAndGet(@NotNull E source) {
+        return get(add(source));
+    }
+
+    /**
+     * 删除指定的数据
+     *
+     * @param id 主键
+     * @see #beforeDelete(E)
+     * @see #afterDelete(long)
+     */
+    public final void delete(long id) {
+        E entity = get(id);
+        beforeDelete(entity);
+        if (isSoftDelete()) {
+            updateToDatabase(getEntityInstance(id).setIsDisabled(true));
+            TaskUtil.run(() -> afterDelete(id));
+            return;
+        }
+        repository.deleteById(id);
+        TaskUtil.run(() -> afterDelete(id));
     }
 
     /**
@@ -281,84 +208,25 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 加锁获取指定 ID 的数据用户更新
+     * 更新到数据库 {@code 不触发前后置}
      *
-     * @param id 主键 ID
-     * @return 加锁后的数据
-     * @see #updateWithLock(long, Consumer)
+     * @param source 原始实体
+     * @see #update(CurdEntity) 触发前后置的修改方法
      */
-    public final @NotNull E getForUpdate(long id) {
-        entityManager.clear();
-        E forUpdate = repository.getForUpdateById(id);
-        DATA_NOT_FOUND.whenNull(forUpdate, String.format("没有查询到ID为%s的%s", id, getEntityDescription()));
-        return forUpdate;
+    public final void updateToDatabase(@NotNull E source) {
+        updateToDatabase(source, false);
     }
 
     /**
-     * 修改后置方法
+     * 更新到数据库 {@code 不触发前后置}
      *
-     * <p>
-     * 请不要在重写此方法后再次调用 {@link #update(E)} 以 {@code 避免循环调用}
-     * </p>
-     * <p>
-     * 如需再次保存，请调用 {@link #updateToDatabase(E)}
-     * </p>
-     *
-     * @param id     更新的 ID
-     * @param source 更新前的数据
+     * @param source   原始实体
+     * @param withNull 是否更新空值
      */
-    protected void afterUpdate(long id, @NotNull E source) {
-    }
-
-    /**
-     * 保存后置方法
-     *
-     * @param id     主键 ID
-     * @param source 保存前的原数据
-     * @apiNote 添加或修改后最后触发
-     */
-    @SuppressWarnings("unused")
-    protected void afterSaved(long id, @NotNull E source) {
-    }
-
-    /**
-     * 禁用前置方法
-     *
-     * @param entity 禁用的数据
-     */
-    protected void beforeDisable(@NotNull E entity) {
-    }
-
-    /**
-     * 禁用指定的数据
-     *
-     * @param id 主键 ID
-     * @see #beforeDisable(E)
-     * @see #afterDisable(long)
-     */
-    public final void disable(long id) {
-        E entity = get(id);
-        beforeDisable(entity);
-        updateToDatabase(getEntityInstance(id).setIsDisabled(true));
-        TaskUtil.run(() -> afterDisable(id));
-    }
-
-    /**
-     * 禁用后置方法
-     *
-     * @param id 主键 ID
-     */
-    @SuppressWarnings("unused")
-    protected void afterDisable(long id) {
-    }
-
-    /**
-     * 启用前置方法
-     *
-     * @param entity 启用的数据
-     */
-    @SuppressWarnings("unused")
-    protected void beforeEnable(@NotNull E entity) {
+    public final void updateToDatabase(@NotNull E source, boolean withNull) {
+        SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
+        PARAM_MISSING.whenNull(source.getId(), String.format("修改失败，请传入%s的ID!", getEntityDescription()));
+        saveToDatabase(source, withNull);
     }
 
     /**
@@ -376,66 +244,17 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 启用后置方法
+     * 禁用指定的数据
      *
      * @param id 主键 ID
+     * @see #beforeDisable(E)
+     * @see #afterDisable(long)
      */
-    @SuppressWarnings("unused")
-    protected void afterEnable(long id) {
-    }
-
-    /**
-     * 删除前置方法
-     *
-     * @param entity 删除的数据
-     */
-    protected void beforeDelete(@NotNull E entity) {
-    }
-
-    /**
-     * 删除指定的数据
-     *
-     * @param id 主键
-     * @see #beforeDelete(E)
-     * @see #afterDelete(long)
-     */
-    public final void delete(long id) {
+    public final void disable(long id) {
         E entity = get(id);
-        beforeDelete(entity);
-        if (isSoftDelete()) {
-            updateToDatabase(getEntityInstance(id).setIsDisabled(true));
-            TaskUtil.run(() -> afterDelete(id));
-            return;
-        }
-        repository.deleteById(id);
-        TaskUtil.run(() -> afterDelete(id));
-    }
-
-    /**
-     * 是否是软删除
-     */
-    public boolean isSoftDelete() {
-        return curdConfig.getDisableAsDelete();
-    }
-
-    /**
-     * 删除后置方法
-     *
-     * @param id 主键
-     */
-    @SuppressWarnings("unused")
-    protected void afterDelete(long id) {
-    }
-
-    /**
-     * 不分页查询前置方法
-     *
-     * @param sourceRequestData 查询条件
-     * @return 处理后的查询条件
-     * @see #getList(QueryListRequest)
-     */
-    protected @NotNull QueryListRequest<E> beforeGetList(@NotNull QueryListRequest<E> sourceRequestData) {
-        return sourceRequestData;
+        beforeDisable(entity);
+        updateToDatabase(getEntityInstance(id).setIsDisabled(true));
+        TaskUtil.run(() -> afterDisable(id));
     }
 
     /**
@@ -449,8 +268,57 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     public final @NotNull List<E> getList(QueryListRequest<E> queryListRequest) {
         queryListRequest = requireQueryRequestNonNullElse(queryListRequest, new QueryListRequest<>());
         queryListRequest = beforeGetList(queryListRequest);
-        List<E> list = query(queryListRequest);
+        List<E> list = query(queryListRequest.getFilter(), queryListRequest.getSort());
         return afterGetList(list);
+    }
+
+    /**
+     * 分页查询数据
+     *
+     * @param queryPageRequest 请求的分页对象
+     * @return 分页查询列表
+     * @see #beforeGetPage(QueryPageRequest)
+     * @see #afterGetPage(QueryPageResponse)
+     */
+    public final @NotNull QueryPageResponse<E> getPage(@Nullable QueryPageRequest<E> queryPageRequest) {
+        return getPage(queryPageRequest, (list) -> list);
+    }
+
+    /**
+     * 分页查询数据
+     *
+     * @param queryPageRequest 请求的分页对象
+     * @param after            查询后的方法
+     * @return 分页查询列表
+     * @see #beforeGetPage(QueryPageRequest)
+     * @see #afterGetPage(QueryPageResponse)
+     */
+    public final @NotNull <RES extends RootModel<RES>> QueryPageResponse<RES> getPage(
+            @Nullable QueryPageRequest<E> queryPageRequest,
+            @NotNull Function<List<E>, List<RES>> after
+    ) {
+        queryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
+        queryPageRequest = beforeGetPage(queryPageRequest);
+        org.springframework.data.domain.Page<E> pageData = repository.findAll(
+                createSpecification(queryPageRequest.getFilter(), false),
+                createPageable(queryPageRequest.getPage(),
+                        createSort(queryPageRequest.getSort())
+                )
+        );
+
+        // 组装分页数据
+        QueryPageResponse<E> queryPageResponse = QueryPageResponse.newInstance(pageData);
+        queryPageResponse.setSort(queryPageRequest.getSort());
+        queryPageResponse = afterGetPage(queryPageResponse);
+
+        QueryPageResponse<RES> response = new QueryPageResponse<>();
+        response.setPage(queryPageResponse.getPage())
+                .setTotal(queryPageResponse.getTotal())
+                .setPageCount(queryPageResponse.getPageCount())
+                .setList(after.apply(queryPageResponse.getList()))
+        ;
+        response.setSort(queryPageResponse.getSort());
+        return response;
     }
 
     /**
@@ -471,7 +339,333 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return List 数据
      */
     public final @NotNull List<E> filter(@Nullable E filter, @Nullable Sort sort) {
-        return find(filter, sort, true);
+        return find(filter, createSort(sort), true);
+    }
+
+    /**
+     * 根据 ID 查询对应的实体
+     *
+     * @param id 主键
+     * @return 实体
+     * @see #getMaybeNull(long)
+     * @see #getWithEnable(long)
+     */
+    public final @NotNull E get(long id) {
+        return afterGet(getById(id));
+    }
+
+    /**
+     * 根据主键查询对应的实体
+     *
+     * @param id 主键
+     * @return 实体
+     * @apiNote 查不到返回 {@code null}，不抛异常
+     */
+    public final @Nullable E getMaybeNull(long id) {
+        try {
+            return get(id);
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+
+    /**
+     * 加锁获取指定 ID 的数据用户更新
+     *
+     * @param id 主键 ID
+     * @return 加锁后的数据
+     * @see #updateWithLock(long, Consumer)
+     */
+    public final @NotNull E getForUpdate(long id) {
+        entityManager.clear();
+        E forUpdate = repository.getForUpdateById(id);
+        DATA_NOT_FOUND.whenNull(forUpdate, String.format("没有查询到ID为%s的%s", id, getEntityDescription()));
+        return forUpdate;
+    }
+
+    /**
+     * 根据 ID 查询正常启用的实体
+     *
+     * @param id 主键
+     * @return 实体
+     * @see #get(long)
+     * @see #getMaybeNull(long)
+     */
+    public final @NotNull E getWithEnable(long id) {
+        E entity = get(id);
+        FORBIDDEN_DISABLED.when(
+                entity.getIsDisabled(),
+                String.format(FORBIDDEN_DISABLED.getMessage(), id, getEntityDescription())
+        );
+        return entity;
+    }
+
+    /**
+     * 自定义计算查询
+     *
+     * @param fieldName   字段名称
+     * @param function    自定义计算
+     * @param resultClass 结果类型
+     * @param <FIELD>     结果类型
+     * @return 计算结果
+     */
+    @SuppressWarnings("unused")
+    public final <FIELD, RESULT> RESULT selectAndCalculate(
+            @NotNull BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
+            String fieldName,
+            @NotNull BiFunction<CriteriaBuilder, Path<FIELD>, Selection<? extends RESULT>> function,
+            Class<RESULT> resultClass,
+            Class<FIELD> fieldClass
+    ) {
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<RESULT> query = builder.createQuery(resultClass);
+        Root<E> root = query.from(getEntityClass());
+        Path<FIELD> field = root.get(fieldName);
+        query.select(function.apply(builder, field)).where(predicate.apply(root, builder));
+        TypedQuery<RESULT> typedQuery = entityManager.createQuery(query);
+        return typedQuery.getSingleResult();
+    }
+
+    /**
+     * 模糊匹配查询数据
+     *
+     * @param filter 过滤条件
+     * @return 查询结果数据列表
+     */
+    public final @NotNull List<E> query(@Nullable E filter) {
+        return query(filter, new Sort());
+    }
+
+    /**
+     * 模糊匹配查询数据
+     *
+     * @param filter 过滤条件
+     * @param sort   排序
+     * @return 查询结果数据列表
+     */
+    public final @NotNull List<E> query(@Nullable E filter, @Nullable Sort sort) {
+        return query(filter, createSort(sort));
+    }
+
+    /**
+     * 模糊匹配查询数据
+     *
+     * @param filter 过滤条件
+     * @param sort   排序
+     * @return 查询结果数据列表
+     */
+    public final @NotNull List<E> query(@Nullable E filter, @NotNull org.springframework.data.domain.Sort sort) {
+        return find(filter, sort, false);
+    }
+
+    /**
+     * 查询数据
+     *
+     * @param predicate 查询条件
+     * @return 查询结果数据列表
+     */
+    @SuppressWarnings("unused")
+    public final @NotNull List<E> query(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
+        return query(predicate, new Sort());
+    }
+
+    /**
+     * 查询数据
+     *
+     * @param predicate 查询条件
+     * @param sort      排序
+     * @return 查询结果数据列表
+     */
+    public final @NotNull List<E> query(
+            BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
+            @Nullable Sort sort
+    ) {
+        return query(predicate, createSort(sort));
+    }
+
+    /**
+     * 查询数据
+     *
+     * @param predicate 查询条件
+     * @param sort      排序
+     * @return 查询结果数据列表
+     */
+    public final @NotNull List<E> query(
+            BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
+            org.springframework.data.domain.Sort sort
+    ) {
+        return repository.findAll(
+                (root, criteriaQuery, builder) -> predicate.apply(root, builder),
+                sort
+        );
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param page 分页
+     * @return 查询结果数据分页对象
+     */
+    @SuppressWarnings("unused")
+    public final @NotNull PageData<E> query(
+            @NotNull Page page
+    ) {
+        return query(page, getEntityInstance());
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param page   分页
+     * @param filter 查询条件
+     * @return 查询结果数据分页对象
+     */
+    public final @NotNull PageData<E> query(
+            @NotNull Page page,
+            @NotNull E filter
+    ) {
+        return query(page, filter, createSort(null));
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param page      分页
+     * @param predicate 查询条件
+     * @return 查询结果数据分页对象
+     */
+    public final @NotNull PageData<E> query(
+            @NotNull Page page,
+            BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate
+    ) {
+        return query(page, predicate, createSort(null));
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param page   分页
+     * @param filter 查询条件
+     * @param sort   排序
+     * @return 查询结果数据分页对象
+     */
+    @SuppressWarnings("unused")
+    public final @NotNull PageData<E> query(
+            @NotNull Page page,
+            @NotNull E filter,
+            @Nullable Sort sort
+    ) {
+        return query(page, filter, createSort(sort));
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param page      分页
+     * @param predicate 查询条件
+     * @param sort      排序
+     * @return 查询结果数据分页对象
+     */
+    @SuppressWarnings("unused")
+    public final @NotNull PageData<E> query(
+            @NotNull Page page,
+            BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
+            @Nullable Sort sort
+    ) {
+        return query(page, predicate, createSort(sort));
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param page   分页
+     * @param filter 查询条件
+     * @param sort   排序
+     * @return 查询结果数据分页对象
+     */
+    @SuppressWarnings("unused")
+    public final @NotNull PageData<E> query(
+            @NotNull Page page,
+            @NotNull E filter,
+            @NotNull org.springframework.data.domain.Sort sort
+    ) {
+        org.springframework.data.domain.Page<E> pageData = repository.findAll(
+                (root, criteriaQuery, criteriaBuilder) ->
+                        createPredicate(
+                                root,
+                                criteriaQuery,
+                                criteriaBuilder,
+                                filter,
+                                false,
+                                null,
+                                null
+                        ),
+                createPageable(page, sort)
+        );
+        return QueryPageResponse.newInstance(pageData);
+    }
+
+    /**
+     * 查询分页数据
+     *
+     * @param page      分页
+     * @param predicate 查询条件
+     * @param sort      排序
+     * @return 查询结果数据分页对象
+     */
+    @SuppressWarnings("unused")
+    public final @NotNull PageData<E> query(
+            @NotNull Page page,
+            @Nullable BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
+            @NotNull org.springframework.data.domain.Sort sort
+    ) {
+        org.springframework.data.domain.Page<E> pageData = repository.findAll(
+                (root, criteriaQuery, builder) -> {
+                    if (Objects.isNull(predicate)) {
+                        return null;
+                    }
+                    return predicate.apply(root, builder);
+                },
+                createPageable(page, sort)
+        );
+        return QueryPageResponse.newInstance(pageData);
+    }
+
+    /**
+     * 创建导出任务
+     *
+     * @param queryPageRequest 请求查询的分页参数
+     * @return 导出任务 ID
+     */
+    public final String createExportTask(@Nullable QueryPageRequest<E> queryPageRequest) {
+        final QueryPageRequest<E> finalQueryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
+        String traceId = TraceUtil.getTraceId();
+        return exportHelper.createExportTask(() -> {
+            TraceUtil.setTraceId(traceId);
+            ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
+            // 获取导出字段列表
+            List<Field> fieldList = CollectionUtil.getExportFieldList(getEntityClass());
+            // 获取一行用作于表头
+            List<String> rowList = CollectionUtil.getCsvHeaderList(fieldList);
+            String headerString = String.join(CollectionUtil.CSV_COLUMN_DELIMITER, rowList);
+            List<String> header = new ArrayList<>();
+            header.add(headerString);
+            // 保存表头到 CSV 文件
+            saveCsvListToFile(exportFile, header);
+            // 查询数据并保存到导出文件
+            queryPageToSaveExportFile(finalQueryPageRequest, fieldList, exportFile);
+            return exportFile.getRelativeFile();
+        });
+    }
+
+    /**
+     * 详情查询后置方法
+     *
+     * @param entity 查到的数据
+     * @return 处理后的数据
+     */
+    protected E afterGet(@NotNull E entity) {
+        return entity;
     }
 
     /**
@@ -532,326 +726,160 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 根据 ID 查询对应的实体
+     * 导出查询后置方法
      *
-     * @param id 主键
-     * @return 实体
-     * @see #getMaybeNull(long)
-     * @see #getWithEnable(long)
+     * @param exportList 导出的数据列表
+     * @return 处理后的数据列表
      */
-    public final @NotNull E get(long id) {
-        return afterGet(getById(id));
+    protected List<E> afterExportQuery(@NotNull List<E> exportList) {
+        return exportList;
     }
 
     /**
-     * 自定义计算查询
+     * 导出查询前置方法
      *
-     * @param fieldName   字段名称
-     * @param function    自定义计算
-     * @param resultClass 结果类型
-     * @param <FIELD>     结果类型
-     * @return 计算结果
+     * @param queryPageRequest 查询请求
+     * @return 处理后的查询请求
      */
-    @SuppressWarnings("unused")
-    public final <FIELD, RESULT> RESULT selectAndCalculate(
-            @NotNull BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
-            String fieldName,
-            @NotNull BiFunction<CriteriaBuilder, Path<FIELD>, Selection<? extends RESULT>> function,
-            Class<RESULT> resultClass,
-            Class<FIELD> fieldClass
-    ) {
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<RESULT> query = builder.createQuery(resultClass);
-        Root<E> root = query.from(getEntityClass());
-        Path<FIELD> field = root.get(fieldName);
-        query.select(function.apply(builder, field)).where(predicate.apply(root, builder));
-        TypedQuery<RESULT> typedQuery = entityManager.createQuery(query);
-        return typedQuery.getSingleResult();
+    protected QueryPageRequest<E> beforeExportQuery(QueryPageRequest<E> queryPageRequest) {
+        return queryPageRequest;
     }
 
     /**
-     * 查询数据
-     *
-     * @param predicate 查询条件
-     * @return 查询结果数据列表
-     */
-    @SuppressWarnings("unused")
-    public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
-        return selectList(predicate, new Sort());
-    }
-
-    /**
-     * 查询数据
-     *
-     * @param predicate 查询条件
-     * @param sort      排序
-     * @return 查询结果数据列表
-     */
-    public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
-        return selectList(predicate, createSort(sort));
-    }
-
-    /**
-     * 查询数据
-     *
-     * @param predicate 查询条件
-     * @param sort      排序
-     * @return 查询结果数据列表
-     * @see #getList(QueryListRequest) 通用列表查询 <code>getList(QueryListRequest)</code>
-     * @see #getPage(QueryPageRequest) 通用分页查询 <code>getPage(QueryPageRequest)</code>
-     * @see #filter(CurdEntity) 实体强匹配列表搜索(无排序) <code>filter(CurdEntity)</code>
-     * @see #query(CurdEntity) 实体模糊匹配列表搜索(无排序) <code>query(CurdEntity)</code>
-     * @see #query(QueryListRequest) 实体模糊匹配列表搜索(有排序) <code>query(QueryListRequest)</code>
-     * @see #selectList(BiFunction) 列表自定义高阶查询 <code>selectList(BiFunction)</code>
-     * @see #selectPage(BiFunction) 分页自定义高阶查询 <code>selectPage(BiFunction)</code>
-     * @see #find(CurdEntity, Sort, boolean) 私有落地 <code>find(CurdEntity, Sort, boolean)</code>
-     * @see #repository 还实现不了？<code>repository</code> 给你，你自己来
-     */
-    public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, org.springframework.data.domain.Sort sort) {
-        return repository.findAll(
-                (root, criteriaQuery, builder) -> predicate.apply(root, builder),
-                sort
-        );
-    }
-
-    /**
-     * 获取非空的分页对象
-     *
-     * @param page 分页对象
-     * @return 分页对象
-     */
-    private @NotNull Page requirePageNonNull(@Nullable Page page) {
-        page = Objects.requireNonNullElse(page, new Page());
-        if (Objects.isNull(page.getPageSize()) || page.getPageSize() <= 0) {
-            page.setPageSize(curdConfig.getDefaultPageSize());
-        }
-        if (Objects.isNull(page.getPageNum()) || page.getPageNum() <= 0) {
-            page.setPageNum(1);
-        }
-        return page;
-    }
-
-    /**
-     * 获取非空的排序对象
-     *
-     * @param sort 排序对象
-     * @return 排序对象
-     */
-    private @NotNull Sort requireSortNonNull(@Nullable Sort sort) {
-        sort = Objects.requireNonNullElse(sort, new Sort());
-        if (!StringUtils.hasText(sort.getField())) {
-            sort.setField(curdConfig.getDefaultSortField());
-        }
-        if (!Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
-            sort.setDirection(Sort.DESC);
-        } else {
-            sort.setDirection(Sort.ASC);
-        }
-        return sort;
-    }
-
-    /**
-     * 查询分页数据
-     *
-     * @param predicate 查询条件
-     * @return 查询结果数据分页对象
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
-     */
-    @SuppressWarnings("unused")
-    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
-        return selectPage(predicate, null, null);
-    }
-
-    /**
-     * 查询分页数据
-     *
-     * @param predicate 查询条件
-     * @param sort      排序
-     * @return 查询结果数据分页对象
-     */
-    @SuppressWarnings("unused")
-    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
-        return selectPage(predicate, null, sort);
-    }
-
-    /**
-     * 查询分页数据
-     *
-     * @param predicate 查询条件
-     * @param page      分页
-     * @return 查询结果数据分页对象
-     */
-    @SuppressWarnings("unused")
-    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page) {
-        return selectPage(predicate, page, null);
-    }
-
-    /**
-     * 查询分页数据
-     *
-     * @param predicate 查询条件
-     * @param page      分页
-     * @param sort      排序
-     * @return 查询结果数据分页对象
-     */
-    @SuppressWarnings("unused")
-    public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page, @Nullable Sort sort) {
-        QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
-        queryPageRequest.setSort(requireSortNonNull(sort));
-        queryPageRequest.setFilter(requireFilterNonNull(queryPageRequest.getFilter()));
-        org.springframework.data.domain.Page<E> pageData = repository.findAll(
-                (root, criteriaQuery, builder) -> predicate.apply(root, builder),
-                createPageable(queryPageRequest)
-        );
-        // 组装分页数据
-        QueryPageResponse<E> queryPageResponse = QueryPageResponse.newInstance(pageData);
-        queryPageResponse.setSort(queryPageRequest.getSort());
-        return queryPageResponse;
-    }
-
-    /**
-     * 根据 ID 查询正常启用的实体
-     *
-     * @param id 主键
-     * @return 实体
-     * @see #get(long)
-     * @see #getMaybeNull(long)
-     */
-    public final @NotNull E getWithEnable(long id) {
-        E entity = get(id);
-        FORBIDDEN_DISABLED.when(
-                entity.getIsDisabled(),
-                String.format(FORBIDDEN_DISABLED.getMessage(), id, getEntityDescription())
-        );
-        return entity;
-    }
-
-    /**
-     * 详情查询后置方法
-     *
-     * @param entity 查到的数据
-     * @return 处理后的数据
-     */
-    protected E afterGet(@NotNull E entity) {
-        return entity;
-    }
-
-    /**
-     * 分页查询数据
-     *
-     * @param queryPageRequest 请求的 {@code http} 对象
-     * @return 分页查询列表
-     * @see #beforeGetPage(QueryPageRequest)
-     * @see #afterGetPage(QueryPageResponse)
-     * @see #getList(QueryListRequest) 通用列表查询 <code>getList(QueryListRequest)</code>
-     * @see #getPage(QueryPageRequest) 通用分页查询 <code>getPage(QueryPageRequest)</code>
-     * @see #filter(CurdEntity) 实体强匹配列表搜索(无排序) <code>filter(CurdEntity)</code>
-     * @see #query(CurdEntity) 实体模糊匹配列表搜索(无排序) <code>query(CurdEntity)</code>
-     * @see #query(QueryListRequest) 实体模糊匹配列表搜索(有排序) <code>query(QueryListRequest)</code>
-     * @see #selectList(BiFunction) 列表自定义高阶查询 <code>selectList(BiFunction)</code>
-     * @see #selectPage(BiFunction) 分页自定义高阶查询 <code>selectPage(BiFunction)</code>
-     * @see #find(CurdEntity, Sort, boolean) 私有落地 <code>find(CurdEntity, Sort, boolean)</code>
-     * @see #repository 还实现不了？<code>repository</code> 给你，你自己来
-     */
-    public final @NotNull <RES extends RootModel<RES>> QueryPageResponse<RES> getPage(
-            @Nullable QueryPageRequest<E> queryPageRequest,
-            @Nullable Function<QueryPageRequest<E>, QueryPageRequest<E>> before,
-            @NotNull Function<List<E>, List<RES>> after
-    ) {
-        queryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
-        queryPageRequest = beforeGetPage(queryPageRequest);
-        if (Objects.nonNull(before)) {
-            queryPageRequest = before.apply(queryPageRequest);
-        }
-        org.springframework.data.domain.Page<E> pageData = repository.findAll(
-                createSpecification(queryPageRequest.getFilter(), false), createPageable(queryPageRequest)
-        );
-
-        // 组装分页数据
-        QueryPageResponse<E> queryPageResponse = QueryPageResponse.newInstance(pageData);
-        queryPageResponse.setSort(queryPageRequest.getSort());
-        queryPageResponse = afterGetPage(queryPageResponse);
-
-        QueryPageResponse<RES> response = new QueryPageResponse<>();
-        response.setPage(queryPageResponse.getPage())
-                .setTotal(queryPageResponse.getTotal())
-                .setSort(queryPageResponse.getSort())
-                .setPageCount(queryPageResponse.getPageCount())
-                .setList(after.apply(queryPageResponse.getList()))
-        ;
-        return response;
-    }
-
-    /**
-     * 分页查询数据
-     *
-     * @param queryPageRequest 请求的 {@code http} 对象
-     * @return 分页查询列表
-     * @see #beforeGetPage(QueryPageRequest)
-     * @see #afterGetPage(QueryPageResponse)
-     */
-    public final @NotNull QueryPageResponse<E> getPage(@Nullable QueryPageRequest<E> queryPageRequest, @Nullable Function<QueryPageRequest<E>, QueryPageRequest<E>> beforeSelectPage) {
-        return getPage(queryPageRequest, beforeSelectPage, (list) -> list);
-    }
-
-    /**
-     * 分页查询数据
-     *
-     * @param queryPageRequest 请求的 {@code http} 对象
-     * @return 分页查询列表
-     * @see #beforeGetPage(QueryPageRequest)
-     * @see #afterGetPage(QueryPageResponse)
-     */
-    public final @NotNull QueryPageResponse<E> getPage(@Nullable QueryPageRequest<E> queryPageRequest) {
-        return getPage(queryPageRequest, null);
-    }
-
-    /**
-     * 添加到数据库 {@code 不触发前后置}
+     * 添加前置方法
      *
      * @param source 原始实体
-     * @return 添加的主键
-     * @see #add(CurdEntity) 触发前后置的添加方法
+     * @return 处理后的实体
      */
-    public final long addToDatabase(@NotNull E source) {
-        PARAM_MISSING.whenNotNull(source.getId(), String.format("添加失败，请不要传入%s的ID!", getEntityDescription()));
-        return saveToDatabase(source, false);
+    protected @NotNull E beforeAdd(@NotNull E source) {
+        return source;
     }
 
     /**
-     * 更新到数据库 {@code 不触发前后置}
+     * 添加后置方法
+     *
+     * @param id     主键 ID
+     * @param source 原始实体
+     */
+    protected void afterAdd(long id, @NotNull E source) {
+    }
+
+    /**
+     * 修改前置方法
      *
      * @param source 原始实体
-     * @see #update(CurdEntity) 触发前后置的修改方法
+     * @return 处理后的实体
      */
-    public final void updateToDatabase(@NotNull E source) {
-        updateToDatabase(source, false);
+    protected @NotNull E beforeUpdate(@NotNull E source) {
+        return source;
     }
 
     /**
-     * 更新到数据库 {@code 不触发前后置}
+     * 修改后置方法
      *
-     * @param source   原始实体
-     * @param withNull 是否更新空值
+     * <p>
+     * 请不要在重写此方法后再次调用 {@link #update(E)} 以 {@code 避免循环调用}
+     * </p>
+     * <p>
+     * 如需再次保存，请调用 {@link #updateToDatabase(E)}
+     * </p>
+     *
+     * @param id     更新的 ID
+     * @param source 更新前的数据
      */
-    public final void updateToDatabase(@NotNull E source, boolean withNull) {
-        SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
-        PARAM_MISSING.whenNull(source.getId(), String.format("修改失败，请传入%s的ID!", getEntityDescription()));
-        saveToDatabase(source, withNull);
+    protected void afterUpdate(long id, @NotNull E source) {
     }
 
     /**
-     * 获取实体描述
+     * 保存后置方法
      *
-     * @return 实体描述
+     * @param id     主键 ID
+     * @param source 保存前的原数据
+     * @apiNote 添加或修改后最后触发
      */
-    private String getEntityDescription() {
-        return ReflectUtil.getDescription(getEntityClass());
+    @SuppressWarnings("unused")
+    protected void afterSaved(long id, @NotNull E source) {
+    }
+
+    /**
+     * 禁用前置方法
+     *
+     * @param entity 禁用的数据
+     */
+    protected void beforeDisable(@NotNull E entity) {
+    }
+
+    /**
+     * 禁用后置方法
+     *
+     * @param id 主键 ID
+     */
+    @SuppressWarnings("unused")
+    protected void afterDisable(long id) {
+    }
+
+    /**
+     * 启用前置方法
+     *
+     * @param entity 启用的数据
+     */
+    @SuppressWarnings("unused")
+    protected void beforeEnable(@NotNull E entity) {
+    }
+
+    /**
+     * 启用后置方法
+     *
+     * @param id 主键 ID
+     */
+    @SuppressWarnings("unused")
+    protected void afterEnable(long id) {
+    }
+
+    /**
+     * 删除前置方法
+     *
+     * @param entity 删除的数据
+     */
+    protected void beforeDelete(@NotNull E entity) {
+    }
+
+    /**
+     * 是否是软删除
+     */
+    protected boolean isSoftDelete() {
+        return curdConfig.getDisableAsDelete();
+    }
+
+    /**
+     * 删除后置方法
+     *
+     * @param id 主键
+     */
+    @SuppressWarnings("unused")
+    protected void afterDelete(long id) {
+    }
+
+    /**
+     * 不分页查询前置方法
+     *
+     * @param sourceRequestData 查询条件
+     * @return 处理后的查询条件
+     * @see #getList(QueryListRequest)
+     */
+    protected @NotNull QueryListRequest<E> beforeGetList(@NotNull QueryListRequest<E> sourceRequestData) {
+        return sourceRequestData;
+    }
+
+    /**
+     * 在创建查询条件前调用
+     *
+     * @param filter 过滤器
+     * @return 处理后的过滤器
+     * @apiNote 此处理不影响 {@link #addSearchPredicate(Root, CriteriaBuilder, CurdEntity)} 的 {@code search} 参数
+     */
+    protected E beforeCreatePredicate(@NotNull E filter) {
+        return filter;
     }
 
     /**
@@ -875,52 +903,22 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 模糊匹配查询数据
+     * 新建一个实体
      *
-     * @param queryListRequest 查询请求
-     * @return 查询结果数据列表
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
+     * @return 实体
      */
-    public final @NotNull List<E> query(@NotNull QueryListRequest<E> queryListRequest) {
-        return find(queryListRequest.getFilter(), queryListRequest.getSort(), false);
+    protected final @NotNull E getEntityInstance() {
+        return ReflectUtil.newInstance(getEntityClass());
     }
 
     /**
-     * 模糊匹配查询数据
+     * 新建一个实体
      *
-     * @param filter 过滤条件
-     * @return 查询结果数据列表
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
+     * @param id 实体主键 ID
+     * @return 实体
      */
-    public final @NotNull List<E> query(@Nullable E filter) {
-        return query(filter, null);
-    }
-
-    /**
-     * 模糊匹配查询数据
-     *
-     * @param filter 过滤条件
-     * @param sort   排序
-     * @return 查询结果数据列表
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
-     */
-    public final @NotNull List<E> query(@Nullable E filter, @Nullable Sort sort) {
-        return find(filter, sort, false);
+    protected final @NotNull E getEntityInstance(long id) {
+        return getEntityInstance().setId(id);
     }
 
     /**
@@ -930,20 +928,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param sort     排序
      * @param isEquals 是否全匹配
      * @return 查询结果数据列表
-     * @see #getList(QueryListRequest) 通用列表查询 <code>getList(QueryListRequest)</code>
-     * @see #getPage(QueryPageRequest) 通用分页查询 <code>getPage(QueryPageRequest)</code>
-     * @see #filter(CurdEntity) 实体强匹配列表搜索(无排序) <code>filter(CurdEntity)</code>
-     * @see #query(CurdEntity) 实体模糊匹配列表搜索(无排序) <code>query(CurdEntity)</code>
-     * @see #query(QueryListRequest) 实体模糊匹配列表搜索(有排序) <code>query(QueryListRequest)</code>
-     * @see #selectList(BiFunction) 列表自定义高阶查询 <code>selectList(BiFunction)</code>
-     * @see #selectPage(BiFunction) 分页自定义高阶查询 <code>selectPage(BiFunction)</code>
-     * @see #find(CurdEntity, Sort, boolean) 私有落地 <code>find(CurdEntity, Sort, boolean)</code>
-     * @see #repository 还实现不了？<code>repository</code> 给你，你自己来
      */
-    private @NotNull List<E> find(@Nullable E filter, @Nullable Sort sort, boolean isEquals) {
+    private @NotNull List<E> find(@Nullable E filter, @NotNull org.springframework.data.domain.Sort sort, boolean isEquals) {
         return repository.findAll(
                 createSpecification(filter, isEquals),
-                createSort(sort)
+                sort
         );
     }
 
@@ -996,21 +985,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             DATA_NOT_FOUND.when(entity.getIsDisabled(), String.format("ID为%s的%s已被删除", id, description));
         }
         return entity;
-    }
-
-    /**
-     * 根据主键查询对应的实体
-     *
-     * @param id 主键
-     * @return 实体
-     * @apiNote 查不到返回 {@code null}，不抛异常
-     */
-    public final @Nullable E getMaybeNull(long id) {
-        try {
-            return get(id);
-        } catch (Exception exception) {
-            return null;
-        }
     }
 
     /**
@@ -1120,25 +1094,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 新建一个实体
-     *
-     * @return 实体
-     */
-    protected @NotNull E getEntityInstance() {
-        return ReflectUtil.newInstance(getEntityClass());
-    }
-
-    /**
-     * 新建一个实体
-     *
-     * @param id 实体主键 ID
-     * @return 实体
-     */
-    protected @NotNull E getEntityInstance(long id) {
-        return getEntityInstance().setId(id);
-    }
-
-    /**
      * 获取忽略更新的字段名称列表
      *
      * @param source 来源对象
@@ -1200,14 +1155,17 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 创建分页对象
      *
-     * @param queryPageData 查询请求
+     * @param page 分页对象
      * @return Spring 分页对象
      */
-    private @NotNull Pageable createPageable(@NotNull QueryPageRequest<E> queryPageData) {
-        Page page = requirePageNonNull(queryPageData.getPage());
+    private @NotNull Pageable createPageable(
+            @Nullable Page page,
+            @NotNull org.springframework.data.domain.Sort sort
+    ) {
+        page = requirePageNonNull(page);
         int pageNumber = Math.max(0, page.getPageNum() - 1);
         int pageSize = Math.max(1, page.getPageSize());
-        return PageRequest.of(pageNumber, pageSize, createSort(queryPageData.getSort()));
+        return PageRequest.of(pageNumber, pageSize, sort);
     }
 
     /**
@@ -1328,36 +1286,58 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private @NotNull Specification<E> createSpecification(@Nullable E filter, boolean isEqual) {
         final E finalFilter = requireFilterNonNull(filter);
         return (root, criteriaQuery, criteriaBuilder) ->
-                createPredicate(root, criteriaQuery, criteriaBuilder, finalFilter, isEqual);
+                createPredicate(
+                        root,
+                        criteriaQuery,
+                        criteriaBuilder,
+                        finalFilter,
+                        isEqual,
+                        this::beforeCreatePredicate,
+                        (f, predicateList) -> {
+                            // 添加更多自定义查询条件
+                            predicateList.addAll(addSearchPredicate(root, criteriaBuilder, finalFilter));
+                            // 添加修改时间和创建时间的区间查询
+                            addCreateAndUpdateTimePredicate(root, criteriaBuilder, finalFilter, predicateList);
+                            if (isSoftDelete()) {
+                                // 过滤软删除的数据
+                                addPredicateNonNull(root, predicateList, CurdEntity.STRING_IS_DISABLED, criteriaBuilder::equal, false);
+                            }
+                        }
+                );
     }
 
     /**
-     * 创建 {@code Predicate}
+     * 创建查询的 {@code Predicate}
      *
-     * @param root          {@code model}
-     * @param criteriaQuery {@code query}
-     * @param builder       {@code builder}
-     * @param filter        过滤器实体
+     * @param root             {@code model}
+     * @param criteriaQuery    {@code query}
+     * @param builder          {@code builder}
+     * @param sourceFilter     过滤器实体
+     * @param isEqual          是否强匹配
+     * @param before           创建查询条件前对实体进行处理
+     * @param addMorePredicate 添加更多查询条件(原始条件，已有条件，处理后的条件)
      * @return 查询条件
      */
     private @Nullable Predicate createPredicate(
             @NotNull Root<E> root, CriteriaQuery<?> criteriaQuery,
-            @NotNull CriteriaBuilder builder, @NotNull E filter, boolean isEqual
+            @NotNull CriteriaBuilder builder,
+            @NotNull E sourceFilter,
+            boolean isEqual,
+            @Nullable Function<E, E> before,
+            @Nullable BiConsumer<E, List<Predicate>> addMorePredicate
+
     ) {
         if (Objects.isNull(criteriaQuery)) {
             return null;
         }
-        E lastFilter = beforeCreatePredicate(filter.copy());
+        E lastFilter = sourceFilter;
+        if (Objects.nonNull(before)) {
+            lastFilter = before.apply(sourceFilter.copy());
+        }
         List<Predicate> predicateList = getPredicateList(root, builder, lastFilter, isEqual);
-
-        // 添加更多自定义查询条件
-        predicateList.addAll(addSearchPredicate(root, builder, filter));
-
-        // 添加修改时间和创建时间的区间查询
-        addCreateAndUpdateTimePredicate(root, builder, filter, predicateList);
-        if (isSoftDelete()) {
-            // 过滤软删除的数据
-            addPredicateNonNull(root, predicateList, CurdEntity.STRING_IS_DISABLED, builder::equal, false);
+        if (Objects.nonNull(addMorePredicate)) {
+            // 需要添加自定义处理条件
+            addMorePredicate.accept(sourceFilter, predicateList);
         }
         Predicate[] predicates = new Predicate[predicateList.size()];
         criteriaQuery.where(builder.and(predicateList.toArray(predicates)));
@@ -1365,13 +1345,85 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 在创建查询条件前调用
+     * 保存 CSV 数据
      *
-     * @param filter 过滤器
-     * @return 处理后的过滤器
-     * @apiNote 此处理不影响 {@link #addSearchPredicate(Root, CriteriaBuilder, CurdEntity)} 的 {@code search} 参数
+     * @param exportFile 导出文件
+     * @param valueList  数据列表
      */
-    protected E beforeCreatePredicate(@NotNull E filter) {
-        return filter;
+    private void saveCsvListToFile(@NotNull ExportHelper.ExportFile exportFile, List<String> valueList) {
+        String rowString = String.join(CollectionUtil.CSV_ROW_DELIMITER, valueList);
+        // 写入文件
+        FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), rowString + CollectionUtil.CSV_ROW_DELIMITER, StandardOpenOption.APPEND);
+    }
+
+    /**
+     * 分页查询导出数据
+     *
+     * @param queryPageRequest 查询对象
+     */
+    private void queryPageToSaveExportFile(QueryPageRequest<E> queryPageRequest, List<Field> fieldList, ExportHelper.ExportFile exportFile) {
+        queryPageRequest = beforeExportQuery(queryPageRequest);
+        QueryPageResponse<E> page = getPage(queryPageRequest);
+        log.info("导出查询第 {} 页，本页 {} 条", page.getPage().getPageNum(), page.getList().size());
+        // 当前页查到的数据列表
+        List<E> list = page.getList();
+        list = afterExportQuery(list);
+
+        // 获取 CSV 值列表
+        List<String> valuelist = CollectionUtil.getCsvValueList(list, fieldList);
+
+        // 保存 CSV 数据
+        saveCsvListToFile(exportFile, valuelist);
+
+        if (page.getPage().getPageNum() < page.getPageCount()) {
+            // 继续分页
+            queryPageRequest.getPage().setPageNum(page.getPage().getPageNum() + 1);
+            queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
+        }
+    }
+
+    /**
+     * 获取实体描述
+     *
+     * @return 实体描述
+     */
+    private String getEntityDescription() {
+        return ReflectUtil.getDescription(getEntityClass());
+    }
+
+    /**
+     * 获取非空的分页对象
+     *
+     * @param page 分页对象
+     * @return 分页对象
+     */
+    private @NotNull Page requirePageNonNull(@Nullable Page page) {
+        page = Objects.requireNonNullElse(page, new Page());
+        if (Objects.isNull(page.getPageSize()) || page.getPageSize() <= 0) {
+            page.setPageSize(curdConfig.getDefaultPageSize());
+        }
+        if (Objects.isNull(page.getPageNum()) || page.getPageNum() <= 0) {
+            page.setPageNum(1);
+        }
+        return page;
+    }
+
+    /**
+     * 获取非空的排序对象
+     *
+     * @param sort 排序对象
+     * @return 排序对象
+     */
+    private @NotNull Sort requireSortNonNull(@Nullable Sort sort) {
+        sort = Objects.requireNonNullElse(sort, new Sort());
+        if (!StringUtils.hasText(sort.getField())) {
+            sort.setField(curdConfig.getDefaultSortField());
+        }
+        if (!Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
+            sort.setDirection(Sort.DESC);
+        } else {
+            sort.setDirection(Sort.ASC);
+        }
+        return sort;
     }
 }

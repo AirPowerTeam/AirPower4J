@@ -602,7 +602,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                         ),
                 createPageable(page, sort)
         );
-        return QueryPageResponse.newInstance(pageData);
+        return PageData.newInstance(pageData);
     }
 
     /**
@@ -628,7 +628,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                 },
                 createPageable(page, sort)
         );
-        return QueryPageResponse.newInstance(pageData);
+        return PageData.newInstance(pageData);
     }
 
     /**

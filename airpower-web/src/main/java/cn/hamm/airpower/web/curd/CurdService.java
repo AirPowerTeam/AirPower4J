@@ -1,6 +1,7 @@
 package cn.hamm.airpower.web.curd;
 
 import cn.hamm.airpower.core.*;
+import cn.hamm.airpower.core.constant.Constant;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.annotation.NullEnable;
 import cn.hamm.airpower.web.annotation.Search;
@@ -36,6 +37,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static cn.hamm.airpower.web.exception.ServiceError.*;
+import static org.springframework.data.domain.Sort.Order.asc;
+import static org.springframework.data.domain.Sort.Order.desc;
+import static org.springframework.data.domain.Sort.by;
 
 /**
  * <h1>实体根服务</h1>
@@ -1172,15 +1176,25 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     private @NotNull org.springframework.data.domain.Sort createSort(@Nullable Sort sort) {
         sort = requireSortNonNull(sort);
-        if (!Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
-            // 未传入 或者传入不是明确的 ASC，那就DESC
-            return org.springframework.data.domain.Sort.by(
-                    org.springframework.data.domain.Sort.Order.desc(sort.getField())
-            );
+        org.springframework.data.domain.Sort result;
+        if (Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
+            // 如果明确是 ASC
+            result = by(asc(sort.getField()));
+        } else {
+            // 否则默认 DESC
+            result = by(desc(sort.getField()));
         }
-        return org.springframework.data.domain.Sort.by(
-                org.springframework.data.domain.Sort.Order.asc(sort.getField())
-        );
+        if (Constant.ID.equals(sort.getField())) {
+            // 如果指定的是 ID，后续排序已无意义
+            return result;
+        }
+        if (!CurdEntity.STRING_CREATE_TIME.equals(sort.getField())) {
+            // 如果非创建时间排序，则自动追加一个创建时间排序
+            result.and(by(desc(CurdEntity.STRING_CREATE_TIME)));
+        }
+        // 继续追加一个 ID 排序，解决创建时间相同的记录排序
+        result.and(by(desc(Constant.ID)));
+        return result;
     }
 
     /**

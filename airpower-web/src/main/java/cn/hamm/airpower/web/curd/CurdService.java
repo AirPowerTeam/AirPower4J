@@ -454,12 +454,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param filter 过滤器
      * @return List 数据
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
      */
     public final @NotNull List<E> filter(@Nullable E filter) {
         return filter(filter, null);
@@ -471,12 +465,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param filter 过滤器
      * @param sort   排序
      * @return List 数据
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
      */
     public final @NotNull List<E> filter(@Nullable E filter, @Nullable Sort sort) {
         return find(filter, sort, true);
@@ -582,12 +570,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param predicate 查询条件
      * @return 查询结果数据列表
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
      */
     @SuppressWarnings("unused")
     public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
@@ -600,12 +582,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param predicate 查询条件
      * @param sort      排序
      * @return 查询结果数据列表
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
      */
     public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
         return selectList(predicate, createSort(sort));
@@ -617,12 +593,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param predicate 查询条件
      * @param sort      排序
      * @return 查询结果数据列表
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
+     * @see #getList(QueryListRequest) 通用列表查询 <code>getList(QueryListRequest)</code>
+     * @see #getPage(QueryPageRequest) 通用分页查询 <code>getPage(QueryPageRequest)</code>
+     * @see #filter(CurdEntity) 实体强匹配列表搜索(无排序) <code>filter(CurdEntity)</code>
+     * @see #query(CurdEntity) 实体模糊匹配列表搜索(无排序) <code>query(CurdEntity)</code>
+     * @see #query(QueryListRequest) 实体模糊匹配列表搜索(有排序) <code>query(QueryListRequest)</code>
+     * @see #selectList(BiFunction) 列表自定义高阶查询 <code>selectList(BiFunction)</code>
+     * @see #selectPage(BiFunction) 分页自定义高阶查询 <code>selectPage(BiFunction)</code>
+     * @see #find(CurdEntity, Sort, boolean) 私有落地 <code>find(CurdEntity, Sort, boolean)</code>
+     * @see #repository 还实现不了？<code>repository</code> 给你，你自己来
      */
     public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, org.springframework.data.domain.Sort sort) {
         return repository.findAll(
@@ -690,12 +669,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param predicate 查询条件
      * @param sort      排序
      * @return 查询结果数据分页对象
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
      */
     @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
@@ -708,12 +681,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param predicate 查询条件
      * @param page      分页
      * @return 查询结果数据分页对象
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
      */
     @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page) {
@@ -727,12 +694,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param page      分页
      * @param sort      排序
      * @return 查询结果数据分页对象
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
      */
     @SuppressWarnings("unused")
     public final @NotNull QueryPageResponse<E> selectPage(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Page page, @Nullable Sort sort) {
@@ -783,6 +744,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 分页查询列表
      * @see #beforeGetPage(QueryPageRequest)
      * @see #afterGetPage(QueryPageResponse)
+     * @see #getList(QueryListRequest) 通用列表查询 <code>getList(QueryListRequest)</code>
+     * @see #getPage(QueryPageRequest) 通用分页查询 <code>getPage(QueryPageRequest)</code>
+     * @see #filter(CurdEntity) 实体强匹配列表搜索(无排序) <code>filter(CurdEntity)</code>
+     * @see #query(CurdEntity) 实体模糊匹配列表搜索(无排序) <code>query(CurdEntity)</code>
+     * @see #query(QueryListRequest) 实体模糊匹配列表搜索(有排序) <code>query(QueryListRequest)</code>
+     * @see #selectList(BiFunction) 列表自定义高阶查询 <code>selectList(BiFunction)</code>
+     * @see #selectPage(BiFunction) 分页自定义高阶查询 <code>selectPage(BiFunction)</code>
+     * @see #find(CurdEntity, Sort, boolean) 私有落地 <code>find(CurdEntity, Sort, boolean)</code>
+     * @see #repository 还实现不了？<code>repository</code> 给你，你自己来
      */
     public final @NotNull <RES extends RootModel<RES>> QueryPageResponse<RES> getPage(
             @Nullable QueryPageRequest<E> queryPageRequest,
@@ -956,12 +926,15 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param sort     排序
      * @param isEquals 是否全匹配
      * @return 查询结果数据列表
-     * @see #filter(CurdEntity)
-     * @see #query(CurdEntity)
-     * @see #query(QueryListRequest)
-     * @see #find(CurdEntity, Sort, boolean)
-     * @see #selectList(BiFunction)
-     * @see #selectPage(BiFunction)
+     * @see #getList(QueryListRequest) 通用列表查询 <code>getList(QueryListRequest)</code>
+     * @see #getPage(QueryPageRequest) 通用分页查询 <code>getPage(QueryPageRequest)</code>
+     * @see #filter(CurdEntity) 实体强匹配列表搜索(无排序) <code>filter(CurdEntity)</code>
+     * @see #query(CurdEntity) 实体模糊匹配列表搜索(无排序) <code>query(CurdEntity)</code>
+     * @see #query(QueryListRequest) 实体模糊匹配列表搜索(有排序) <code>query(QueryListRequest)</code>
+     * @see #selectList(BiFunction) 列表自定义高阶查询 <code>selectList(BiFunction)</code>
+     * @see #selectPage(BiFunction) 分页自定义高阶查询 <code>selectPage(BiFunction)</code>
+     * @see #find(CurdEntity, Sort, boolean) 私有落地 <code>find(CurdEntity, Sort, boolean)</code>
+     * @see #repository 还实现不了？<code>repository</code> 给你，你自己来
      */
     private @NotNull List<E> find(@Nullable E filter, @Nullable Sort sort, boolean isEquals) {
         return repository.findAll(

@@ -591,7 +591,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     @SuppressWarnings("unused")
     public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate) {
-        return selectList(predicate, null);
+        return selectList(predicate, new Sort());
     }
 
     /**
@@ -608,9 +608,26 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #selectPage(BiFunction)
      */
     public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, @Nullable Sort sort) {
+        return selectList(predicate, createSort(sort));
+    }
+
+    /**
+     * 查询数据
+     *
+     * @param predicate 查询条件
+     * @param sort      排序
+     * @return 查询结果数据列表
+     * @see #filter(CurdEntity)
+     * @see #query(CurdEntity)
+     * @see #query(QueryListRequest)
+     * @see #find(CurdEntity, Sort, boolean)
+     * @see #selectList(BiFunction)
+     * @see #selectPage(BiFunction)
+     */
+    public final @NotNull List<E> selectList(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, org.springframework.data.domain.Sort sort) {
         return repository.findAll(
                 (root, criteriaQuery, builder) -> predicate.apply(root, builder),
-                createSort(sort)
+                sort
         );
     }
 

@@ -412,7 +412,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return List 数据
      */
     public final @NotNull List<E> filter(E filter) {
-        return filter(filter, null);
+        return filter(filter, new Sort());
     }
 
     /**
@@ -423,7 +423,18 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return List 数据
      */
     public final @NotNull List<E> filter(E filter, Sort sort) {
-        return find(filter, createSort(sort), true);
+        return filter(filter, createSort(sort));
+    }
+
+    /**
+     * 全匹配查询数据
+     *
+     * @param filter 过滤器
+     * @param sort   排序
+     * @return List 数据
+     */
+    public final @NotNull List<E> filter(E filter, org.springframework.data.domain.Sort sort) {
+        return find(filter, sort, true);
     }
 
     /**
@@ -444,7 +455,23 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 查询结果数据分页对象
      */
     public final @NotNull PageData<E> filter(@NotNull Page page, @NotNull E filter) {
-        return filter(page, filter, createSort(null));
+        return filter(page, filter, new Sort());
+    }
+
+    /**
+     * 全匹配查询数据
+     *
+     * @param page   分页对象
+     * @param filter 过滤器
+     * @param sort   排序
+     * @return 查询结果数据分页对象
+     */
+    public final @NotNull PageData<E> filter(
+            @NotNull Page page,
+            @NotNull E filter,
+            Sort sort
+    ) {
+        return filter(page, filter, createSort(sort));
     }
 
     /**

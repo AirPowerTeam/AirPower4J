@@ -17,6 +17,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 
@@ -164,6 +165,22 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
         try {
             E target = (E) getClass().getConstructor().newInstance();
             return target.setId(getId());
+        } catch (Exception exception) {
+            log.error(exception.getMessage(), exception);
+            throw new ServiceException(exception);
+        }
+    }
+
+    /**
+     * 复制一个新实体
+     *
+     * @return 返回实例
+     */
+    public final @org.jetbrains.annotations.NotNull E copy() {
+        try {
+            E target = (E) getClass().getConstructor().newInstance();
+            BeanUtils.copyProperties(this, target);
+            return target;
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
             throw new ServiceException(exception);

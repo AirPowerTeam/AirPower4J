@@ -1,5 +1,6 @@
 package cn.hamm.airpower.web.export;
 
+import cn.hamm.airpower.core.CollectionUtil;
 import cn.hamm.airpower.core.FileUtil;
 import cn.hamm.airpower.core.RandomUtil;
 import cn.hamm.airpower.core.TaskUtil;
@@ -16,6 +17,8 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -46,6 +49,18 @@ public class ExportHelper {
 
     @Autowired
     private FileConfig fileConfig;
+
+    /**
+     * 保存 CSV 数据
+     *
+     * @param exportFile 导出文件
+     * @param valueList  数据列表
+     */
+    public static void saveCsvListToFile(@NotNull ExportFile exportFile, List<String> valueList) {
+        String rowString = String.join(CollectionUtil.CSV_ROW_DELIMITER, valueList);
+        // 写入文件
+        FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), rowString + CollectionUtil.CSV_ROW_DELIMITER, StandardOpenOption.APPEND);
+    }
 
     /**
      * 创建异步任务
@@ -96,7 +111,6 @@ public class ExportHelper {
      */
     public final @NotNull String saveExportFileStream(@NotNull InputStream inputStream, String extension) {
         ExportFile exportFile = getExportFilePath(extension);
-
         try {
             FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), inputStream.readAllBytes());
         } catch (IOException e) {

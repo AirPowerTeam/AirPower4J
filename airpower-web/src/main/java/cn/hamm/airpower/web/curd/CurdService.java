@@ -1,19 +1,16 @@
 package cn.hamm.airpower.web.curd;
 
 import cn.hamm.airpower.core.*;
-import cn.hamm.airpower.core.constant.Constant;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.annotation.NullEnable;
-import cn.hamm.airpower.web.annotation.Search;
-import cn.hamm.airpower.web.annotation.SearchEmpty;
-import cn.hamm.airpower.web.curd.query.PageData;
-import cn.hamm.airpower.web.curd.query.QueryListRequest;
-import cn.hamm.airpower.web.curd.query.QueryPageRequest;
-import cn.hamm.airpower.web.curd.query.QueryPageResponse;
+import cn.hamm.airpower.web.curd.query.*;
 import cn.hamm.airpower.web.export.ExportHelper;
 import cn.hamm.airpower.web.helper.TransactionHelper;
 import cn.hamm.airpower.web.root.RootService;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
@@ -24,14 +21,10 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.util.StringUtils;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -39,9 +32,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static cn.hamm.airpower.web.exception.ServiceError.*;
-import static org.springframework.data.domain.Sort.Order.asc;
-import static org.springframework.data.domain.Sort.Order.desc;
-import static org.springframework.data.domain.Sort.by;
 
 /**
  * <h1>实体根服务</h1>
@@ -53,9 +43,6 @@ import static org.springframework.data.domain.Sort.by;
  * @see #getPage(QueryPageRequest) 通用分页查询 <code>getPage(QueryPageRequest)</code>
  * @see #filter(CurdEntity) 实体强匹配列表搜索 <code>filter(CurdEntity)</code>
  * @see #query(CurdEntity) 实体模糊匹配列表搜索 <code>query(CurdEntity)</code>
- * @see #query(BiFunction) 列表自定义高阶查询 <code>selectList(BiFunction)</code>
- * @see #query(Page) 分页自定义高阶查询 <code>selectPage(BiFunction)</code>
- * @see #find(CurdEntity, org.springframework.data.domain.Sort, boolean)  私有落地 <code>find(CurdEntity, Sort, boolean)</code>
  * @see #repository 还实现不了？<code>repository</code> 给你，你自己来
  */
 @Slf4j
@@ -88,6 +75,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     @Autowired
     private CurdConfig curdConfig;
+    @Autowired
+    private QueryHelper queryHelper;
 
     /**
      * 添加一条数据 {@code 触发前后置}
@@ -175,7 +164,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 修改一条已经存在的数据 {@code 触发前后置}
      *
-     * @param source 原始实体
+     * @param source   原始实体
+     * @param withNull 是否允许修改为 null
      * @apiNote 如需绕过前后置处理，请使用 {@link #updateToDatabase(E)}
      * @see #beforeUpdate(E)
      * @see #beforeSaveToDatabase(E)
@@ -301,9 +291,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         queryPageRequest = beforeGetPage(queryPageRequest);
         org.springframework.data.domain.Page<E> pageData = repository.findAll(
                 createSpecification(queryPageRequest.getFilter(), false),
-                createPageable(queryPageRequest.getPage(),
-                        createSort(queryPageRequest.getSort())
-                )
+                queryHelper.createPageable(queryPageRequest.getPage(),
+                        queryHelper.createSort(queryPageRequest.getSort()))
         );
 
         // 组装分页数据
@@ -382,9 +371,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 自定义计算查询
      *
+     * @param predicate   条件
      * @param fieldName   字段名称
      * @param function    自定义计算
      * @param resultClass 结果类型
+     * @param fieldClass  字段类型
      * @param <FIELD>     结果类型
      * @return 计算结果
      */
@@ -423,7 +414,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return List 数据
      */
     public final @NotNull List<E> filter(E filter, Sort sort) {
-        return filter(filter, createSort(sort));
+        return filter(filter, queryHelper.createSort(sort));
     }
 
     /**
@@ -471,7 +462,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             @NotNull E filter,
             Sort sort
     ) {
-        return filter(page, filter, createSort(sort));
+        return filter(page, filter, queryHelper.createSort(sort));
     }
 
     /**
@@ -508,7 +499,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 查询结果数据列表
      */
     public final @NotNull List<E> query(E filter, Sort sort) {
-        return query(filter, createSort(sort));
+        return query(filter, queryHelper.createSort(sort));
     }
 
     /**
@@ -542,7 +533,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     public final @NotNull List<E> query(BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate, Sort sort
     ) {
-        return query(predicate, createSort(sort));
+        return query(predicate, queryHelper.createSort(sort));
     }
 
     /**
@@ -586,7 +577,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             @NotNull Page page,
             @NotNull E filter
     ) {
-        return query(page, filter, createSort(null));
+        return query(page, filter, queryHelper.createSort());
     }
 
     /**
@@ -600,7 +591,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             @NotNull Page page,
             BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate
     ) {
-        return query(page, predicate, createSort(null));
+        return query(page, predicate, queryHelper.createSort());
     }
 
     /**
@@ -616,7 +607,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             @NotNull Page page,
             @NotNull E filter, Sort sort
     ) {
-        return query(page, filter, createSort(sort));
+        return query(page, filter, queryHelper.createSort(sort));
     }
 
     /**
@@ -633,7 +624,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             BiFunction<From<?, ?>, CriteriaBuilder, Predicate> predicate,
             Sort sort
     ) {
-        return query(page, predicate, createSort(sort));
+        return query(page, predicate, queryHelper.createSort(sort));
     }
 
     /**
@@ -674,7 +665,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                     }
                     return predicate.apply(root, builder);
                 },
-                createPageable(page, sort)
+                queryHelper.createPageable(page, sort)
         );
         return PageData.newInstance(pageData);
     }
@@ -699,7 +690,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             List<String> header = new ArrayList<>();
             header.add(headerString);
             // 保存表头到 CSV 文件
-            saveCsvListToFile(exportFile, header);
+            ExportHelper.saveCsvListToFile(exportFile, header);
             // 查询数据并保存到导出文件
             queryPageToSaveExportFile(finalQueryPageRequest, fieldList, exportFile);
             return exportFile.getRelativeFile();
@@ -984,7 +975,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         );
     }
 
-
     /**
      * 查询分页数据
      *
@@ -1013,7 +1003,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                                 null,
                                 null
                         ),
-                createPageable(page, sort)
+                queryHelper.createPageable(page, sort)
         );
         return PageData.newInstance(pageData);
     }
@@ -1029,9 +1019,9 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             Q queryListRequest, Q newInstance) {
         queryListRequest = Objects.requireNonNullElse(queryListRequest, newInstance);
         queryListRequest.setFilter(requireFilterNonNull(queryListRequest.getFilter()));
-        queryListRequest.setSort(requireSortNonNull(queryListRequest.getSort()));
+        queryListRequest.setSort(queryHelper.requireSortNonNull(queryListRequest.getSort()));
         if (queryListRequest instanceof QueryPageRequest<?> queryPageRequest) {
-            queryPageRequest.setPage(requirePageNonNull(queryPageRequest.getPage()));
+            queryPageRequest.setPage(queryHelper.requirePageNonNull(queryPageRequest.getPage()));
         }
         return queryListRequest;
     }
@@ -1206,129 +1196,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 创建排序对象
-     *
-     * @param sort 排序对象
-     * @return Sort {@code Spring} 的排序对象
-     */
-    private @NotNull org.springframework.data.domain.Sort createSort(Sort sort) {
-        sort = requireSortNonNull(sort);
-        org.springframework.data.domain.Sort result;
-        if (Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
-            // 如果明确是 ASC
-            result = by(asc(sort.getField()));
-        } else {
-            // 否则默认 DESC
-            result = by(desc(sort.getField()));
-        }
-        if (Constant.ID.equals(sort.getField())) {
-            // 如果指定的是 ID，后续排序已无意义
-            return result;
-        }
-        if (!CurdEntity.STRING_CREATE_TIME.equals(sort.getField())) {
-            // 如果非创建时间排序，则自动追加一个创建时间排序
-            result.and(by(desc(CurdEntity.STRING_CREATE_TIME)));
-        }
-        // 继续追加一个 ID 排序，解决创建时间相同的记录排序
-        result.and(by(desc(Constant.ID)));
-        return result;
-    }
-
-    /**
-     * 创建分页对象
-     *
-     * @param page 分页对象
-     * @return Spring 分页对象
-     */
-    private @NotNull Pageable createPageable(Page page, org.springframework.data.domain.Sort sort) {
-        page = requirePageNonNull(page);
-        int pageNumber = Math.max(0, page.getPageNum() - 1);
-        int pageSize = Math.max(1, page.getPageSize());
-        return PageRequest.of(pageNumber, pageSize, sort);
-    }
-
-    /**
-     * 获取查询条件列表
-     *
-     * @param root    {@code model}
-     * @param builder {@code builder}
-     * @param search  搜索实体
-     * @param isEqual 是否强匹配
-     * @return 搜索条件
-     */
-    private @NotNull List<jakarta.persistence.criteria.Predicate> getPredicateList(
-            @NotNull From<?, ?> root,
-            @NotNull CriteriaBuilder builder,
-            @NotNull Object search,
-            boolean isEqual
-    ) {
-        List<Field> fields = ReflectUtil.getFieldList(search.getClass());
-        List<Predicate> predicateList = new ArrayList<>();
-        fields.forEach(field -> {
-            Object fieldValue = ReflectUtil.getFieldValue(search, field);
-            if (Objects.isNull(fieldValue)) {
-                // 没有传入查询值 空字符串 跳过
-                return;
-            }
-            SearchEmpty searchEmpty = ReflectUtil.getAnnotation(SearchEmpty.class, field);
-            if (!StringUtils.hasText(fieldValue.toString())) {
-                if (Objects.isNull(searchEmpty)) {
-                    // 没有标记查询空字符串
-                    return;
-                }
-                // 标记了 但不查询空字符串
-                if (!searchEmpty.value()) {
-                    return;
-                }
-            }
-            OneToMany oneToMany = ReflectUtil.getAnnotation(OneToMany.class, field);
-            if (Objects.nonNull(oneToMany)) {
-                // 一对多的属性 不参与搜索
-                return;
-            }
-            ManyToMany manyToMany = ReflectUtil.getAnnotation(ManyToMany.class, field);
-            if (Objects.nonNull(manyToMany)) {
-                // 多对多的属性 不参与搜索
-                return;
-            }
-            Transient transientAnnotation = ReflectUtil.getAnnotation(Transient.class, field);
-            if (Objects.nonNull(transientAnnotation)) {
-                // 非数据库字段 不参与搜索
-                return;
-            }
-            ManyToOne manyToOne = ReflectUtil.getAnnotation(ManyToOne.class, field);
-            if (Objects.nonNull(manyToOne)) {
-                // 标记了多对一注解 则直接认为是 Join 查询
-                Join<?, ?> payload = root.join(field.getName(), JoinType.INNER);
-                predicateList.addAll(getPredicateList(payload, builder, fieldValue, isEqual));
-                return;
-            }
-            if (isEqual) {
-                // 要求全强匹配
-                predicateList.add(builder.equal(root.get(field.getName()), fieldValue));
-                return;
-            }
-
-            Search searchAnnotation = ReflectUtil.getAnnotation(Search.class, field);
-            // 没有标记搜索 则强匹配
-            if (Objects.nonNull(searchAnnotation)) {
-                // 标记了搜索 则模糊搜索
-                if (searchAnnotation.fullLike()) {
-                    predicateList.add(builder.like(root.get(field.getName()),
-                            "%" + fieldValue + "%"));
-                    return;
-                }
-                predicateList.add(builder.like(root.get(field.getName()),
-                        fieldValue + "%"));
-                return;
-            }
-            // 最后兜底还是强匹配
-            predicateList.add(builder.equal(root.get(field.getName()), fieldValue));
-        });
-        return predicateList;
-    }
-
-    /**
      * 添加创建时间和更新时间的查询条件
      *
      * @param root          {@code ROOT}
@@ -1413,7 +1280,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         if (Objects.nonNull(before)) {
             lastFilter = before.apply(sourceFilter.copy());
         }
-        List<Predicate> predicateList = getPredicateList(root, builder, lastFilter, isEqual);
+        List<Predicate> predicateList = queryHelper.getPredicateList(root, builder, lastFilter, isEqual);
         if (Objects.nonNull(addMorePredicate)) {
             // 需要添加自定义处理条件
             addMorePredicate.accept(sourceFilter, predicateList);
@@ -1421,18 +1288,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         Predicate[] predicates = new Predicate[predicateList.size()];
         criteriaQuery.where(builder.and(predicateList.toArray(predicates)));
         return criteriaQuery.getRestriction();
-    }
-
-    /**
-     * 保存 CSV 数据
-     *
-     * @param exportFile 导出文件
-     * @param valueList  数据列表
-     */
-    private void saveCsvListToFile(@NotNull ExportHelper.ExportFile exportFile, List<String> valueList) {
-        String rowString = String.join(CollectionUtil.CSV_ROW_DELIMITER, valueList);
-        // 写入文件
-        FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), rowString + CollectionUtil.CSV_ROW_DELIMITER, StandardOpenOption.APPEND);
     }
 
     /**
@@ -1452,7 +1307,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         List<String> valuelist = CollectionUtil.getCsvValueList(list, fieldList);
 
         // 保存 CSV 数据
-        saveCsvListToFile(exportFile, valuelist);
+        ExportHelper.saveCsvListToFile(exportFile, valuelist);
 
         if (page.getPage().getPageNum() < page.getPageCount()) {
             // 继续分页
@@ -1468,41 +1323,5 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     private String getEntityDescription() {
         return ReflectUtil.getDescription(getEntityClass());
-    }
-
-    /**
-     * 获取非空的分页对象
-     *
-     * @param page 分页对象
-     * @return 分页对象
-     */
-    private @NotNull Page requirePageNonNull(Page page) {
-        page = Objects.requireNonNullElse(page, new Page());
-        if (Objects.isNull(page.getPageSize()) || page.getPageSize() <= 0) {
-            page.setPageSize(curdConfig.getDefaultPageSize());
-        }
-        if (Objects.isNull(page.getPageNum()) || page.getPageNum() <= 0) {
-            page.setPageNum(1);
-        }
-        return page;
-    }
-
-    /**
-     * 获取非空的排序对象
-     *
-     * @param sort 排序对象
-     * @return 排序对象
-     */
-    private @NotNull Sort requireSortNonNull(Sort sort) {
-        sort = Objects.requireNonNullElse(sort, new Sort());
-        if (!StringUtils.hasText(sort.getField())) {
-            sort.setField(curdConfig.getDefaultSortField());
-        }
-        if (!Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
-            sort.setDirection(Sort.DESC);
-        } else {
-            sort.setDirection(Sort.ASC);
-        }
-        return sort;
     }
 }

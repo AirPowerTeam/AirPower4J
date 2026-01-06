@@ -9,7 +9,6 @@ import cn.hamm.airpower.web.redis.RedisHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,10 +62,8 @@ public class RootService<E extends RootModel<E>> {
      * 脱敏
      *
      * @param entity 待脱敏实体
-     * @return 脱敏后的实体
      */
-    @Contract("_ -> param1")
-    protected E desensitize(E entity) {
+    protected void desensitize(E entity) {
         List<Field> fieldList = ReflectUtil.getFieldList(getFirstParameterizedTypeClass());
         fieldList.forEach(field -> {
             Desensitize desensitize = ReflectUtil.getAnnotation(Desensitize.class, field);
@@ -89,6 +86,5 @@ public class RootService<E extends RootModel<E>> {
                 ReflectUtil.setFieldValue(entity, field, null);
             }
         });
-        return entity;
     }
 }

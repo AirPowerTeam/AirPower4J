@@ -324,7 +324,7 @@ public class CurdController<
      * @param source 原始实体
      * @apiNote 新增和修改最后触发
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterSaved(long id, @NotNull E source) {
     }
 
@@ -344,7 +344,7 @@ public class CurdController<
      * @param id 主键
      * @apiNote 可重写后执行删除之后的其他业务
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterDelete(long id) {
     }
 
@@ -354,7 +354,7 @@ public class CurdController<
      * @param entity 禁用前的实体
      * @apiNote 可重写后执行禁用之前的业务处理或拦截
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void beforeDisable(@NotNull E entity) {
     }
 
@@ -364,7 +364,7 @@ public class CurdController<
      * @param id 主键 ID
      * @apiNote 可重写后执行禁用之后的其他业务
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterDisable(long id) {
     }
 
@@ -373,7 +373,7 @@ public class CurdController<
      *
      * @param entity 启用前的实体
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void beforeEnable(@NotNull E entity) {
     }
 
@@ -383,7 +383,7 @@ public class CurdController<
      * @param id 主键 ID
      * @apiNote 可重写后执行启用之后其他业务
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterEnable(long id) {
     }
 

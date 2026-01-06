@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * <h1>API配置文件</h1>
+ * <h1>API 配置文件</h1>
  *
  * @author Hamm.cn
  */

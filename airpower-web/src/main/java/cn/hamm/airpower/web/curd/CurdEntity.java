@@ -107,6 +107,7 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
      * @param id ID
      * @return 实体
      */
+    @Override
     public E setId(Long id) {
         this.id = id;
         return (E) this;

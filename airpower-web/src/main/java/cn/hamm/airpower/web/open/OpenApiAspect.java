@@ -51,6 +51,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
     @Autowired
     private RedisHelper redisHelper;
 
+    @SuppressWarnings("EmptyMethod")
     @Pointcut("@annotation(cn.hamm.airpower.web.open.OpenApi)")
     public void pointCut() {
     }

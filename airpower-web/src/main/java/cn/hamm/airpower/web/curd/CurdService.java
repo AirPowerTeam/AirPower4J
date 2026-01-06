@@ -75,6 +75,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     @Autowired
     private CurdConfig curdConfig;
+
+    /**
+     * 查询辅助
+     */
     @Autowired
     private QueryHelper queryHelper;
 

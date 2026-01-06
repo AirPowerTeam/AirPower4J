@@ -2,11 +2,13 @@ package cn.hamm.airpower.web.redis;
 
 import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.RootModel;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.curd.CurdEntity;
 import jakarta.annotation.Resource;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,7 +169,7 @@ public class RedisHelper {
             }
             if (currentIndex * step >= timeout) {
                 log.error("获取锁超时，实在点背。{}", key);
-                throw new RuntimeException("系统繁忙，请稍后重试");
+                throw new ServiceException("系统繁忙，请稍后重试");
             }
             try {
                 //noinspection BusyWait
@@ -183,6 +185,7 @@ public class RedisHelper {
      * @param key 缓存的 key
      * @return 缓存的 key
      */
+    @Contract(pure = true)
     private @NotNull String getKey(String key) {
         return redisConfig.getPrefix() + key;
     }
@@ -280,7 +283,7 @@ public class RedisHelper {
             }
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
-            REDIS_ERROR.show();
+            throw new ServiceException(REDIS_ERROR);
         }
     }
 
@@ -295,7 +298,7 @@ public class RedisHelper {
             getRedisTemplate().delete(keys);
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
-            REDIS_ERROR.show();
+            throw new ServiceException(REDIS_ERROR);
         }
     }
 
@@ -310,9 +313,8 @@ public class RedisHelper {
             return getRedisTemplate().getExpire(getKey(key), TimeUnit.SECONDS);
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
-            REDIS_ERROR.show();
+            throw new ServiceException(REDIS_ERROR);
         }
-        return 0;
     }
 
     /**
@@ -339,7 +341,7 @@ public class RedisHelper {
             getRedisTemplate().delete(getKey(key));
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
-            REDIS_ERROR.show();
+            throw new ServiceException(REDIS_ERROR);
         }
     }
 
@@ -354,9 +356,8 @@ public class RedisHelper {
             return getRedisTemplate().opsForValue().get(getKey(key));
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
-            REDIS_ERROR.show();
+            throw new ServiceException(REDIS_ERROR);
         }
-        return null;
     }
 
     /**
@@ -386,7 +387,7 @@ public class RedisHelper {
             }
         } catch (Exception exception) {
             log.error(REDIS_ERROR.getMessage(), exception);
-            REDIS_ERROR.show();
+            throw new ServiceException(REDIS_ERROR);
         }
     }
 

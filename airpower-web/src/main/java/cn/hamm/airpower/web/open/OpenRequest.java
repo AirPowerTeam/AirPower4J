@@ -76,8 +76,8 @@ public class OpenRequest {
         try {
             model = Json.parse(json, clazz);
         } catch (Exception e) {
-            JSON_DECODE_FAIL.show();
-            throw new ServiceException(e);
+            log.error(e.getMessage(), e);
+            throw new ServiceException(JSON_DECODE_FAIL);
         }
         ValidateUtil.valid(model);
         return model;

@@ -73,7 +73,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     private AccessConfig accessConfig;
 
     /**
-     * 收到 Websocket 消息时
+     * 收到 WebSocket 消息时
      *
      * @param session     会话
      * @param textMessage 文本消息
@@ -85,7 +85,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             try {
                 session.sendMessage(new TextMessage(webSocketConfig.getPong()));
             } catch (Exception e) {
-                log.error("发送 Websocket 消息失败: {}", e.getMessage());
+                log.error("发送 WebSocket PONG 失败: {}", e.getMessage());
             }
             return;
         }
@@ -104,7 +104,8 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
         try {
             session.sendMessage(new TextMessage(Json.toString(WebSocketEvent.create(webSocketPayload))));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("发送 WebSocket 消息失败: {}", e.getMessage());
+            throw new ServiceException("发送 WebSocket 消息失败，" + e.getMessage());
         }
     }
 
@@ -141,7 +142,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             case MQTT -> startMqttListener(session, userId);
             case NO -> {
             }
-            default -> throw new RuntimeException("WebSocket 暂不支持");
+            default -> throw new ServiceException("WebSocket 暂不支持");
         }
         userIdHashMap.put(session.getId(), userId);
         TaskUtil.run(() -> afterConnectSuccess(session));
@@ -221,7 +222,8 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             mqttClient.subscribe(topics);
             mqttClientHashMap.put(session.getId(), mqttClient);
         } catch (MqttException e) {
-            throw new ServiceException(e);
+            log.error("监听 MQTT 消息服务失败", e);
+            throw new ServiceException("监听 MQTT 消息服务失败，" + e.getMessage());
         }
     }
 
@@ -234,7 +236,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
         try {
             session.close();
         } catch (IOException e) {
-            log.error("关闭 Websocket 失败");
+            log.error("关闭 WebSocket 失败");
         }
     }
 
@@ -292,11 +294,12 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
      * @param session WebSocket 会话
      */
     protected final void mqttSubscribe(String channel, WebSocketSession session) {
-        log.info("MQTT开始订阅频道: {}", getRealChannel(channel));
+        log.info("MQTT 开始订阅频道: {}", getRealChannel(channel));
         try {
             getMqttClient(session).subscribe(getRealChannel(channel));
         } catch (MqttException e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage(), e);
+            throw new ServiceException("订阅 MQTT 频道失败，" + e.getMessage());
         }
     }
 
@@ -333,7 +336,8 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
         try {
             getMqttClient(session).unsubscribe(getRealChannel(channel));
         } catch (MqttException e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage(), e);
+            throw new ServiceException("取消订阅 MQTT 频道失败，" + e.getMessage());
         }
     }
 

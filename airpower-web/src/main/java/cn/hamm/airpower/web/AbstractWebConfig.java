@@ -36,7 +36,7 @@ public abstract class AbstractWebConfig implements WebMvcConfigurer, WebSocketCo
      * @return WebSocketHandler
      */
     @Bean
-    public WebSocketHandler getWebsocketHandler() {
+    public WebSocketHandler getWebSocketHandler() {
         return webSocketHandler;
     }
 
@@ -67,7 +67,7 @@ public abstract class AbstractWebConfig implements WebMvcConfigurer, WebSocketCo
         if (!StringUtils.hasText(channelPrefix)) {
             throw new ServiceException("没有配置 airpower.websocket.channelPrefix, 无法启动WebSocket服务");
         }
-        registry.addHandler(getWebsocketHandler(), webSocketConfig.getPath())
+        registry.addHandler(getWebSocketHandler(), webSocketConfig.getPath())
                 .setAllowedOrigins(webSocketConfig.getAllowedOrigins());
     }
 }

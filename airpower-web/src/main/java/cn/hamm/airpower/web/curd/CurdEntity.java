@@ -166,9 +166,9 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
         try {
             E target = (E) getClass().getConstructor().newInstance();
             return target.setId(getId());
-        } catch (Exception exception) {
-            log.error(exception.getMessage(), exception);
-            throw new ServiceException(exception);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException("复制单 ID 实体失败，" + e.getMessage());
         }
     }
 
@@ -182,9 +182,9 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
             E target = (E) getClass().getConstructor().newInstance();
             BeanUtils.copyProperties(this, target);
             return target;
-        } catch (Exception exception) {
-            log.error(exception.getMessage(), exception);
-            throw new ServiceException(exception);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException("复制新实体失败，" + e.getMessage());
         }
     }
 }

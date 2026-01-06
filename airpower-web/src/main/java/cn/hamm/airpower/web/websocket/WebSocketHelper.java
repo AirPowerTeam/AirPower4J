@@ -14,13 +14,13 @@ import static cn.hamm.airpower.web.websocket.WebSocketHandler.CHANNEL_ALL;
 import static cn.hamm.airpower.web.websocket.WebSocketHandler.CHANNEL_USER_PREFIX;
 
 /**
- * <h1>WebsocketHelper</h1>
+ * <h1>WebSocketHelper</h1>
  *
  * @author Hamm
  */
 @Slf4j
 @Component
-public class WebsocketHelper {
+public class WebSocketHelper {
     @Autowired
     private WebSocketConfig websocketConfig;
 
@@ -67,10 +67,11 @@ public class WebsocketHelper {
             switch (websocketConfig.getSupport()) {
                 case REDIS -> redisHelper.publish(targetChannel, Json.toString(event));
                 case MQTT -> mqttHelper.publish(targetChannel, Json.toString(event));
-                default -> throw new RuntimeException("WebSocket 暂不支持");
+                default -> throw new ServiceException("WebSocket 暂不支持");
             }
         } catch (MqttException e) {
-            throw new RuntimeException("发布消息失败", e);
+            log.error("发布消息失败", e);
+            throw new ServiceException("发布消息失败，" + e.getMessage());
         }
     }
 }

@@ -4,6 +4,7 @@ import cn.hamm.airpower.core.CollectionUtil;
 import cn.hamm.airpower.core.FileUtil;
 import cn.hamm.airpower.core.RandomUtil;
 import cn.hamm.airpower.core.TaskUtil;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.file.FileConfig;
 import cn.hamm.airpower.web.redis.RedisHelper;
 import lombok.Getter;
@@ -115,7 +116,7 @@ public class ExportHelper {
             FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), inputStream.readAllBytes());
         } catch (IOException e) {
             log.error(e.getMessage(), e);
-            throw new RuntimeException(e);
+            throw new ServiceException("保存导出的文件失败，" + e.getMessage());
         }
         return exportFile.getRelativeFile();
     }

@@ -103,8 +103,8 @@ public class RequestUtil {
                 return ipAddress;
             }
             return ipAddress;
-        } catch (Exception exception) {
-            throw new ServiceException("获取 IP 地址异常");
+        } catch (Exception e) {
+            throw new ServiceException("获取 IP 地址异常，" + e.getMessage());
         }
     }
 

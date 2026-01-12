@@ -6,7 +6,7 @@
         <groupId>cn.hamm</groupId>
         <artifactId>airpower</artifactId>
         <!-- POM 统一版本-->
-        <version>5.0.0</version>
+        <version>5.0.1</version>
     </parent>
     <artifactId>airpower-web</artifactId>
     <name>airpower-web</name>

@@ -5,14 +5,14 @@
     <groupId>cn.hamm</groupId>
     <artifactId>airpower</artifactId>
     <!-- POM 统一版本-->
-    <version>5.0.0</version>
+    <version>5.0.1</version>
     <name>airpower</name>
     <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA.</description>
     <properties>
         <!-- POM 统一版本-->
-        <airpower.version>5.0.0</airpower.version>
+        <airpower.version>5.0.1</airpower.version>
         <!-- 核心包版本 -->
-        <airpower-core.version>5.0.0</airpower-core.version>
+        <airpower-core.version>5.0.1</airpower-core.version>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

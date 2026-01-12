@@ -43,4 +43,34 @@ public class QueryPageResponse<M extends RootModel<M>> extends PageData<M> {
                 );
         return queryPageResponse;
     }
+
+    /**
+     * 获取新的实例
+     *
+     * @param response 响应
+     * @param <M>      实体类型
+     * @return 响应
+     */
+    public static <M extends RootModel<M>> @NotNull QueryPageResponse<M> from(@NotNull PageData<M> response) {
+        QueryPageResponse<M> queryPageResponse = new QueryPageResponse<>();
+        queryPageResponse.setList(response.getList())
+                .setTotal(response.getTotal())
+                .setPageCount(response.getPageCount())
+                .setPage(response.getPage());
+        return queryPageResponse;
+    }
+
+    /**
+     * 获取新的实例
+     *
+     * @param response 响应
+     * @param sort     排序信息
+     * @param <M>      实体类型
+     * @return 实例
+     */
+    public static <M extends RootModel<M>> @NotNull QueryPageResponse<M> from(@NotNull PageData<M> response, @NotNull Sort sort) {
+        QueryPageResponse<M> queryPageResponse = from(response);
+        queryPageResponse.setSort(sort);
+        return queryPageResponse;
+    }
 }

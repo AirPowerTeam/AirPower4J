@@ -168,7 +168,7 @@ public class RedisHelper {
                 return new Lock().setKey(key).setValue(value);
             }
             if (currentIndex * step >= timeout) {
-                log.error("获取锁超时，实在点背。{}", key);
+                log.error("获取锁超时，{}", key);
                 throw new ServiceException("系统繁忙，请稍后重试");
             }
             try {

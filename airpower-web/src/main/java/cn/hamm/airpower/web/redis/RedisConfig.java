@@ -34,5 +34,5 @@ public class RedisConfig {
      *
      * @apiNote 单位毫秒
      */
-    private Integer lockTimeout = 3000;
+    private Integer lockTimeout = 60 * 1000;
 }

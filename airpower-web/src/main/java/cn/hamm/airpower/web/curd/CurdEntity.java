@@ -147,17 +147,6 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
     }
 
     /**
-     * 获取简单实体对象
-     *
-     * @apiNote 舍弃一些基础数据
-     */
-    public void excludeBaseData() {
-        setCreateTime(null)
-                .setUpdateTime(null)
-                .setIsDisabled(null);
-    }
-
-    /**
      * 复制一个只包含 ID 的实体
      *
      * @return 只复制 ID 的实体

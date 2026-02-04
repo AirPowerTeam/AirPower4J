@@ -129,7 +129,8 @@ public class OpenRequest {
      * @return 签名后的字符串
      */
     private @org.jetbrains.annotations.NotNull String sign() {
-        log.info("签名计算参数 {}", openApp.getAppSecret() + appKey + version + timestamp + nonce + content);
-        return DigestUtils.sha1Hex(openApp.getAppSecret() + appKey + version + timestamp + nonce + content);
+        String source = openApp.getAppSecret() + appKey + version + timestamp + nonce + content;
+        log.info("签名计算参数 {}", source);
+        return DigestUtils.sha1Hex(source);
     }
 }

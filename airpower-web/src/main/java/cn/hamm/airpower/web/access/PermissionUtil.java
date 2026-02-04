@@ -5,6 +5,7 @@ import cn.hamm.airpower.core.ReflectUtil;
 import cn.hamm.airpower.web.api.Api;
 import cn.hamm.airpower.web.curd.Curd;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static cn.hamm.airpower.web.exception.ServiceError.PARAM_MISSING;
 import static org.springframework.core.io.support.ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX;
 
 /**
@@ -198,5 +200,21 @@ public class PermissionUtil {
             return null;
         }
         return method.getName();
+    }
+
+
+    /**
+     * 密码和盐获取密码的散列摘要
+     *
+     * @param password 明文密码
+     * @param salt     盐
+     * @return {@code sha1} 散列摘要
+     */
+    public static @NotNull String encodePassword(@NotNull String password, @NotNull String salt) {
+        PARAM_MISSING.whenEmpty(password, "密码不能为空");
+        PARAM_MISSING.whenEmpty(salt, "盐不能为空");
+        return DigestUtils.sha1Hex(
+                DigestUtils.sha1Hex(password + salt) + DigestUtils.sha1Hex(salt + password)
+        );
     }
 }

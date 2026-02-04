@@ -226,7 +226,7 @@ public class RedisHelper {
      * @param entity 实体
      */
     public final <E extends CurdEntity<E>> void deleteEntity(@NotNull E entity) {
-        del(getEntityCacheKey(entity));
+        delete(getEntityCacheKey(entity));
     }
 
     /**
@@ -336,7 +336,7 @@ public class RedisHelper {
      *
      * @param key 缓存的 Key
      */
-    public final void del(String key) {
+    public final void delete(String key) {
         try {
             getRedisTemplate().delete(getKey(key));
         } catch (Exception exception) {
@@ -429,7 +429,7 @@ public class RedisHelper {
     /**
      * 获取 RedisTemplate
      */
-    private RedisTemplate<String, Object> getRedisTemplate() {
+    public RedisTemplate<String, Object> getRedisTemplate() {
         StringRedisSerializer serializer = new StringRedisSerializer();
         redisTemplate.setKeySerializer(serializer);
         redisTemplate.setHashKeySerializer(serializer);

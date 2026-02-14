@@ -12,6 +12,7 @@
     <name>airpower-http</name>
     <description>AirPower-Http.</description>
     <dependencies>
+        <!-- ==================== AirPower 内部依赖 ==================== -->
         <dependency>
             <groupId>cn.hamm</groupId>
             <artifactId>airpower-core</artifactId>
@@ -26,6 +27,7 @@
 
     <build>
         <plugins>
+            <!-- ==================== 发布插件 ==================== -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
@@ -36,6 +38,8 @@
                     <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 源码插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -49,6 +53,8 @@
                     </execution>
                 </executions>
             </plugin>
+            
+            <!-- ==================== 文档插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -65,6 +71,8 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 编译插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -77,6 +85,8 @@
                     <target>17</target>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 签名插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>

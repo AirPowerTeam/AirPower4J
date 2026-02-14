@@ -13,6 +13,7 @@
     <description>AirPower-Curd.
     </description>
     <dependencies>
+        <!-- ==================== AirPower 内部依赖 ==================== -->
         <dependency>
             <groupId>cn.hamm</groupId>
             <artifactId>airpower-core</artifactId>
@@ -28,27 +29,38 @@
             <artifactId>airpower-redis</artifactId>
             <version>${airpower.version}</version>
         </dependency>
+        
+        <!-- ==================== 注解处理依赖 ==================== -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
+        
+        <!-- ==================== 数据访问依赖 ==================== -->
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
+            <version>${spring-data-commons.version}</version>
         </dependency>
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
+            <version>${jakarta.persistence-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>${spring-boot-starter-data-jpa.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+            <version>${spring-boot-starter-validation.version}</version>
         </dependency>
+        
+        <!-- ==================== 数据库驱动 ==================== -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -60,6 +72,7 @@
 
     <build>
         <plugins>
+            <!-- ==================== 发布插件 ==================== -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
@@ -70,6 +83,8 @@
                     <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 源码插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -83,6 +98,8 @@
                     </execution>
                 </executions>
             </plugin>
+            
+            <!-- ==================== 文档插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -99,6 +116,8 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 编译插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -111,6 +130,8 @@
                     <target>17</target>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 签名插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>

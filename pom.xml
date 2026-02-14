@@ -9,28 +9,57 @@
     <name>airpower</name>
     <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA.</description>
     <properties>
-        <!-- POM 统一版本-->
+        <!-- ==================== 项目版本 ==================== -->
         <airpower.version>5.0.4</airpower.version>
-        <!-- 核心包版本 -->
         <airpower-core.version>5.0.1</airpower-core.version>
+        
+        <!-- ==================== 构建配置 ==================== -->
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        
+        <!-- ==================== 主要框架版本 ==================== -->
         <springboot.version>3.4.4</springboot.version>
+        <spring-boot.version>3.4.4</spring-boot.version>
+        <spring-framework.version>6.2.5</spring-framework.version>
+        
+        <!-- ==================== 第三方库版本 ==================== -->
         <mysql.version>8.0.33</mysql.version>
         <jetbrains.annotations.version>26.0.2</jetbrains.annotations.version>
         <commons.codec.version>1.13</commons.codec.version>
+        <lombok.version>1.18.36</lombok.version>
+        <relections.version>0.10.1</relections.version>
+        <jedis.version>5.1.0</jedis.version>
+        
+        <!-- ==================== Spring生态版本 ==================== -->
         <spring.integration.mqtt.version>6.3.3</spring.integration.mqtt.version>
         <springboot.integration.version>3.2.0</springboot.integration.version>
+        <spring-data-commons.version>3.4.0</spring-data-commons.version>
+        <spring-data-redis.version>${springboot.version}</spring-data-redis.version>
+        <spring-context-support.version>${spring-framework.version}</spring-context-support.version>
+        <spring-web.version>${spring-framework.version}</spring-web.version>
+        <spring-webmvc.version>${spring-framework.version}</spring-webmvc.version>
+        <spring-websocket.version>${spring-framework.version}</spring-websocket.version>
+        
+        <!-- ==================== Java EE/Jakarta EE版本 ==================== -->
         <jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
+        <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
+        <jakarta.mail.version>2.0.3</jakarta.mail.version>
+        
+        <!-- ==================== Spring Boot启动器版本 ==================== -->
+        <spring-boot-starter-data-jpa.version>${springboot.version}</spring-boot-starter-data-jpa.version>
+        <spring-boot-starter-validation.version>${springboot.version}</spring-boot-starter-validation.version>
+        <spring-boot-starter-aop.version>${springboot.version}</spring-boot-starter-aop.version>
+        <spring-boot-starter-data-redis.version>${springboot.version}</spring-boot-starter-data-redis.version>
+        
+        <!-- ==================== Maven插件版本 ==================== -->
         <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
         <maven.central.publishing.plugin.version>0.9.0</maven.central.publishing.plugin.version>
         <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
         <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
-        <relections.version>0.10.1</relections.version>
     </properties>
     <packaging>pom</packaging>
     <modules>
@@ -48,6 +77,7 @@
     </modules>
     <dependencyManagement>
         <dependencies>
+            <!-- ==================== AirPower 内部依赖 ==================== -->
             <dependency>
                 <groupId>cn.hamm</groupId>
                 <artifactId>airpower-web</artifactId>
@@ -58,6 +88,8 @@
                 <artifactId>airpower-core</artifactId>
                 <version>${airpower-core.version}</version>
             </dependency>
+            
+            <!-- ==================== Spring Boot 依赖 ==================== -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -66,26 +98,9 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <scope>runtime</scope>
-                <version>${mysql.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-test</artifactId>
                 <version>${springboot.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jetbrains</groupId>
-                <artifactId>annotations</artifactId>
-                <scope>compile</scope>
-                <version>${jetbrains.annotations.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.integration</groupId>
-                <artifactId>spring-integration-mqtt</artifactId>
-                <version>${spring.integration.mqtt.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -97,10 +112,35 @@
                 <artifactId>spring-boot-starter-thymeleaf</artifactId>
                 <version>${springboot.version}</version>
             </dependency>
+            
+            <!-- ==================== 数据库相关依赖 ==================== -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <scope>runtime</scope>
+                <version>${mysql.version}</version>
+            </dependency>
+            
+            <!-- ==================== Spring 生态依赖 ==================== -->
+            <dependency>
+                <groupId>org.springframework.integration</groupId>
+                <artifactId>spring-integration-mqtt</artifactId>
+                <version>${spring.integration.mqtt.version}</version>
+            </dependency>
+            
+            <!-- ==================== Java EE/Jakarta EE 依赖 ==================== -->
             <dependency>
                 <groupId>jakarta.validation</groupId>
-                <artifactId>jakarta.validation-curd</artifactId>
+                <artifactId>jakarta.validation-api</artifactId>
                 <version>${jakarta.validation-api.version}</version>
+            </dependency>
+            
+            <!-- ==================== 第三方通用库 ==================== -->
+            <dependency>
+                <groupId>org.jetbrains</groupId>
+                <artifactId>annotations</artifactId>
+                <scope>compile</scope>
+                <version>${jetbrains.annotations.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>
@@ -117,6 +157,7 @@
 
     <build>
         <plugins>
+            <!-- ==================== 发布插件 ==================== -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
@@ -127,6 +168,8 @@
                     <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 源码插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -140,6 +183,8 @@
                     </execution>
                 </executions>
             </plugin>
+            
+            <!-- ==================== 文档插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -156,6 +201,8 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 签名插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>

@@ -13,6 +13,7 @@
     <description>AirPower-AI.
     </description>
     <dependencies>
+        <!-- ==================== AirPower 内部依赖 ==================== -->
         <dependency>
             <groupId>cn.hamm</groupId>
             <artifactId>airpower-core</artifactId>
@@ -23,23 +24,31 @@
             <artifactId>airpower-exception</artifactId>
             <version>${airpower.version}</version>
         </dependency>
+        
+        <!-- ==================== Spring 框架依赖 ==================== -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
+            <version>${spring-webmvc.version}</version>
         </dependency>
+        
+        <!-- ==================== 第三方通用库 ==================== -->
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
+            <version>${commons.codec.version}</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
+            <version>${relections.version}</version>
         </dependency>
     </dependencies>
 
 
     <build>
         <plugins>
+            <!-- ==================== 发布插件 ==================== -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
@@ -50,6 +59,8 @@
                     <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 源码插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -63,6 +74,8 @@
                     </execution>
                 </executions>
             </plugin>
+            
+            <!-- ==================== 文档插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -79,6 +92,8 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 编译插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -91,6 +106,8 @@
                     <target>17</target>
                 </configuration>
             </plugin>
+            
+            <!-- ==================== 签名插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>

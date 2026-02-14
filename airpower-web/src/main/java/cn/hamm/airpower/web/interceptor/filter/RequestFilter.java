@@ -1,7 +1,7 @@
 package cn.hamm.airpower.web.interceptor.filter;
 
 import cn.hamm.airpower.core.enums.HttpMethod;
-import cn.hamm.airpower.web.util.RequestUtil;
+import cn.hamm.airpower.http.util.RequestUtil;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;

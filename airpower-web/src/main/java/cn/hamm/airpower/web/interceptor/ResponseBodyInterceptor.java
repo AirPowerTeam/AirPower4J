@@ -1,14 +1,14 @@
 package cn.hamm.airpower.web.interceptor;
 
+import cn.hamm.airpower.api.ApiConfig;
+import cn.hamm.airpower.api.ApiController;
+import cn.hamm.airpower.api.DisableLog;
 import cn.hamm.airpower.core.*;
 import cn.hamm.airpower.core.annotation.DesensitizeIgnore;
 import cn.hamm.airpower.core.annotation.ExposeAll;
 import cn.hamm.airpower.core.constant.HttpConstant;
-import cn.hamm.airpower.web.api.ApiConfig;
-import cn.hamm.airpower.web.api.ApiController;
-import cn.hamm.airpower.web.api.DisableLog;
-import cn.hamm.airpower.web.curd.CurdController;
-import cn.hamm.airpower.web.curd.query.QueryPageResponse;
+import cn.hamm.airpower.curd.CurdController;
+import cn.hamm.airpower.curd.query.QueryPageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;

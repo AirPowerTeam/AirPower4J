@@ -1,11 +1,12 @@
 package cn.hamm.airpower.web.interceptor;
 
+import cn.hamm.airpower.api.ApiConfig;
 import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.TraceUtil;
 import cn.hamm.airpower.core.constant.HttpConstant;
-import cn.hamm.airpower.web.access.Access;
-import cn.hamm.airpower.web.access.AccessConfig;
-import cn.hamm.airpower.web.access.PermissionUtil;
+import cn.hamm.airpower.curd.access.Access;
+import cn.hamm.airpower.curd.access.AccessConfig;
+import cn.hamm.airpower.curd.permission.PermissionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-import static cn.hamm.airpower.web.exception.ServiceError.UNAUTHORIZED;
+import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
 
 /**
  * <h1>全局权限拦截器抽象类</h1>
@@ -45,6 +46,9 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
 
     @Autowired
     protected AccessConfig accessConfig;
+
+    @Autowired
+    protected ApiConfig apiConfig;
 
     /**
      * 拦截器
@@ -106,10 +110,10 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
             return;
         }
         //需要登录
-        String accessToken = request.getHeader(accessConfig.getAuthorizeHeader());
+        String accessToken = request.getHeader(apiConfig.getAuthorizeHeader());
 
         // 优先使用 Get 参数传入的身份
-        String accessTokenFromParam = request.getParameter(accessConfig.getAuthorizeHeader());
+        String accessTokenFromParam = request.getParameter(apiConfig.getAuthorizeHeader());
         if (StringUtils.hasText(accessTokenFromParam)) {
             accessToken = accessTokenFromParam;
         }
@@ -131,7 +135,7 @@ public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
      * @apiNote 如需前置验证令牌，可重写此方法
      */
     public AccessTokenUtil.VerifiedToken getVerifiedToken(String accessToken) {
-        return AccessTokenUtil.create().verify(accessToken, accessConfig.getAccessTokenSecret());
+        return AccessTokenUtil.create().verify(accessToken, apiConfig.getAccessTokenSecret());
     }
 
     /**

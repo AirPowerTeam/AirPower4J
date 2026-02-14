@@ -3,7 +3,7 @@ package cn.hamm.airpower.web.interceptor;
 import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.core.interfaces.IException;
-import cn.hamm.airpower.web.exception.ServiceError;
+import cn.hamm.airpower.exception.ServiceError;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static cn.hamm.airpower.web.exception.ServiceError.*;
+import static cn.hamm.airpower.exception.ServiceError.*;
 
 /**
  * <h1>全局异常处理拦截器</h1>

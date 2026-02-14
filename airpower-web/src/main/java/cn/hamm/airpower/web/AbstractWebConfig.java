@@ -2,9 +2,9 @@ package cn.hamm.airpower.web;
 
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.web.interceptor.filter.RequestFilter;
-import cn.hamm.airpower.web.websocket.WebSocketConfig;
-import cn.hamm.airpower.web.websocket.WebSocketHandler;
-import cn.hamm.airpower.web.websocket.WebSocketSupport;
+import cn.hamm.airpower.websocket.WebSocketConfig;
+import cn.hamm.airpower.websocket.WebSocketHandler;
+import cn.hamm.airpower.websocket.WebSocketSupport;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

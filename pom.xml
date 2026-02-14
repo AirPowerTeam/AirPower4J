@@ -29,11 +29,22 @@
         <maven.central.publishing.plugin.version>0.9.0</maven.central.publishing.plugin.version>
         <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
         <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
+        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
         <relections.version>0.10.1</relections.version>
     </properties>
     <packaging>pom</packaging>
     <modules>
+        <module>airpower-ai</module>
+        <module>airpower-api</module>
+        <module>airpower-exception</module>
+        <module>airpower-curd</module>
+        <module>airpower-email</module>
+        <module>airpower-http</module>
+        <module>airpower-mqtt</module>
+        <module>airpower-open</module>
+        <module>airpower-redis</module>
         <module>airpower-web</module>
+        <module>airpower-websocket</module>
     </modules>
     <dependencyManagement>
         <dependencies>

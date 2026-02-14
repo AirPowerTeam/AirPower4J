@@ -23,6 +23,7 @@ public class FileConfig {
      * 导出文件目录
      */
     private String exportDirectory = "export";
+    
     /**
      * 上传文件目录
      */

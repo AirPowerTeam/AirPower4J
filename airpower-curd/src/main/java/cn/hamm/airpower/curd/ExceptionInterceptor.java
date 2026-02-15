@@ -1,4 +1,4 @@
-package cn.hamm.airpower.web.interceptor;
+package cn.hamm.airpower.curd;
 
 import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.exception.ServiceException;

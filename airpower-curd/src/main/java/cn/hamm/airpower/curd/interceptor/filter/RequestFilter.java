@@ -1,4 +1,4 @@
-package cn.hamm.airpower.web.interceptor.filter;
+package cn.hamm.airpower.curd.interceptor.filter;
 
 import cn.hamm.airpower.core.enums.HttpMethod;
 import cn.hamm.airpower.http.util.RequestUtil;

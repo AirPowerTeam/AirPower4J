@@ -1,4 +1,4 @@
-package cn.hamm.airpower.web.interceptor;
+package cn.hamm.airpower.curd.interceptor;
 
 import cn.hamm.airpower.api.ApiConfig;
 import cn.hamm.airpower.api.ApiController;
@@ -31,8 +31,8 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static cn.hamm.airpower.web.interceptor.AbstractRequestInterceptor.REQUEST_CONTROLLER_KEY;
-import static cn.hamm.airpower.web.interceptor.AbstractRequestInterceptor.REQUEST_METHOD_KEY;
+import static cn.hamm.airpower.curd.interceptor.CurdRequestInterceptor.REQUEST_CONTROLLER_KEY;
+import static cn.hamm.airpower.curd.interceptor.CurdRequestInterceptor.REQUEST_METHOD_KEY;
 
 /**
  * <h1>全局拦截响应</h1>

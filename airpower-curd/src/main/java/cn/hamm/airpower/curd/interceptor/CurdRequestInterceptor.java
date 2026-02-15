@@ -1,11 +1,10 @@
-package cn.hamm.airpower.web.interceptor;
+package cn.hamm.airpower.curd.interceptor;
 
 import cn.hamm.airpower.api.ApiConfig;
 import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.TraceUtil;
 import cn.hamm.airpower.core.constant.HttpConstant;
 import cn.hamm.airpower.curd.access.Access;
-import cn.hamm.airpower.curd.access.AccessConfig;
 import cn.hamm.airpower.curd.permission.PermissionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,7 +24,7 @@ import java.util.Objects;
 import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
 
 /**
- * <h1>全局权限拦截器抽象类</h1>
+ * <h1>权限拦截器抽象类</h1>
  *
  * @author Hamm.cn
  * @see #checkUserPermission(AccessTokenUtil.VerifiedToken, String, HttpServletRequest)
@@ -33,19 +32,16 @@ import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
  */
 @Component
 @Slf4j
-public abstract class AbstractRequestInterceptor implements HandlerInterceptor {
+public class CurdRequestInterceptor implements HandlerInterceptor {
     /**
      * 缓存的 {@code REQUEST_METHOD_KEY}
      */
-    protected static final String REQUEST_METHOD_KEY = "REQUEST_METHOD_KEY";
+    public static final String REQUEST_METHOD_KEY = "REQUEST_METHOD_KEY";
 
     /**
      * 缓存的 {@code REQUEST_METHOD_KEY}
      */
-    protected static final String REQUEST_CONTROLLER_KEY = "REQUEST_CONTROLLER_KEY";
-
-    @Autowired
-    protected AccessConfig accessConfig;
+    public static final String REQUEST_CONTROLLER_KEY = "REQUEST_CONTROLLER_KEY";
 
     @Autowired
     protected ApiConfig apiConfig;

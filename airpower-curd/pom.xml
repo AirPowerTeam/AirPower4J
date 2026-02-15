@@ -10,14 +10,18 @@
     </parent>
     <artifactId>airpower-curd</artifactId>
     <name>airpower-curd</name>
-    <description>AirPower-Curd.
-    </description>
+    <description>AirPower-Curd.</description>
     <dependencies>
         <!-- ==================== AirPower 内部依赖 ==================== -->
         <dependency>
             <groupId>cn.hamm</groupId>
             <artifactId>airpower-core</artifactId>
             <version>${airpower-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.hamm</groupId>
+            <artifactId>airpower-http</artifactId>
+            <version>${airpower.version}</version>
         </dependency>
         <dependency>
             <groupId>cn.hamm</groupId>
@@ -29,7 +33,7 @@
             <artifactId>airpower-redis</artifactId>
             <version>${airpower.version}</version>
         </dependency>
-        
+
         <!-- ==================== 注解处理依赖 ==================== -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -37,7 +41,24 @@
             <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
-        
+
+        <!-- ==================== Spring Web 相关依赖 ==================== -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+            <version>${spring-data-redis.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${spring-web.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${spring-webmvc.version}</version>
+        </dependency>
+
         <!-- ==================== 数据访问依赖 ==================== -->
         <dependency>
             <groupId>org.springframework.data</groupId>
@@ -59,7 +80,7 @@
             <artifactId>spring-boot-starter-validation</artifactId>
             <version>${spring-boot-starter-validation.version}</version>
         </dependency>
-        
+
         <!-- ==================== 数据库驱动 ==================== -->
         <dependency>
             <groupId>mysql</groupId>
@@ -83,7 +104,7 @@
                     <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 源码插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -98,7 +119,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <!-- ==================== 文档插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -116,7 +137,7 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 编译插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -130,7 +151,7 @@
                     <target>17</target>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 签名插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

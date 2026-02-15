@@ -1,4 +1,4 @@
-package cn.hamm.airpower.http.util;
+package cn.hamm.airpower.api;
 
 import cn.hamm.airpower.core.StringUtil;
 import cn.hamm.airpower.core.constant.HttpConstant;

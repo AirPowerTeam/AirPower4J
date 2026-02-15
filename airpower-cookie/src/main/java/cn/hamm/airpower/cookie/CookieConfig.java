@@ -1,4 +1,4 @@
-package cn.hamm.airpower.http.cookie;
+package cn.hamm.airpower.cookie;
 
 import cn.hamm.airpower.core.DateTimeUtil;
 import lombok.Data;

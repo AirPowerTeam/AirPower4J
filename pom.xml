@@ -68,7 +68,7 @@
         <module>airpower-exception</module>
         <module>airpower-curd</module>
         <module>airpower-email</module>
-        <module>airpower-http</module>
+        <module>airpower-cookie</module>
         <module>airpower-mqtt</module>
         <module>airpower-open</module>
         <module>airpower-redis</module>

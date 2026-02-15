@@ -1,4 +1,4 @@
-package cn.hamm.airpower.http;
+package cn.hamm.airpower.cookie;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
  * @author Hamm.cn
  */
 @AutoConfiguration
-@ComponentScan("cn.hamm.airpower.http")
+@ComponentScan("cn.hamm.airpower.cookie")
 public class Auto {
 
 }

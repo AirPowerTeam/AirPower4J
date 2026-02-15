@@ -1,4 +1,4 @@
-package cn.hamm.airpower.http.cookie;
+package cn.hamm.airpower.cookie;
 
 import jakarta.servlet.http.Cookie;
 import org.jetbrains.annotations.NotNull;

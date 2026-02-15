@@ -8,9 +8,9 @@
         <!-- POM 统一版本-->
         <version>5.0.4</version>
     </parent>
-    <artifactId>airpower-http</artifactId>
-    <name>airpower-http</name>
-    <description>AirPower-Http.</description>
+    <artifactId>airpower-cookie</artifactId>
+    <name>airpower-cookie</name>
+    <description>AirPower-Cookie.</description>
     <dependencies>
         <!-- ==================== AirPower 内部依赖 ==================== -->
         <dependency>
@@ -38,7 +38,7 @@
                     <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 源码插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -53,7 +53,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <!-- ==================== 文档插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -71,7 +71,7 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 编译插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -85,7 +85,7 @@
                     <target>17</target>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 签名插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

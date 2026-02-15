@@ -31,7 +31,7 @@
         </dependency>
         <dependency>
             <groupId>cn.hamm</groupId>
-            <artifactId>airpower-http</artifactId>
+            <artifactId>airpower-cookie</artifactId>
             <version>${airpower.version}</version>
         </dependency>
         <dependency>
@@ -39,7 +39,7 @@
             <artifactId>airpower-redis</artifactId>
             <version>${airpower.version}</version>
         </dependency>
-        
+
         <!-- ==================== AOP 相关依赖 ==================== -->
         <!-- 引入 SpringBoot 的 AOP 实现切面 -->
         <dependency>
@@ -63,7 +63,7 @@
                     <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 源码插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -78,7 +78,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <!-- ==================== 文档插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -96,7 +96,7 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 编译插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -110,7 +110,7 @@
                     <target>17</target>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 签名插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

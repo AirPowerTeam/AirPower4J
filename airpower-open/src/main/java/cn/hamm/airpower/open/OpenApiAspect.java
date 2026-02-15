@@ -1,9 +1,9 @@
 package cn.hamm.airpower.open;
 
+import cn.hamm.airpower.api.RequestUtil;
 import cn.hamm.airpower.core.DateTimeUtil;
 import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.exception.ServiceException;
-import cn.hamm.airpower.http.util.RequestUtil;
 import cn.hamm.airpower.redis.RedisHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;

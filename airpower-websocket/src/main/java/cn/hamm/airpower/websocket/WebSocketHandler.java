@@ -1,6 +1,6 @@
 package cn.hamm.airpower.websocket;
 
-import cn.hamm.airpower.api.ApiConfig;
+import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.TaskUtil;
@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static cn.hamm.airpower.exception.ServiceError.WEBSOCKET_ERROR;
+import static cn.hamm.airpower.exception.Errors.WEBSOCKET_ERROR;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**

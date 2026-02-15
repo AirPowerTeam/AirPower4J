@@ -1,10 +1,10 @@
 package cn.hamm.airpower.curd.interceptor;
 
-import cn.hamm.airpower.api.ApiConfig;
+import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.TraceUtil;
 import cn.hamm.airpower.core.constant.HttpConstant;
-import cn.hamm.airpower.curd.access.Access;
+import cn.hamm.airpower.curd.model.Access;
 import cn.hamm.airpower.curd.permission.PermissionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +21,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-import static cn.hamm.airpower.exception.ServiceError.UNAUTHORIZED;
+import static cn.hamm.airpower.exception.Errors.UNAUTHORIZED;
 
 /**
  * <h1>权限拦截器抽象类</h1>

@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static cn.hamm.airpower.exception.ServiceError.REDIS_ERROR;
+import static cn.hamm.airpower.exception.Errors.REDIS_ERROR;
 
 
 /**

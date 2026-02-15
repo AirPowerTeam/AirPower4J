@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static cn.hamm.airpower.exception.ServiceError.ENCRYPT_DATA_FAIL;
+import static cn.hamm.airpower.exception.Errors.ENCRYPT_DATA_FAIL;
 
 /**
  * <h1>Open API 响应对象</h1>

@@ -21,7 +21,7 @@ import org.springframework.util.StringUtils;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import static cn.hamm.airpower.exception.ServiceError.*;
+import static cn.hamm.airpower.exception.Errors.*;
 
 /**
  * <h1>Open API 切面</h1>

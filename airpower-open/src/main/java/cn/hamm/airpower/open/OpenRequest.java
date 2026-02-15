@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 
-import static cn.hamm.airpower.exception.ServiceError.*;
+import static cn.hamm.airpower.exception.Errors.*;
 
 /**
  * <h1>Open API 请求体</h1>

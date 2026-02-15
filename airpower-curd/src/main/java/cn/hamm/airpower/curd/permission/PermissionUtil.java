@@ -1,10 +1,10 @@
 package cn.hamm.airpower.curd.permission;
 
-import cn.hamm.airpower.api.Api;
+import cn.hamm.airpower.api.annotation.Api;
 import cn.hamm.airpower.core.DictionaryUtil;
 import cn.hamm.airpower.core.ReflectUtil;
-import cn.hamm.airpower.curd.Curd;
-import cn.hamm.airpower.curd.access.Access;
+import cn.hamm.airpower.curd.base.Curd;
+import cn.hamm.airpower.curd.model.Access;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.Contract;
@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static cn.hamm.airpower.exception.ServiceError.PARAM_MISSING;
+import static cn.hamm.airpower.exception.Errors.PARAM_MISSING;
 import static org.springframework.core.io.support.ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX;
 
 /**

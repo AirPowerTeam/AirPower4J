@@ -1,6 +1,6 @@
 package cn.hamm.airpower.curd.annotation;
 
-import cn.hamm.airpower.curd.Curd;
+import cn.hamm.airpower.curd.base.Curd;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;

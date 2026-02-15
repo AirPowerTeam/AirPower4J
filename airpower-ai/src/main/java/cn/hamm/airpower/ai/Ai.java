@@ -1,10 +1,13 @@
 package cn.hamm.airpower.ai;
 
+import cn.hamm.airpower.ai.model.AiRequest;
+import cn.hamm.airpower.ai.model.AiResponse;
+import cn.hamm.airpower.ai.model.AiStream;
 import cn.hamm.airpower.core.HttpUtil;
 import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.constant.HttpConstant;
 import cn.hamm.airpower.core.exception.ServiceException;
-import cn.hamm.airpower.exception.ServiceError;
+import cn.hamm.airpower.exception.Errors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
@@ -31,7 +34,7 @@ import static cn.hamm.airpower.core.constant.HttpConstant.ContentType.APPLICATIO
 import static cn.hamm.airpower.core.constant.HttpConstant.GrantType.BEARER;
 import static cn.hamm.airpower.core.constant.HttpConstant.Header.AUTHORIZATION;
 import static cn.hamm.airpower.core.constant.HttpConstant.Header.CONTENT_TYPE;
-import static cn.hamm.airpower.exception.ServiceError.AI_ERROR;
+import static cn.hamm.airpower.exception.Errors.AI_ERROR;
 
 /**
  * <h1>AI 模型</h1>
@@ -123,7 +126,7 @@ public class Ai {
                 }
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
-                throw new ServiceException(ServiceError.AI_ERROR, e.getMessage());
+                throw new ServiceException(Errors.AI_ERROR, e.getMessage());
             }
         };
         return ResponseEntity.ok()

@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Data
 @Configuration
-@ConfigurationProperties("airpower.access")
+@ConfigurationProperties("airpower.curd.access")
 public class AccessConfig {
 
     /**

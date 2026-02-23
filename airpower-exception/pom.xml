@@ -6,7 +6,7 @@
         <groupId>cn.hamm</groupId>
         <artifactId>airpower</artifactId>
         <!-- POM 统一版本-->
-        <version>5.0.4</version>
+        <version>6.0.0</version>
     </parent>
     <artifactId>airpower-exception</artifactId>
     <name>airpower-common</name>
@@ -19,7 +19,7 @@
             <artifactId>airpower-core</artifactId>
             <version>${airpower-core.version}</version>
         </dependency>
-        
+
         <!-- ==================== 注解处理依赖 ==================== -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -33,7 +33,7 @@
             <version>${jetbrains.annotations.version}</version>
             <scope>compile</scope>
         </dependency>
-        
+
         <!-- ==================== Spring Boot 依赖 ==================== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -56,7 +56,7 @@
                     <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 源码插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -71,7 +71,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <!-- ==================== 文档插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -89,7 +89,7 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 编译插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -103,7 +103,7 @@
                     <target>17</target>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 签名插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

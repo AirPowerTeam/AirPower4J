@@ -6,7 +6,7 @@
         <groupId>cn.hamm</groupId>
         <artifactId>airpower</artifactId>
         <!-- POM 统一版本-->
-        <version>5.0.4</version>
+        <version>6.0.0</version>
     </parent>
     <artifactId>airpower-email</artifactId>
     <name>airpower-email</name>
@@ -23,7 +23,7 @@
             <artifactId>airpower-exception</artifactId>
             <version>${airpower.version}</version>
         </dependency>
-        
+
         <!-- ==================== 邮件服务依赖 ==================== -->
         <dependency>
             <groupId>org.eclipse.angus</groupId>
@@ -50,7 +50,7 @@
                     <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 源码插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -65,7 +65,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <!-- ==================== 文档插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -83,7 +83,7 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 编译插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -97,7 +97,7 @@
                     <target>17</target>
                 </configuration>
             </plugin>
-            
+
             <!-- ==================== 签名插件 ==================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

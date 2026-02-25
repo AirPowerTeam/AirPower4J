@@ -8,10 +8,7 @@ import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.core.interfaces.IEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
@@ -21,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.annotation.Transient;
 
 import java.io.Serializable;
 

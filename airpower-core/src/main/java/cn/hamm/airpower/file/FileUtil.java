@@ -225,6 +225,38 @@ public class FileUtil {
     }
 
     /**
+     * 将文件添加到 ZIP文件中
+     *
+     * @param fileDirPath 文件目录
+     * @param fileName    文件名
+     * @param zos         ZIP 输出流
+     */
+    public static void zipFile(String fileDirPath, String fileName, ZipOutputStream zos) throws IOException {
+        try (FileInputStream fis = new FileInputStream(formatDirectory(fileDirPath) + fileName)) {
+            zipFile(fis, fileName, zos);
+        }
+    }
+
+
+    /**
+     * 将文件添加到 ZIP文件中
+     *
+     * @param fis      文件输入流
+     * @param filePath 文件路径
+     * @param zos      ZIP 输出流
+     */
+    public static void zipFile(FileInputStream fis, String filePath, ZipOutputStream zos) throws IOException {
+        ZipEntry entry = new ZipEntry(filePath);
+        zos.putNextEntry(entry);
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = fis.read(buffer)) > 0) {
+            zos.write(buffer, 0, length);
+        }
+        zos.closeEntry();
+    }
+
+    /**
      * 删除当前文件夹以及当前文件夹内的文件
      *
      * @param pathName 文件夹路径

@@ -5,12 +5,12 @@
     <groupId>cn.hamm</groupId>
     <artifactId>airpower</artifactId>
     <!-- POM 统一版本-->
-    <version>6.0.0</version>
+    <version>6.0.1</version>
     <name>airpower</name>
     <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA.</description>
     <properties>
         <!-- ==================== 项目版本 ==================== -->
-        <airpower.version>6.0.0</airpower.version>
+        <airpower.version>6.0.1</airpower.version>
         <airpower-core.version>5.0.1</airpower-core.version>
 
         <!-- ==================== 构建配置 ==================== -->

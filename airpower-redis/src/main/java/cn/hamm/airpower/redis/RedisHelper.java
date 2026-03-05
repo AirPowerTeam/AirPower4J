@@ -167,13 +167,15 @@ public class RedisHelper {
                 return new Lock().setKey(key).setValue(value);
             }
             if (currentIndex * step >= timeout) {
-                log.error("获取锁超时，{}", key);
+                log.warn("获取锁超时，key= {}", key);
                 throw new ServiceException("系统繁忙，请稍后重试");
             }
             try {
                 //noinspection BusyWait
                 Thread.sleep(step);
             } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+                throw new ServiceException("获取锁被中断");
             }
         }
     }
@@ -429,7 +431,7 @@ public class RedisHelper {
      * 获取 RedisTemplate
      */
     public RedisTemplate<String, Object> getRedisTemplate() {
-        StringRedisSerializer serializer = new StringRedisSerializer();
+        StringRedisSerializer serializer = new StringRedisSerializer(StandardCharsets.UTF_8);
         redisTemplate.setKeySerializer(serializer);
         redisTemplate.setHashKeySerializer(serializer);
         redisTemplate.setValueSerializer(serializer);

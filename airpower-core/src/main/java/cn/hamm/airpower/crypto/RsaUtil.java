@@ -32,7 +32,8 @@ public class RsaUtil {
     /**
      * 加密算法 KEY 长度
      */
-    private final int CRYPT_KEY_SIZE = 2048;
+    @Setter
+    private int cryptKeySize = 2048;
 
     /**
      * 公钥
@@ -153,7 +154,7 @@ public class RsaUtil {
      */
     public final String publicKeyEncrypt(String sourceContent) {
         try {
-            int blockSize = CRYPT_KEY_SIZE / 8 - 11;
+            int blockSize = cryptKeySize / 8 - 11;
             return encrypt(sourceContent, getPublicKey(publicKey), blockSize);
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
@@ -169,7 +170,7 @@ public class RsaUtil {
      */
     public final @NotNull String privateKeyDecrypt(String encryptedContent) {
         try {
-            int blockSize = CRYPT_KEY_SIZE / 8;
+            int blockSize = cryptKeySize / 8;
             return decrypt(encryptedContent, getPrivateKey(privateKey), blockSize);
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
@@ -185,7 +186,7 @@ public class RsaUtil {
      */
     public final String privateKeyEncrypt(String sourceContent) {
         try {
-            int blockSize = CRYPT_KEY_SIZE / 8 - 11;
+            int blockSize = cryptKeySize / 8 - 11;
             return encrypt(sourceContent, getPrivateKey(privateKey), blockSize);
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
@@ -201,7 +202,7 @@ public class RsaUtil {
      */
     public final @NotNull String publicKeyDecrypt(String encryptedContent) {
         try {
-            int blockSize = CRYPT_KEY_SIZE / 8;
+            int blockSize = cryptKeySize / 8;
             return decrypt(encryptedContent, getPublicKey(publicKey), blockSize);
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);

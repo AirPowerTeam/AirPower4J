@@ -38,6 +38,16 @@ public class HttpUtil {
     private Map<String, Object> cookies = new HashMap<>();
 
     /**
+     * 显示请求包体日志
+     */
+    private boolean showRequestLog = true;
+
+    /**
+     * 显示响应包体日志
+     */
+    private boolean showResponseLog = true;
+
+    /**
      * 请求地址
      */
     private String url;
@@ -76,6 +86,26 @@ public class HttpUtil {
     @Contract(" -> new")
     public static @NotNull HttpUtil create() {
         return new HttpUtil();
+    }
+
+    /**
+     * 禁止请求日志
+     *
+     * @return HttpUtil
+     */
+    public HttpUtil disableRequestLog() {
+        this.showRequestLog = false;
+        return this;
+    }
+
+    /**
+     * 禁止响应日志
+     *
+     * @return HttpUtil
+     */
+    public HttpUtil disableResponseLog() {
+        this.showResponseLog = false;
+        return this;
     }
 
     /**
@@ -132,8 +162,11 @@ public class HttpUtil {
     public final @NotNull HttpResponse<String> send() {
         try {
             HttpResponse<String> response = getHttpClient().send(getHttpRequest(), HttpResponse.BodyHandlers.ofString());
-            log.info("响应码: {}", response.statusCode());
-            log.info("响应体: {}", response.body());
+            if (showResponseLog) {
+                log.info("响应状态码: {}", response.statusCode());
+                log.info("响应头: {}", Json.toString(response.headers()));
+                log.info("响应体: {}", response.body());
+            }
             return response;
         } catch (Exception exception) {
             throw new ServiceException(exception);
@@ -150,9 +183,11 @@ public class HttpUtil {
                 .uri(URI.create(url));
         headers.forEach((key, value) -> requestBuilder.header(key, value.toString()));
         HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofString(body);
-        log.info("请求地址: {} {}", method.name(), url);
-        log.info("请求头: {}", Json.toString(headers));
-        log.info("请求体: {}", body);
+        if (showRequestLog) {
+            log.info("请求地址: {} {}", method.name(), url);
+            log.info("请求头: {}", Json.toString(headers));
+            log.info("请求体: {}", body);
+        }
         switch (method) {
             case GET -> requestBuilder.GET();
             case POST -> requestBuilder.POST(bodyPublisher);

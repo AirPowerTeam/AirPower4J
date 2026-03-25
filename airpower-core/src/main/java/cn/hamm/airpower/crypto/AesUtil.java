@@ -109,7 +109,7 @@ public class AesUtil {
      */
     private @NotNull Cipher getCipher(int type) {
         try {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(UTF_8), algorithm);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(Base64.getDecoder().decode(key), algorithm);
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes(UTF_8));
             Cipher cipher = Cipher.getInstance(algorithm + "/" + mode + "/" + padding);
             cipher.init(type, secretKeySpec, ivParameterSpec);

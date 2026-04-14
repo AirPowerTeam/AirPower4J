@@ -6,7 +6,7 @@
         <groupId>cn.hamm</groupId>
         <artifactId>airpower</artifactId>
         <!-- POM 统一版本-->
-        <version>6.1.1</version>
+        <version>6.1.2</version>
     </parent>
     <artifactId>airpower-cookie</artifactId>
     <name>airpower-cookie</name>

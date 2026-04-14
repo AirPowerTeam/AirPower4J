@@ -100,6 +100,7 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
                 return responseResult;
             }
         }
+        log.info("请求信息 {} {}", request.getMethod(), request.getURI());
         if (apiConfig.getRequestLog()) {
             log.info("请求包体 {}", getRequestBody(((ServletServerHttpRequest) request).getServletRequest()));
         }

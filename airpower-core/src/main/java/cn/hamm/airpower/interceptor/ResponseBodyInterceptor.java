@@ -98,6 +98,7 @@ public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
             }
         }
         if (apiConfig.getRequestLog()) {
+            log.info("请求地址 {}", request.getURI());
             log.info("请求包体 {}", getRequestBody(((ServletServerHttpRequest) request).getServletRequest()));
         }
         if (apiConfig.getResponseLog()) {

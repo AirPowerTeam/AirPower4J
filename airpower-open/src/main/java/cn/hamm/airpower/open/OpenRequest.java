@@ -119,7 +119,6 @@ public class OpenRequest {
     final void checkSignature(IOpenApp openApp) {
         this.openApp = openApp;
         String sign = sign();
-        log.info("签名比对 {} {}", sign, signature);
         SIGNATURE_INVALID.whenNotEquals(signature, sign);
     }
 
@@ -130,7 +129,8 @@ public class OpenRequest {
      */
     private @org.jetbrains.annotations.NotNull String sign() {
         String source = openApp.getAppSecret() + appKey + version + timestamp + nonce + content;
-        log.info("签名计算参数 {}", source);
-        return DigestUtils.sha1Hex(source);
+        String sign = DigestUtils.sha1Hex(source);
+        log.info("签名比对 {} {} {}", sign, signature, source);
+        return sign;
     }
 }

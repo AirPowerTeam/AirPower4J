@@ -251,14 +251,14 @@ public class ExceptionInterceptor {
     /**
      * 记录异常信息
      *
-     * @param exception 异常
+     * @param e 异常
      */
-    private void logException(@NotNull Exception exception) {
-        if (exception instanceof IException<?> serviceError) {
-            log.error("[{}]{}", serviceError.getCode(), serviceError.getMessage(), exception);
+    private void logException(@NotNull Exception e) {
+        if (e instanceof IException<?> serviceError) {
+            log.error("[{}]{}", serviceError.getCode(), serviceError.getMessage(), e);
             return;
         }
-        log.error(exception.getMessage(), exception);
+        log.error(e.getMessage(), e);
     }
 
     /**

@@ -1303,7 +1303,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private void queryPageToSaveExportFile(QueryPageRequest<E> queryPageRequest, List<Field> fieldList, ExportHelper.ExportFile exportFile) {
         queryPageRequest = beforeExportQuery(queryPageRequest);
         QueryPageResponse<E> page = getPage(queryPageRequest);
-        log.info("导出查询第 {} 页，本页 {} 条", page.getPage().getPageNum(), page.getList().size());
+        String description = getEntityDescription();
+        log.info("导出{} 查询第 {} 页，本页 {} 条", description, page.getPage().getPageNum(), page.getList().size());
         // 当前页查到的数据列表
         List<E> list = page.getList();
         list = afterExportQuery(list);

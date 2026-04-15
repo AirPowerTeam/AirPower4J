@@ -178,8 +178,8 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
                 if (Objects.nonNull(entityClass)) {
                     whiteList.add(entityClass);
                 }
-            } catch (Exception exception) {
-                log.error(exception.getMessage(), exception);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
             }
         }
 

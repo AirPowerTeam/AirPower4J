@@ -99,8 +99,8 @@ public class CurdUtil {
                 entityMeta.setFields(entityFieldMetas);
                 entityMetaList.add(entityMeta);
             }
-        } catch (Exception exception) {
-            log.error("扫描实体出错", exception);
+        } catch (Exception e) {
+            log.error("扫描实体出错", e);
         }
         return entityMetaList;
     }

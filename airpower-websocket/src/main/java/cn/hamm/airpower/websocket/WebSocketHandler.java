@@ -130,7 +130,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
         }
         String accessToken = session.getUri().getQuery();
         if (Objects.isNull(accessToken)) {
-            log.warn("没有传入AccessToken 即将关闭连接");
+            log.error("没有传入AccessToken 即将关闭连接");
             closeConnection(session);
             return;
         }

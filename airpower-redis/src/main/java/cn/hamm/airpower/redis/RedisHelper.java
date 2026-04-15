@@ -167,7 +167,7 @@ public class RedisHelper {
                 return new Lock().setKey(key).setValue(value);
             }
             if (currentIndex * step >= timeout) {
-                log.warn("获取锁超时，key= {}", key);
+                log.error("获取锁超时，key= {}", key);
                 throw new ServiceException("系统繁忙，请稍后重试");
             }
             try {
@@ -282,8 +282,8 @@ public class RedisHelper {
             if (second > 0) {
                 getRedisTemplate().expire(getKey(key), second, TimeUnit.SECONDS);
             }
-        } catch (Exception exception) {
-            log.error(REDIS_ERROR.getMessage(), exception);
+        } catch (Exception e) {
+            log.error(REDIS_ERROR.getMessage(), e);
             throw new ServiceException(REDIS_ERROR);
         }
     }
@@ -297,8 +297,8 @@ public class RedisHelper {
         try {
             Set<String> keys = getRedisTemplate().keys(pattern);
             getRedisTemplate().delete(keys);
-        } catch (Exception exception) {
-            log.error(REDIS_ERROR.getMessage(), exception);
+        } catch (Exception e) {
+            log.error(REDIS_ERROR.getMessage(), e);
             throw new ServiceException(REDIS_ERROR);
         }
     }
@@ -312,8 +312,8 @@ public class RedisHelper {
     public final long getExpireSecond(String key) {
         try {
             return getRedisTemplate().getExpire(getKey(key), TimeUnit.SECONDS);
-        } catch (Exception exception) {
-            log.error(REDIS_ERROR.getMessage(), exception);
+        } catch (Exception e) {
+            log.error(REDIS_ERROR.getMessage(), e);
             throw new ServiceException(REDIS_ERROR);
         }
     }
@@ -340,8 +340,8 @@ public class RedisHelper {
     public final void delete(String key) {
         try {
             getRedisTemplate().delete(getKey(key));
-        } catch (Exception exception) {
-            log.error(REDIS_ERROR.getMessage(), exception);
+        } catch (Exception e) {
+            log.error(REDIS_ERROR.getMessage(), e);
             throw new ServiceException(REDIS_ERROR);
         }
     }
@@ -355,8 +355,8 @@ public class RedisHelper {
     public final @Nullable Object get(String key) {
         try {
             return getRedisTemplate().opsForValue().get(getKey(key));
-        } catch (Exception exception) {
-            log.error(REDIS_ERROR.getMessage(), exception);
+        } catch (Exception e) {
+            log.error(REDIS_ERROR.getMessage(), e);
             throw new ServiceException(REDIS_ERROR);
         }
     }
@@ -386,8 +386,8 @@ public class RedisHelper {
             } else {
                 set(key, value);
             }
-        } catch (Exception exception) {
-            log.error(REDIS_ERROR.getMessage(), exception);
+        } catch (Exception e) {
+            log.error(REDIS_ERROR.getMessage(), e);
             throw new ServiceException(REDIS_ERROR);
         }
     }

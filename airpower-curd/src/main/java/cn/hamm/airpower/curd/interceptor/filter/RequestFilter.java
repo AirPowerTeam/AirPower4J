@@ -41,8 +41,8 @@ public class RequestFilter implements Filter {
                 return;
             }
             filterChain.doFilter(servletRequest, servletResponse);
-        } catch (Exception exception) {
-            log.error(exception.getMessage(), exception);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 }

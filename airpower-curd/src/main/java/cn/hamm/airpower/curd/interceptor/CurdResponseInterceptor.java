@@ -94,7 +94,6 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
             String traceId = TraceUtil.getTraceId();
             response.getHeaders().set(HttpConstant.Header.TRACE_ID, traceId);
         }
-        log.info("请求信息 {} {}", request.getMethod(), request.getURI());
         printRequestLog(method, request);
         printResponseLog(method, Json.toString(responseResult));
         return responseResult;
@@ -179,8 +178,8 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
                 if (Objects.nonNull(entityClass)) {
                     whiteList.add(entityClass);
                 }
-            } catch (Exception exception) {
-                log.error(exception.getMessage(), exception);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
             }
         }
 

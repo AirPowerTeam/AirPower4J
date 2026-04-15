@@ -6,7 +6,7 @@
         <groupId>cn.hamm</groupId>
         <artifactId>airpower</artifactId>
         <!-- POM 统一版本-->
-        <version>6.1.3</version>
+        <version>6.1.4</version>
     </parent>
     <artifactId>airpower-redis</artifactId>
     <name>airpower-redis</name>

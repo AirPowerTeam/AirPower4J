@@ -21,11 +21,15 @@ public class ApiConfig {
 
     /**
      * 输出请求包体日志
+     *
+     * @apiNote 如配置为 <code>false</code>, 则全局不会输出请求包体日志
      */
     private Boolean requestLog = true;
 
     /**
      * 输出响应包体日志
+     *
+     * @apiNote 如配置为 <code>false</code>, 则全局不会输出响应包体日志
      */
     private Boolean responseLog = true;
 

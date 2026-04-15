@@ -7,15 +7,15 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>标记的 API 不输出日志</h1>
+ * <h1>标记不输出请求日志</h1>
  *
  * @author Hamm.cn
  */
 @Target(METHOD)
 @Retention(RUNTIME)
-public @interface DisableLog {
+public @interface DisableResponseLog {
     /**
-     * 是否禁止日志
+     * 是否禁止请求日志
      */
     boolean value() default true;
 }

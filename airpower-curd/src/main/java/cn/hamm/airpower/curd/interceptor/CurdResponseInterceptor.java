@@ -6,7 +6,8 @@ import cn.hamm.airpower.core.*;
 import cn.hamm.airpower.core.annotation.DesensitizeIgnore;
 import cn.hamm.airpower.core.annotation.ExposeAll;
 import cn.hamm.airpower.core.constant.HttpConstant;
-import cn.hamm.airpower.curd.annotation.DisableLog;
+import cn.hamm.airpower.curd.annotation.DisableRequestLog;
+import cn.hamm.airpower.curd.annotation.DisableResponseLog;
 import cn.hamm.airpower.curd.base.CurdController;
 import cn.hamm.airpower.curd.model.query.QueryPageResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -93,21 +94,50 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
             String traceId = TraceUtil.getTraceId();
             response.getHeaders().set(HttpConstant.Header.TRACE_ID, traceId);
         }
+        log.info("请求信息 {} {}", request.getMethod(), request.getURI());
+        printRequestLog(method, request);
+        printResponseLog(method, Json.toString(responseResult));
+        return responseResult;
+    }
+
+    /**
+     * 打印响应日志
+     *
+     * @param method         请求的方法
+     * @param responseResult 响应的包体
+     */
+    private void printResponseLog(Method method, String responseResult) {
+        if (!apiConfig.getResponseLog()) {
+            return;
+        }
         if (method != null) {
-            DisableLog disableLog = ReflectUtil.getAnnotation(DisableLog.class, method);
-            if (Objects.nonNull(disableLog) && disableLog.value()) {
+            DisableResponseLog disableResponseLog = ReflectUtil.getAnnotation(DisableResponseLog.class, method);
+            if (Objects.nonNull(disableResponseLog) && disableResponseLog.value()) {
                 // 禁用日志
-                return responseResult;
+                return;
             }
         }
-        log.info("请求信息 {} {}", request.getMethod(), request.getURI());
-        if (apiConfig.getRequestLog()) {
-            log.info("请求包体 {}", getRequestBody(((ServletServerHttpRequest) request).getServletRequest()));
+        log.info("响应包体 {}", responseResult);
+    }
+
+    /**
+     * 打印请求日志
+     *
+     * @param method  请求的方法
+     * @param request 请求
+     */
+    private void printRequestLog(Method method, @NotNull ServerHttpRequest request) {
+        if (!apiConfig.getRequestLog()) {
+            return;
         }
-        if (apiConfig.getResponseLog()) {
-            log.info("响应包体 {}", Json.toString(responseResult));
+        if (method != null) {
+            DisableRequestLog disableRequestLog = ReflectUtil.getAnnotation(DisableRequestLog.class, method);
+            if (Objects.nonNull(disableRequestLog) && disableRequestLog.value()) {
+                // 禁用日志
+                return;
+            }
         }
-        return responseResult;
+        log.info("请求包体 {}", getRequestBody(((ServletServerHttpRequest) request).getServletRequest()));
     }
 
     /**

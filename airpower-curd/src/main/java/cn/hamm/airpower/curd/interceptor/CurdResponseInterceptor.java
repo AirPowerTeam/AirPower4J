@@ -94,7 +94,6 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
             String traceId = TraceUtil.getTraceId();
             response.getHeaders().set(HttpConstant.Header.TRACE_ID, traceId);
         }
-        log.info("请求信息 {} {}", request.getMethod(), request.getURI());
         printRequestLog(method, request);
         printResponseLog(method, Json.toString(responseResult));
         return responseResult;

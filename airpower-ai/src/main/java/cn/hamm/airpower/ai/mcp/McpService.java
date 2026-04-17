@@ -6,6 +6,7 @@ import cn.hamm.airpower.ai.mcp.method.McpMethods;
 import cn.hamm.airpower.ai.mcp.method.McpOptional;
 import cn.hamm.airpower.ai.mcp.model.*;
 import cn.hamm.airpower.core.ReflectUtil;
+import cn.hamm.airpower.core.StringUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -77,14 +78,16 @@ public class McpService {
      * @return MCP 工具
      */
     private static @Nullable McpTool getTool(@NotNull Method method) {
-        McpMethod annotation = method.getAnnotation(McpMethod.class);
+        McpMethod annotation = ReflectUtil.getAnnotation(McpMethod.class, method);
         if (Objects.isNull(annotation)) {
             return null;
         }
         McpTool mcpTool = new McpTool();
         String mcpToolName = annotation.value();
+        String classReadableName = method.getDeclaringClass().getSimpleName();
+        String methodName = method.getName();
         if (!StringUtils.hasText(mcpToolName)) {
-            mcpToolName = method.getDeclaringClass().getSimpleName() + "_" + method.getName();
+            mcpToolName = classReadableName + "_" + methodName;
         }
         McpTool.InputSchema inputSchema = new McpTool.InputSchema();
         // 获取 Method 的形参列表
@@ -117,8 +120,12 @@ public class McpService {
             }
             inputSchema.setProperties(properties);
         });
+        String description = ReflectUtil.getDescription(method);
+        if (!StringUtil.hasText(description)) {
+            description = methodName + " " + classReadableName;
+        }
         mcpTool.setName(mcpToolName)
-                .setDescription(ReflectUtil.getDescription(method))
+                .setDescription(description)
                 .setInputSchema(inputSchema);
         return mcpTool;
     }

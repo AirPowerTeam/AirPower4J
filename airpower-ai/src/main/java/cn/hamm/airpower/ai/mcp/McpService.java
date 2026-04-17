@@ -78,7 +78,7 @@ public class McpService {
      * @return MCP 工具
      */
     private static @Nullable McpTool getTool(@NotNull Method method) {
-        McpMethod annotation = method.getAnnotation(McpMethod.class);
+        McpMethod annotation = ReflectUtil.getAnnotation(McpMethod.class, method);
         if (Objects.isNull(annotation)) {
             return null;
         }

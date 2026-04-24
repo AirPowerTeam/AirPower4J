@@ -136,7 +136,7 @@ public class ExportHelper {
         String relativeDirectory = FileUtil.getTodayDirectory();
 
         // 存储的文件名
-        final String fileName = FULL_TIME.formatCurrent().replaceAll(":", "") +
+        final String fileName = FULL_TIME.formatCurrent().replace(":", "") +
                 "_" + RandomUtil.randomString() + FileUtil.EXTENSION_SEPARATOR + extension;
 
         return new ExportFile()

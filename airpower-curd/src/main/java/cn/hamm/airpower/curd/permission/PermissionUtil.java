@@ -88,7 +88,7 @@ public class PermissionUtil {
      */
     public static @NotNull String getPermissionIdentity(@NotNull Class<?> clazz, @NotNull Method method) {
         return StringUtils.uncapitalize(clazz.getSimpleName()
-                .replaceAll(CONTROLLER, "")) +
+                .replace(CONTROLLER, "")) +
                 "_" + method.getName();
     }
 
@@ -139,7 +139,7 @@ public class PermissionUtil {
                 }
 
                 String customClassName = ReflectUtil.getDescription(clazz);
-                String identity = clazz.getSimpleName().replaceAll(CONTROLLER, "");
+                String identity = clazz.getSimpleName().replace(CONTROLLER, "");
                 P permission = permissionClass.getConstructor().newInstance();
 
                 permission.setName(customClassName).setIdentity(identity).setChildren(new ArrayList<>());

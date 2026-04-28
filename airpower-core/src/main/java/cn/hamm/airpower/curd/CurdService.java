@@ -172,7 +172,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
         source.setId(null);
         E finalSource = source;
-        long id = saveToDatabaseIgnoreNull(source);
+        long id = saveToDatabase(source);
         TaskUtil.run(() -> afterAdd(id, finalSource));
         return id;
     }
@@ -676,7 +676,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     protected final void disableById(long id) {
         E entity = get(id);
-        saveToDatabaseIgnoreNull(entity.setIsDisabled(true));
+        saveToDatabase(entity.setIsDisabled(true));
     }
 
     /**
@@ -689,7 +689,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     protected final void enableById(long id) {
         E entity = get(id);
-        saveToDatabaseIgnoreNull(entity.setIsDisabled(false));
+        saveToDatabase(entity.setIsDisabled(false));
     }
 
     /**
@@ -928,7 +928,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param entity 待保存实体
      * @return 实体ID
      */
-    private long saveToDatabaseIgnoreNull(@NotNull E entity) {
+    public final long saveToDatabase(@NotNull E entity) {
         return saveToDatabase(entity, false);
     }
 

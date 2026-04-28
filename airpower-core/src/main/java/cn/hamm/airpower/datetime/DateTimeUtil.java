@@ -556,6 +556,32 @@ public class DateTimeUtil {
         return getStartOfMonth(new Date());
     }
 
+
+    /**
+     * 获取指定日期当天开始的时间
+     *
+     * @param date 日期
+     * @return 新日期
+     */
+    public static @NotNull Date getStartOfDay(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
+    }
+
+    /**
+     * 获取指定日期当天开始的时间
+     *
+     * @return 当天开始
+     */
+    public static @NotNull Date getStartOfDay() {
+        return getStartOfDay(new Date());
+    }
+
     /**
      * 获取指定日期所在年的第一天
      *

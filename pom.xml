@@ -11,7 +11,7 @@
     <properties>
         <!-- ==================== 项目版本 ==================== -->
         <airpower.version>6.1.6</airpower.version>
-        <airpower-core.version>6.0.3</airpower-core.version>
+        <airpower-core.version>6.0.4</airpower-core.version>
 
         <!-- ==================== 构建配置 ==================== -->
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>

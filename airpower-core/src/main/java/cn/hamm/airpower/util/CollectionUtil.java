@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 
@@ -109,9 +110,9 @@ public class CollectionUtil {
             List<String> columnList = new ArrayList<>();
             fieldList.forEach(field -> {
                 Object value = getCsvColumnValue(entity, field);
-                columnList.add("\t" + value.toString()
-                        .replaceAll(CSV_COLUMN_DELIMITER, " ")
-                        .replaceAll(CSV_ROW_DELIMITER, " "));
+                columnList.add((value.toString()
+                        .replace(CSV_COLUMN_DELIMITER, " ")
+                        .replace(CSV_ROW_DELIMITER, " ")));
             });
             rowList.add(String.join(CSV_COLUMN_DELIMITER, columnList));
         });
@@ -197,7 +198,15 @@ public class CollectionUtil {
                         yield dict.getLabel();
                     }
                 }
-                default -> value;
+                case NUMBER -> {
+                    if (value instanceof Double doubleValue) {
+                        yield BigDecimal.valueOf(doubleValue).toPlainString();
+                    }
+                    if (value instanceof Long longValue) {
+                        yield BigDecimal.valueOf(longValue).toPlainString();
+                    }
+                    yield value.toString();
+                }
             };
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);

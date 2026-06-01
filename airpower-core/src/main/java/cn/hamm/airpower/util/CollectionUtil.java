@@ -109,7 +109,7 @@ public class CollectionUtil {
             List<String> columnList = new ArrayList<>();
             fieldList.forEach(field -> {
                 Object value = getCsvColumnValue(entity, field);
-                columnList.add(value.toString()
+                columnList.add("\t" + value.toString()
                         .replaceAll(CSV_COLUMN_DELIMITER, " ")
                         .replaceAll(CSV_ROW_DELIMITER, " "));
             });

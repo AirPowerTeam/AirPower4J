@@ -928,6 +928,17 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 在创建查询条件前调用
+     *
+     * @param filter 过滤器
+     * @return 处理后的过滤器
+     * @apiNote 此处理不影响 {@link #addSearchPredicate(Root, CriteriaBuilder, CurdEntity)} 的 {@code search} 参数
+     */
+    protected E beforeCreatePredicate(@NotNull E filter) {
+        return filter;
+    }
+
+    /**
      * 创建查询对象
      *
      * @param filter  过滤器对象

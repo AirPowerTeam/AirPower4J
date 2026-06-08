@@ -949,12 +949,13 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     @Contract(pure = true)
     private @NotNull Specification<E> createSpecification(@Nullable E filter, boolean isEqual) {
+        final E finalFilter = requireFilterNonNull(filter);
         return (root, criteriaQuery, criteriaBuilder) ->
                 createPredicate(
                         root,
                         criteriaQuery,
                         criteriaBuilder,
-                        filter,
+                        finalFilter,
                         isEqual,
                         this::beforeCreatePredicate,
                         (f, predicateList) -> {
@@ -962,10 +963,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                             predicateList.addAll(addSearchPredicate(root, criteriaBuilder, finalFilter));
                             // 添加修改时间和创建时间的区间查询
                             addCreateAndUpdateTimePredicate(root, criteriaBuilder, finalFilter, predicateList);
-                            if (isSoftDelete()) {
-                                // 过滤软删除的数据
-                                addPredicateNonNull(root, predicateList, CurdEntity.STRING_IS_DISABLED, criteriaBuilder::equal, false);
-                            }
                         }
                 );
     }

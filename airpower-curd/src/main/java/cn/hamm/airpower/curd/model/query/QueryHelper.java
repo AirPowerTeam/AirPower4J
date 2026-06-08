@@ -12,6 +12,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Transient;
 import jakarta.persistence.criteria.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,7 +45,7 @@ public class QueryHelper {
      * @return 分页对象
      */
     @NotNull
-    public final Page requirePageNonNull(Page page) {
+    public final Page requirePageNonNull(@Nullable Page page) {
         page = Objects.requireNonNullElse(page, new Page());
         if (Objects.isNull(page.getPageSize()) || page.getPageSize() <= 0) {
             page.setPageSize(curdConfig.getDefaultPageSize());
@@ -56,28 +57,12 @@ public class QueryHelper {
     }
 
     /**
-     * 创建分页对象
-     *
-     * @param page 分页对象
-     * @param sort 排序对象
-     * @return Spring 分页对象
-     */
-    @NotNull
-    public Pageable createPageable(Page page, org.springframework.data.domain.Sort sort) {
-        page = requirePageNonNull(page);
-        int pageNumber = Math.max(0, page.getPageNum() - 1);
-        int pageSize = Math.max(1, page.getPageSize());
-        return PageRequest.of(pageNumber, pageSize, sort);
-    }
-
-    /**
      * 获取非空的排序对象
      *
      * @param sort 排序对象
      * @return 排序对象
      */
-    @NotNull
-    public Sort requireSortNonNull(Sort sort) {
+    public @NotNull Sort requireSortNonNull(@Nullable Sort sort) {
         sort = Objects.requireNonNullElse(sort, new Sort());
         if (!StringUtils.hasText(sort.getField())) {
             sort.setField(curdConfig.getDefaultSortField());
@@ -91,13 +76,27 @@ public class QueryHelper {
     }
 
     /**
+     * 创建分页对象
+     *
+     * @param page 分页对象
+     * @param sort 排序对象
+     * @return Spring 分页对象
+     */
+    @NotNull
+    public Pageable createPageable(@Nullable Page page, @Nullable Sort sort) {
+        page = requirePageNonNull(page);
+        int pageNumber = Math.max(0, page.getPageNum() - 1);
+        int pageSize = Math.max(1, page.getPageSize());
+        return PageRequest.of(pageNumber, pageSize, createSort(sort));
+    }
+
+    /**
      * 创建排序对象
      *
      * @param sort 排序对象
      * @return Sort {@code Spring} 的排序对象
      */
-    @NotNull
-    public org.springframework.data.domain.Sort createSort(Sort sort) {
+    public @NotNull org.springframework.data.domain.Sort createSort(@Nullable Sort sort) {
         sort = requireSortNonNull(sort);
         org.springframework.data.domain.Sort result;
         if (Sort.ASC.equalsIgnoreCase(sort.getDirection())) {
@@ -144,11 +143,14 @@ public class QueryHelper {
     public List<Predicate> getPredicateList(
             @NotNull From<?, ?> root,
             @NotNull CriteriaBuilder builder,
-            @NotNull Object search,
+            @Nullable Object search,
             boolean isEqual
     ) {
-        List<Field> fields = ReflectUtil.getFieldList(search.getClass());
         List<Predicate> predicateList = new ArrayList<>();
+        if (Objects.isNull(search)) {
+            return predicateList;
+        }
+        List<Field> fields = ReflectUtil.getFieldList(search.getClass());
         fields.forEach(field -> {
             Object fieldValue = ReflectUtil.getFieldValue(search, field);
             if (Objects.isNull(fieldValue)) {

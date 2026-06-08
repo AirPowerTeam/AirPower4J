@@ -725,12 +725,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             @Nullable Sort sort,
             boolean isEquals
     ) {
-        org.springframework.data.domain.Page<E> pageData = repository.findAll(
+        return PageData.newInstance(repository.findAll(
                 createSpecification(filter, isEquals),
                 queryHelper.createPageable(page, sort)
-        );
-
-        return PageData.newInstance(pageData);
+        ));
     }
 
     /**
@@ -967,7 +965,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      */
     private void queryPageToSaveExportFile(QueryPageRequest<E> queryPageRequest, List<Field> fieldList, ExportHelper.ExportFile exportFile) {
         queryPageRequest = beforeExportQuery(queryPageRequest);
-        QueryPageResponse<E> page = getPage(queryPageRequest);
+        PageData<E> page = queryPage(queryPageRequest.getPage(), queryPageRequest.getFilter(), queryPageRequest.getSort());
         String description = getEntityDescription();
         log.info("导出{} 查询第 {} 页，本页 {} 条", description, page.getPage().getPageNum(), page.getList().size());
         // 当前页查到的数据列表

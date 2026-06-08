@@ -8,7 +8,10 @@ import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.core.interfaces.IEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
@@ -74,22 +77,6 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
     @ReadOnly
     @Column(columnDefinition = "bigint UNSIGNED default 0 comment '修改时间'")
     private Long updateTime;
-
-    @Transient
-    @Description("创建时间开始")
-    private Long createTimeFrom;
-
-    @Transient
-    @Description("创建时间结束")
-    private Long createTimeTo;
-
-    @Transient
-    @Description("修改时间开始")
-    private Long updateTimeFrom;
-
-    @Transient
-    @Description("修改时间结束")
-    private Long updateTimeTo;
 
     /**
      * 设置 ID

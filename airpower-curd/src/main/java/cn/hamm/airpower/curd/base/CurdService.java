@@ -961,8 +961,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
                         (f, predicateList) -> {
                             // 添加更多自定义查询条件
                             predicateList.addAll(addSearchPredicate(root, criteriaBuilder, finalFilter));
-                            // 添加修改时间和创建时间的区间查询
-                            addCreateAndUpdateTimePredicate(root, criteriaBuilder, finalFilter, predicateList);
                         }
                 );
     }

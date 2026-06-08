@@ -32,7 +32,9 @@ import org.springframework.data.jpa.domain.Specification;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static cn.hamm.airpower.exception.Errors.*;
 
@@ -969,26 +971,38 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 创建查询的条件
+     * 创建查询的 {@code Predicate}
      *
-     * @param root          {@code model}
-     * @param criteriaQuery {@code query}
-     * @param builder       {@code builder}
-     * @param filter        过滤器实体
-     * @param isEqual       是否强匹配
+     * @param root             {@code model}
+     * @param criteriaQuery    {@code query}
+     * @param builder          {@code builder}
+     * @param sourceFilter     过滤器实体
+     * @param isEqual          是否强匹配
+     * @param before           创建查询条件前对实体进行处理
+     * @param addMorePredicate 添加更多查询条件(原始条件，已有条件，处理后的条件)
      * @return 查询条件
      */
     private @Nullable Predicate createPredicate(
             @NotNull Root<E> root, CriteriaQuery<?> criteriaQuery,
             @NotNull CriteriaBuilder builder,
-            @Nullable E filter,
-            boolean isEqual
+            E sourceFilter,
+            boolean isEqual,
+            Function<E, E> before,
+            BiConsumer<E, List<Predicate>> addMorePredicate
 
     ) {
         if (Objects.isNull(criteriaQuery)) {
             return null;
         }
-        List<Predicate> predicateList = queryHelper.getPredicateList(root, builder, filter, isEqual);
+        E lastFilter = sourceFilter;
+        if (Objects.nonNull(before)) {
+            lastFilter = before.apply(sourceFilter.copy());
+        }
+        List<Predicate> predicateList = queryHelper.getPredicateList(root, builder, lastFilter, isEqual);
+        if (Objects.nonNull(addMorePredicate)) {
+            // 需要添加自定义处理条件
+            addMorePredicate.accept(sourceFilter, predicateList);
+        }
         Predicate[] predicates = new Predicate[predicateList.size()];
         criteriaQuery.where(builder.and(predicateList.toArray(predicates)));
         return criteriaQuery.getRestriction();

@@ -54,19 +54,16 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 提交的数据不允许为空
      */
     private static final String DATA_REQUIRED = "提交的数据不允许为空";
-
-    /**
-     * 数据源
-     */
-    @Autowired(required = false)
-    protected R repository;
-
     /**
      * 实体管理器
      */
     @PersistenceContext
     protected EntityManager entityManager;
-
+    /**
+     * 数据源
+     */
+    @Autowired(required = false)
+    protected R repository;
     /**
      * 事务管理器
      */

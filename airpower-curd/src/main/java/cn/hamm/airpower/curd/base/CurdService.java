@@ -758,6 +758,23 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
+     * 添加搜索的查询条件
+     *
+     * @param root    {@code ROOT}
+     * @param builder 参数构造器
+     * @param search  原始查询对象
+     * @return 查询条件列表
+     * @apiNote 如需要删除自动添加的查询条件，请调用 {@link #beforeCreatePredicate(CurdEntity)}
+     */
+    protected @NotNull List<Predicate> addSearchPredicate(
+            @NotNull Root<E> root,
+            @NotNull CriteriaBuilder builder,
+            @NotNull E search
+    ) {
+        return new ArrayList<>();
+    }
+
+    /**
      * 根据主键查询对应的实体
      *
      * @param id 主键

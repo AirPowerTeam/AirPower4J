@@ -391,7 +391,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             @Nullable Page page,
             @Nullable Sort sort
     ) {
-        return find(filter, page, sort, true);
+        return findPage(filter, page, sort, true);
     }
 
     /**
@@ -456,7 +456,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             @NotNull E filter,
             @Nullable Sort sort
     ) {
-        return find(filter, page, sort, false);
+        return findPage(filter, page, sort, false);
     }
 
     /**
@@ -718,7 +718,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param isEquals 是否全匹配
      * @return 查询结果数据分页对象
      */
-    private @NotNull PageData<E> find(
+    private @NotNull PageData<E> findPage(
             @Nullable E filter,
             @Nullable Page page,
             @Nullable Sort sort,

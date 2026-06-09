@@ -33,9 +33,3 @@ build/
 ### VS Code ###
 .vscode/
 .DS_Store
-
-
-### Agent
-.qwen
-qwen
-qwen**

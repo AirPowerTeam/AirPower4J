@@ -119,17 +119,6 @@ public class QueryHelper {
         return result;
     }
 
-
-    /**
-     * 创建排序对象
-     *
-     * @return Sort {@code Spring} 的排序对象
-     */
-    @NotNull
-    public org.springframework.data.domain.Sort createSort() {
-        return createSort(null);
-    }
-
     /**
      * 获取查询条件列表
      *

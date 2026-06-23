@@ -73,6 +73,11 @@ public class HttpUtil {
     private int connectTimeout = 5;
 
     /**
+     * 请求超时时间
+     */
+    private int timeout = 30;
+
+    /**
      * 禁止外部实例化
      */
     private HttpUtil() {
@@ -181,6 +186,7 @@ public class HttpUtil {
     private HttpRequest getHttpRequest() {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(url));
+        requestBuilder.timeout(Duration.ofSeconds(timeout));
         headers.forEach((key, value) -> requestBuilder.header(key, value.toString()));
         HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofString(body);
         if (showRequestLog) {

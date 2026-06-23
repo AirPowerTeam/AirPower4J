@@ -15,6 +15,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.Executors;
 
 import static cn.hamm.airpower.request.HttpMethod.GET;
 
@@ -27,6 +28,7 @@ import static cn.hamm.airpower.request.HttpMethod.GET;
 @Data
 @Accessors(chain = true, makeFinal = true)
 public class HttpUtil {
+    private static HttpClient httpClient = null;
     /**
      * 请求头
      */
@@ -66,11 +68,6 @@ public class HttpUtil {
      * 请求体类型
      */
     private String contentType = HttpConstant.ContentType.APPLICATION_JSON_UTF8;
-
-    /**
-     * 连接超时时间
-     */
-    private int connectTimeout = 5;
 
     /**
      * 请求超时时间
@@ -220,11 +217,14 @@ public class HttpUtil {
      * @return HttpClient
      */
     private HttpClient getHttpClient() {
-        HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
-        if (connectTimeout > 0) {
-            httpClientBuilder.connectTimeout(Duration.ofSeconds(connectTimeout));
+        if (Objects.nonNull(httpClient)) {
+            return httpClient;
         }
-        return httpClientBuilder.build();
+        HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
+        httpClientBuilder.connectTimeout(Duration.ofSeconds(5));
+        httpClientBuilder.executor(Executors.newFixedThreadPool(30));
+        httpClient = httpClientBuilder.build();
+        return httpClient;
     }
 
     /**

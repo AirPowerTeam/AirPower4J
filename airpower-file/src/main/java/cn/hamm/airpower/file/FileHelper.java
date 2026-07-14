@@ -13,7 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -42,12 +44,43 @@ public class FileHelper {
     private TencentCloudOss tencentCloudOss;
 
     /**
+     * 将 MultipartFile 转换为 File
+     *
+     * @param multipartFile 文件
+     * @return File  文件
+     * @throws IOException 获取文件失败
+     */
+    public static @NotNull File multipartFileToFile(@NotNull MultipartFile multipartFile) throws IOException {
+        // 创建临时文件（JVM 退出后可自动删除）
+        File tempFile = Files.createTempFile("upload-", ".tmp").toFile();
+        multipartFile.transferTo(tempFile);
+        // JVM 退出时删除
+        tempFile.deleteOnExit();
+        return tempFile;
+    }
+
+    /**
+     * 获取文件的扩展名
+     *
+     * @param multipartFile 文件
+     * @return 文件扩展名
+     */
+    public static @NotNull String getFileExtension(MultipartFile multipartFile) {
+        if (Objects.isNull(multipartFile)) {
+            throw new ServiceException("文件不能为空");
+        }
+        String originalFilename = multipartFile.getOriginalFilename();
+        PARAM_INVALID.whenNull(originalFilename, "文件名不能为空");
+        return FileUtil.getExtension(originalFilename);
+    }
+
+    /**
      * 获取文件的MD5
      *
      * @param multipartFile 文件
      * @return 文件MD5
      */
-    public String getFileHash(MultipartFile multipartFile) {
+    public static @NotNull String getFileHash(MultipartFile multipartFile) {
         if (Objects.isNull(multipartFile)) {
             throw new ServiceException("文件不能为空");
         }
@@ -59,27 +92,12 @@ public class FileHelper {
     }
 
     /**
-     * 获取文件的扩展名
-     *
-     * @param multipartFile 文件
-     * @return 文件扩展名
-     */
-    public String getFileExtension(MultipartFile multipartFile) {
-        if (Objects.isNull(multipartFile)) {
-            throw new ServiceException("文件不能为空");
-        }
-        String originalFilename = multipartFile.getOriginalFilename();
-        PARAM_INVALID.whenNull(originalFilename, "文件名不能为空");
-        return FileUtil.getExtension(originalFilename);
-    }
-
-    /**
      * 验证文件扩展名
      *
      * @param multipartFile 文件
      * @param extensions    文件扩展名
      */
-    public void validateFileExtension(@NotNull MultipartFile multipartFile, @NotNull String... extensions) {
+    public static void validateFileExtension(@NotNull MultipartFile multipartFile, @NotNull String... extensions) {
         String originalFilename = multipartFile.getOriginalFilename();
         PARAM_INVALID.whenNull(originalFilename, "文件名不能为空");
         String extension = FileUtil.getExtension(originalFilename);

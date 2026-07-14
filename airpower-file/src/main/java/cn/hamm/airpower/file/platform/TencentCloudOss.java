@@ -2,6 +2,7 @@ package cn.hamm.airpower.file.platform;
 
 import cn.hamm.airpower.core.DateTimeUtil;
 import cn.hamm.airpower.file.FileConfig;
+import cn.hamm.airpower.file.FileHelper;
 import cn.hamm.airpower.file.IFilePlatform;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
@@ -16,9 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
@@ -33,6 +32,7 @@ import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 public class TencentCloudOss implements IFilePlatform {
     @Autowired
     private FileConfig fileConfig;
+
     /**
      * volatile：防止指令重排序
      */
@@ -63,19 +63,11 @@ public class TencentCloudOss implements IFilePlatform {
     @Override
     public void save(@NotNull MultipartFile multipartFile, String directory, String fileName) {
         try {
-            PutObjectRequest putObjectRequest = new PutObjectRequest(getBucketName(), directory + fileName, multipartFileToFile(multipartFile));
+            PutObjectRequest putObjectRequest = new PutObjectRequest(getBucketName(), directory + fileName, FileHelper.multipartFileToFile(multipartFile));
             getClient().putObject(putObjectRequest);
         } catch (IOException e) {
             throw new RuntimeException("上传文件失败，" + e.getMessage());
         }
-    }
-
-    public File multipartFileToFile(@NotNull MultipartFile multipartFile) throws IOException {
-        // 创建临时文件（JVM 退出后可自动删除）
-        File tempFile = Files.createTempFile("upload-", ".tmp").toFile();
-        multipartFile.transferTo(tempFile);
-        tempFile.deleteOnExit(); // JVM 退出时删除
-        return tempFile;
     }
 
     /**

@@ -6,6 +6,7 @@ import cn.hamm.airpower.file.platform.AliyunOss;
 import cn.hamm.airpower.file.platform.LocalFile;
 import cn.hamm.airpower.file.platform.TencentCloudOss;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -166,13 +167,13 @@ public class FileHelper {
      *
      * @return 文件存储平台
      */
+    @Contract(pure = true)
     private IFilePlatform getFilePlatform() {
         FilePlatform filePlatform = fileConfig.getFilePlatform();
         return switch (filePlatform) {
             case LOCAL -> localFile;
             case ALIYUN -> aliyunOss;
             case TENCENT_CLOUD -> tencentCloudOss;
-            default -> throw new ServiceException("暂不支持该平台");
         };
     }
 

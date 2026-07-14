@@ -13,19 +13,19 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum FilePlatform implements IDictionary {
     /**
-     * 本地上传
+     * 本地文件
      */
-    LOCAL(0, "本地上传"),
+    LOCAL(0, "本地文件"),
 
     /**
-     * 阿里云 OSS 上传
+     * 阿里云 OSS
      */
-    ALIYUN(1, "阿里云 OSS 上传"),
+    ALIYUN(1, "阿里云 OSS"),
 
     /**
-     * 腾讯云 OSS 上传
+     * 腾讯云 OSS
      */
-    TENCENT_CLOUD_OSS(2, "腾讯云 OSS 上传"),
+    TENCENT_CLOUD(2, "腾讯云 OSS"),
     ;
 
     private final int key;

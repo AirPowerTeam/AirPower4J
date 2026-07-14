@@ -4,6 +4,7 @@ import cn.hamm.airpower.core.FileUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.file.platform.AliyunOss;
 import cn.hamm.airpower.file.platform.LocalFile;
+import cn.hamm.airpower.file.platform.TencentCloudOss;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +33,12 @@ public class FileHelper {
 
     @Autowired
     private LocalFile localFile;
+
     @Autowired
     private AliyunOss aliyunOss;
+
+    @Autowired
+    private TencentCloudOss tencentCloudOss;
 
     /**
      * 获取文件的MD5
@@ -166,6 +171,7 @@ public class FileHelper {
         return switch (filePlatform) {
             case LOCAL -> localFile;
             case ALIYUN -> aliyunOss;
+            case TENCENT_CLOUD -> tencentCloudOss;
             default -> throw new ServiceException("暂不支持该平台");
         };
     }

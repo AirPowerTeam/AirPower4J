@@ -57,6 +57,26 @@ public class FileConfig {
     private String aliyunBucketName = "airpower";
 
     /**
+     * 腾讯云 SecretKey
+     */
+    private String tencentSecretKey = "";
+
+    /**
+     * 腾讯云 SecretId
+     */
+    private String tencentSecretId = "";
+
+    /**
+     * 腾讯云 Bucket
+     */
+    private String tencentBucketName = "";
+
+    /**
+     * 腾讯云 负载地址
+     */
+    private String tencentRegion = "ap-shanghai";
+
+    /**
      * 获取文件存储目录
      *
      * @return 文件目录

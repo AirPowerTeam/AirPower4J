@@ -65,7 +65,6 @@ public enum Errors implements IException<ServiceException>, IDictionary {
     API_SERVICE_UNSUPPORTED(501, "请求的接口暂未实现"),
     API_DOWN(5011, "服务网关维护中，请稍后再试"),
 
-
     // 502 内部错误代码
     // 5021 数据库相关代码
     DATABASE_ERROR(5021, "数据库服务连接失败，请稍后再试"),

@@ -21,7 +21,6 @@ import java.io.IOException;
 
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
-
 /**
  * <h1>阿里云OSS</h1>
  *

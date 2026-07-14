@@ -49,7 +49,6 @@ public class CurdUtil {
             Resource[] resources = resourcePatternResolver.getResources(pattern);
             MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory(resourcePatternResolver);
 
-
             for (Resource resource : resources) {
                 // 用于读取类信息
                 MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(resource);
@@ -66,7 +65,6 @@ public class CurdUtil {
                 EntityMeta entityMeta = new EntityMeta()
                         .setName(clazz.getSimpleName())
                         .setDescription(ReflectUtil.getDescription(clazz));
-
 
                 // 取出所有属性
                 List<Field> fields = ReflectUtil.getFieldList(clazz);

@@ -73,6 +73,7 @@
         <module>airpower-open</module>
         <module>airpower-redis</module>
         <module>airpower-websocket</module>
+        <module>airpower-file</module>
     </modules>
     <dependencyManagement>
         <dependencies>

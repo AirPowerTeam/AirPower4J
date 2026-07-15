@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Objects;
@@ -84,8 +85,8 @@ public class FileHelper {
         if (Objects.isNull(multipartFile)) {
             throw new ServiceException("文件不能为空");
         }
-        try {
-            return DigestUtils.md5DigestAsHex(multipartFile.getBytes());
+        try (InputStream is = multipartFile.getInputStream()) {
+            return DigestUtils.md5DigestAsHex(is);
         } catch (IOException e) {
             throw new ServiceException("计算文件哈希失败，" + e.getMessage());
         }
@@ -97,7 +98,10 @@ public class FileHelper {
      * @param multipartFile 文件
      * @param extensions    文件扩展名
      */
-    public static void validateFileExtension(@NotNull MultipartFile multipartFile, @NotNull String... extensions) {
+    public static void validateFileExtension(MultipartFile multipartFile, @NotNull String... extensions) {
+        if (Objects.isNull(multipartFile)) {
+            throw new ServiceException("文件不能为空");
+        }
         String originalFilename = multipartFile.getOriginalFilename();
         PARAM_INVALID.whenNull(originalFilename, "文件名不能为空");
         String extension = FileUtil.getExtension(originalFilename);

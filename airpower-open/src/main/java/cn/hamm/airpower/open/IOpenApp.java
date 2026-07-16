@@ -33,12 +33,16 @@ public interface IOpenApp {
      *
      * @return IP 白名单
      */
-    String getIpWhiteList();
+    default String getIpWhiteList() {
+        return "";
+    }
 
     /**
      * 是否禁用
      *
      * @return 是否禁用
      */
-    Boolean getIsDisabled();
+    default Boolean getIsDisabled() {
+        return false;
+    }
 }

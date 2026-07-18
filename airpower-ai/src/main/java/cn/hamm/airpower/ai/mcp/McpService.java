@@ -5,6 +5,7 @@ import cn.hamm.airpower.ai.mcp.method.McpMethod;
 import cn.hamm.airpower.ai.mcp.method.McpMethods;
 import cn.hamm.airpower.ai.mcp.method.McpOptional;
 import cn.hamm.airpower.ai.mcp.model.*;
+import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.ReflectUtil;
 import cn.hamm.airpower.core.StringUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -143,25 +145,29 @@ public class McpService {
     /**
      * 运行 MCP 服务
      *
+     * @param verifiedToken   用户TOKEN
      * @param mcpRequest      请求
      * @param checkPermission 检查权限
      * @return McpResponse 响应
      * @throws ServiceException ServiceException
      */
-    public final @Nullable McpResponse run(@NotNull McpRequest mcpRequest, Consumer<McpTool> checkPermission) throws ServiceException {
-        return this.run(mcpRequest, checkPermission, new McpServerInfo());
+    public final @Nullable McpResponse run(AccessTokenUtil.VerifiedToken verifiedToken, @NotNull McpRequest mcpRequest, Consumer<McpTool> checkPermission) throws ServiceException {
+        return this.run(verifiedToken, mcpRequest, checkPermission, new McpServerInfo());
     }
 
     /**
      * 运行 MCP 服务
      *
+     * @param verifiedToken   用户TOKEN
      * @param mcpRequest      请求
      * @param checkPermission 检查权限
      * @param mcpServerInfo   服务信息
      * @return McpResponse 响应
      * @throws ServiceException ServiceException
      */
-    public final @Nullable McpResponse run(@NotNull McpRequest mcpRequest, Consumer<McpTool> checkPermission, McpServerInfo mcpServerInfo) throws ServiceException {
+    public final @Nullable McpResponse run(AccessTokenUtil.@NotNull VerifiedToken verifiedToken, @NotNull McpRequest mcpRequest, Consumer<McpTool> checkPermission, McpServerInfo mcpServerInfo) throws ServiceException {
+        McpErrorCode.InvalidRequest.whenNull(verifiedToken);
+        MDC.put("CURRENT_USER_ID", String.valueOf(verifiedToken.getPayloadId()));
         McpResponse responseData = new McpResponse();
         responseData.setId(mcpRequest.getId());
         McpMethods mcpMethods = Arrays.stream(McpMethods.values())

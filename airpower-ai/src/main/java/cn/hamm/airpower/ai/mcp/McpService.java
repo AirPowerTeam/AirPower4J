@@ -197,7 +197,6 @@ public class McpService {
 
                     List<String> keys = new ArrayList<>(arguments.keySet());
                     Collections.sort(keys);
-
                     Map<String, Object> sortedArguments = keys.stream().collect(
                             Collectors.toMap(
                                     key -> key, arguments::get,
@@ -205,6 +204,7 @@ public class McpService {
                             )
                     );
                     Object[] args = sortedArguments.values().toArray();
+                    method.setAccessible(true);
                     callResult = method.invoke(bean, args);
                 } catch (Exception e) {
                     if (e instanceof InvocationTargetException) {

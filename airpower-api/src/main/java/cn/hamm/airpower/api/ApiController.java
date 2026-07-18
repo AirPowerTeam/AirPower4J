@@ -2,6 +2,7 @@ package cn.hamm.airpower.api;
 
 import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.AccessTokenUtil;
+import cn.hamm.airpower.core.StringUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,10 @@ public class ApiController {
      * @return 用户 ID
      */
     protected final long getCurrentUserId() {
-        String accessToken = request.getHeader(apiConfig.getAuthorizeHeader());
+        String accessToken = request.getParameter(apiConfig.getAuthorizeHeader());
+        if (StringUtil.isEmpty(accessToken)) {
+            accessToken = request.getHeader(apiConfig.getAuthorizeHeader());
+        }
         AccessTokenUtil.VerifiedToken verifiedToken = AccessTokenUtil.create().verify(
                 accessToken,
                 apiConfig.getAccessTokenSecret()

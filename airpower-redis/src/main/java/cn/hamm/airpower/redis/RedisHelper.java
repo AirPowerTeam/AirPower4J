@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 import static cn.hamm.airpower.exception.Errors.REDIS_ERROR;
 
-
 /**
  * <h1>Redis 封装类</h1>
  *

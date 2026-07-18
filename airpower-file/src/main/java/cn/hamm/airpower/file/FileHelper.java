@@ -23,7 +23,6 @@ import java.util.function.Consumer;
 
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
-
 /**
  * <h1>文件封装类</h1>
  *

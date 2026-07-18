@@ -39,7 +39,6 @@
         </dependency>
     </dependencies>
 
-
     <build>
         <plugins>
             <!-- ==================== 发布插件 ==================== -->

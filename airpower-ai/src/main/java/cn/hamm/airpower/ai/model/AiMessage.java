@@ -64,7 +64,6 @@ public class AiMessage {
          */
         ASSISTANT(2, "模型消息");
 
-
         private final int key;
 
         private final String label;

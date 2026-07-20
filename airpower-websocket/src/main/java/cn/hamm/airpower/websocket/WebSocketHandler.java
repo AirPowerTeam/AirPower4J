@@ -12,6 +12,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
@@ -72,6 +74,9 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     @Autowired
     private ApiConfig apiConfig;
 
+    @Autowired
+    private RedisMessageListenerContainer redisMessageListenerContainer;
+
     /**
      * 收到 WebSocket 消息时
      *
@@ -89,8 +94,12 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             }
             return;
         }
-        WebSocketPayload webSocketPayload = Json.parse(message, WebSocketPayload.class);
-        onWebSocketPayload(webSocketPayload, session);
+        try {
+            WebSocketPayload webSocketPayload = Json.parse(message, WebSocketPayload.class);
+            onWebSocketPayload(webSocketPayload, session);
+        } catch (Exception e) {
+            log.info("解析 WebSocket 负载失败: {} {}", message, e.getMessage());
+        }
     }
 
     /**
@@ -137,15 +146,21 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
         AccessTokenUtil.VerifiedToken verifiedToken = AccessTokenUtil.create()
                 .verify(accessToken, apiConfig.getAccessTokenSecret());
         long userId = verifiedToken.getPayloadId();
-        switch (webSocketConfig.getSupport()) {
-            case REDIS -> startRedisListener(session, userId);
-            case MQTT -> startMqttListener(session, userId);
-            case NO -> {
+        log.info("Websocket连接成功 {}", userId);
+        try {
+            switch (webSocketConfig.getSupport()) {
+                case REDIS -> startRedisListener(session, userId);
+                case MQTT -> startMqttListener(session, userId);
+                case NO -> {
+                }
+                default -> throw new ServiceException("WebSocket 暂不支持");
             }
-            default -> throw new ServiceException("WebSocket 暂不支持");
+            userIdHashMap.put(session.getId(), userId);
+            log.info("Websocket连接成功1 {}", userId);
+            TaskUtil.run(() -> afterConnectSuccess(session));
+        } catch (Exception exception) {
+            log.info("连接失败 {}", exception.getMessage());
         }
-        userIdHashMap.put(session.getId(), userId);
-        TaskUtil.run(() -> afterConnectSuccess(session));
     }
 
     /**
@@ -181,13 +196,18 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
         final String personalChannel = getRealChannel(CHANNEL_USER_PREFIX + userId);
         RedisConnection redisConnection = redisConnectionFactory.getConnection();
         redisConnectionHashMap.put(session.getId(), redisConnection);
-        redisConnection.subscribe((message, pattern) -> {
-                    synchronized (session) {
-                        onChannelMessage(new String(message.getBody(), UTF_8), session);
-                    }
+
+        redisMessageListenerContainer.addMessageListener(
+                (message, pattern) -> {
+                    onChannelMessage(new String(message.getBody(), UTF_8), session);
                 },
-                getRealChannel(CHANNEL_ALL).getBytes(UTF_8),
-                personalChannel.getBytes(UTF_8)
+                ChannelTopic.of(getRealChannel(CHANNEL_ALL))
+        );
+        redisMessageListenerContainer.addMessageListener(
+                (message, pattern) -> {
+                    onChannelMessage(new String(message.getBody(), UTF_8), session);
+                },
+                ChannelTopic.of(personalChannel)
         );
     }
 
@@ -221,9 +241,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             String[] topics = {CHANNEL_ALL, personalChannel};
             mqttClient.subscribe(topics);
             mqttClientHashMap.put(session.getId(), mqttClient);
-        } catch (MqttException e) {
-            log.error("监听 MQTT 消息服务失败", e);
-            throw new ServiceException("监听 MQTT 消息服务失败，" + e.getMessage());
+        } catch (MqttException ignored) {
         }
     }
 

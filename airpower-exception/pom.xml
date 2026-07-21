@@ -9,8 +9,8 @@
         <version>6.6.1</version>
     </parent>
     <artifactId>airpower-exception</artifactId>
-    <name>airpower-common</name>
-    <description>AirPower-Common.
+    <name>airpower-exception</name>
+    <description>AirPower-Exception.
     </description>
     <dependencies>
         <!-- ==================== AirPower 内部依赖 ==================== -->

@@ -199,13 +199,17 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
 
         redisMessageListenerContainer.addMessageListener(
                 (message, pattern) -> {
-                    onChannelMessage(new String(message.getBody(), UTF_8), session);
+                    synchronized (session) {
+                        onChannelMessage(new String(message.getBody(), UTF_8), session);
+                    }
                 },
                 ChannelTopic.of(getRealChannel(CHANNEL_ALL))
         );
         redisMessageListenerContainer.addMessageListener(
                 (message, pattern) -> {
-                    onChannelMessage(new String(message.getBody(), UTF_8), session);
+                    synchronized (session) {
+                        onChannelMessage(new String(message.getBody(), UTF_8), session);
+                    }
                 },
                 ChannelTopic.of(personalChannel)
         );

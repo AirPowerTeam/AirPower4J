@@ -28,11 +28,6 @@ public class WebSocketEvent {
     private Long from;
 
     /**
-     * 接收方 ID
-     */
-    private Long to;
-
-    /**
      * 事件时间戳
      */
     private Long time;
@@ -55,11 +50,33 @@ public class WebSocketEvent {
     /**
      * 创建 WebSocket 事件
      *
+     * @param from    发送方用户 ID
+     * @param payload 负载
+     * @return 事件
+     */
+    public static @NotNull WebSocketEvent create(Long from, WebSocketPayload payload) {
+        return create(from).setPayload(payload);
+    }
+
+    /**
+     * 创建 WebSocket 事件
+     *
      * @return 事件
      */
     @Contract(" -> new")
     private static @NotNull WebSocketEvent create() {
         return new WebSocketEvent().resetEvent();
+    }
+
+
+    /**
+     * 创建 WebSocket 事件
+     *
+     * @param from 发送方用户 ID
+     * @return 事件
+     */
+    private static @NotNull WebSocketEvent create(Long from) {
+        return create().setFrom(from);
     }
 
     /**

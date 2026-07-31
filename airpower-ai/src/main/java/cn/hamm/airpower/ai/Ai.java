@@ -8,14 +8,13 @@ import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.constant.HttpConstant;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.exception.Errors;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.BufferedReader;
@@ -41,9 +40,7 @@ import static cn.hamm.airpower.exception.Errors.AI_ERROR;
  *
  * @author Hamm.cn
  */
-@Data
-@Configuration
-@ConfigurationProperties("airpower.ai")
+@Service
 @Slf4j
 public class Ai {
     /**
@@ -56,30 +53,8 @@ public class Ai {
      */
     private static final String FLAG_STREAM_DONE = "[DONE]";
 
-    /**
-     * 请求地址
-     */
-    private String url = "https://api.siliconflow.cn/v1/chat/completions";
-
-    /**
-     * 调用密钥
-     */
-    private String key;
-
-    /**
-     * 模型名称
-     */
-    private String model = "Qwen/Qwen3-8B";
-
-    /**
-     * 最大 Token
-     */
-    private Integer maxToken = 4096;
-
-    /**
-     * 思考功能
-     */
-    private Boolean enableThinking = false;
+    @Autowired
+    private AiConfig aiConfig;
 
     /**
      * 发送同步请求
@@ -93,7 +68,7 @@ public class Ai {
         setRequestParam(request);
         String json = Json.toString(request);
         HttpResponse<String> httpResponse = HttpUtil.create()
-                .setUrl(url)
+                .setUrl(aiConfig.getUrl())
                 .addHeader(AUTHORIZATION, getBearerToken())
                 .post(json);
         AI_ERROR.whenNotEquals(httpResponse.statusCode(), Json.SUCCESS_CODE, "请求失败，AI模型服务异常");
@@ -198,9 +173,9 @@ public class Ai {
      */
     private void setRequestParam(@NotNull AiRequest request) {
         request
-                .setEnableThinking(enableThinking)
-                .setModel(Objects.requireNonNullElse(request.getModel(), model))
-                .setMaxToken(Objects.requireNonNullElse(request.getMaxToken(), maxToken));
+                .setEnableThinking(aiConfig.getEnableThinking())
+                .setModel(Objects.requireNonNullElse(request.getModel(), aiConfig.getModel()))
+                .setMaxToken(Objects.requireNonNullElse(request.getMaxToken(), aiConfig.getMaxToken()));
     }
 
     /**
@@ -220,7 +195,7 @@ public class Ai {
      */
     private HttpRequest getHttpRequest(AiRequest request) {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                .uri(URI.create(url));
+                .uri(URI.create(aiConfig.getUrl()));
         HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofString(Json.toString(request));
         requestBuilder.POST(bodyPublisher);
         requestBuilder.setHeader(AUTHORIZATION, getBearerToken());
@@ -235,6 +210,6 @@ public class Ai {
      */
     @Contract(pure = true)
     private @NotNull String getBearerToken() {
-        return BEARER + " " + key;
+        return BEARER + " " + aiConfig.getKey();
     }
 }

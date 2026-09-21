@@ -2,9 +2,8 @@ package cn.hamm.airpower.file;
 
 import cn.hamm.airpower.core.FileUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
-import cn.hamm.airpower.file.platform.AliyunOss;
-import cn.hamm.airpower.file.platform.LocalFile;
-import cn.hamm.airpower.file.platform.TencentCloudOss;
+import cn.hamm.airpower.file.platform.local.LocalFile;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +26,7 @@ import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
  * <h1>文件封装类</h1>
  *
  * @author Hamm.cn
+ * @apiNote 如需自定义上传平台，可调用 {@link #setPlatform(IFilePlatform)}
  */
 @Slf4j
 @Component
@@ -37,11 +37,11 @@ public class FileHelper {
     @Autowired
     private LocalFile localFile;
 
-    @Autowired
-    private AliyunOss aliyunOss;
-
-    @Autowired
-    private TencentCloudOss tencentCloudOss;
+    /**
+     * <h1>文件存储平台</h1>
+     */
+    @Setter
+    private IFilePlatform platform = localFile;
 
     /**
      * 将 MultipartFile 转换为 File
@@ -115,8 +115,7 @@ public class FileHelper {
      * @return 上传目录
      */
     public String getUploadDirectory(String category) {
-        PARAM_INVALID.whenEmpty(category, "文件类别不能为空");
-        return fileConfig.getUploadDirectory() + category + "/";
+        return getUploadDirectory(category, false);
     }
 
     /**
@@ -141,11 +140,12 @@ public class FileHelper {
      * @return 存储的文件信息
      */
     public String upload(@NotNull MultipartFile multipartFile, @NotNull String relativeDirectory, @NotNull String fileName, Consumer<Long> fileSizeLimit) {
+        relativeDirectory = FileUtil.formatDirectory(relativeDirectory);
         if (Objects.nonNull(fileSizeLimit)) {
             fileSizeLimit.accept(multipartFile.getSize());
         }
         try {
-            getFilePlatform().save(multipartFile, relativeDirectory, fileName);
+            getPlatform().save(multipartFile, relativeDirectory, fileName);
             return relativeDirectory + fileName;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -189,13 +189,11 @@ public class FileHelper {
      * @return 文件存储平台
      */
     @Contract(pure = true)
-    private IFilePlatform getFilePlatform() {
-        FilePlatform filePlatform = fileConfig.getFilePlatform();
-        return switch (filePlatform) {
-            case LOCAL -> localFile;
-            case ALIYUN -> aliyunOss;
-            case TENCENT_CLOUD -> tencentCloudOss;
-        };
+    public IFilePlatform getPlatform() {
+        if (Objects.isNull(platform)) {
+            throw new ServiceException("文件存储平台未配置");
+        }
+        return platform;
     }
 
     /**
@@ -205,6 +203,6 @@ public class FileHelper {
      * @return 文件URL
      */
     public String getUrl(String url) {
-        return getFilePlatform().getUrl(url);
+        return getPlatform().getUrl(url);
     }
 }

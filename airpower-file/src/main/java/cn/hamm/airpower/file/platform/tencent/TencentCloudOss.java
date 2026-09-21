@@ -1,7 +1,6 @@
-package cn.hamm.airpower.file.platform;
+package cn.hamm.airpower.file.platform.tencent;
 
 import cn.hamm.airpower.core.DateTimeUtil;
-import cn.hamm.airpower.file.FileConfig;
 import cn.hamm.airpower.file.FileHelper;
 import cn.hamm.airpower.file.IFilePlatform;
 import com.qcloud.cos.COSClient;
@@ -22,15 +21,18 @@ import java.io.IOException;
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>阿里云OSS</h1>
+ * <h1>腾讯云OSS</h1>
  *
  * @author Hamm.cn
  */
 @Slf4j
 @Component
 public class TencentCloudOss implements IFilePlatform {
+    /**
+     * 腾讯云OSS配置
+     */
     @Autowired
-    private FileConfig fileConfig;
+    private TencentCloudOssConfig tencentCloudOssConfig;
 
     /**
      * volatile：防止指令重排序
@@ -50,10 +52,13 @@ public class TencentCloudOss implements IFilePlatform {
         return url;
     }
 
+    /**
+     * 获取 BucketName
+     */
     private String getBucketName() {
-        String aliyunBucketName = fileConfig.getTencentBucketName();
-        PARAM_INVALID.whenEmpty(aliyunBucketName, "请配置腾讯云的 BucketName");
-        return aliyunBucketName;
+        String bucketName = tencentCloudOssConfig.getBucketName();
+        PARAM_INVALID.whenEmpty(bucketName, "请配置腾讯云的 BucketName");
+        return bucketName;
     }
 
     /**
@@ -76,15 +81,15 @@ public class TencentCloudOss implements IFilePlatform {
         if (cosClient == null) {
             synchronized (this) {
                 if (cosClient == null) {
-                    String tencentSecretId = fileConfig.getTencentSecretId();
+                    String tencentSecretId = tencentCloudOssConfig.getSecretId();
                     PARAM_INVALID.whenEmpty(tencentSecretId, "请配置腾讯云的 SecretId");
 
-                    String tencentSecretKey = fileConfig.getTencentSecretKey();
+                    String tencentSecretKey = tencentCloudOssConfig.getSecretKey();
                     PARAM_INVALID.whenEmpty(tencentSecretKey, "请配置腾讯云的 SecretKey");
 
                     COSCredentials credentials = new BasicCOSCredentials(tencentSecretId, tencentSecretKey);
 
-                    String tencentRegion = fileConfig.getTencentRegion();
+                    String tencentRegion = tencentCloudOssConfig.getRegion();
                     PARAM_INVALID.whenEmpty(tencentRegion, "请配置腾讯云的 Region");
                     Region region = new Region(tencentRegion);
                     ClientConfig clientConfig = new ClientConfig(region);
@@ -103,5 +108,10 @@ public class TencentCloudOss implements IFilePlatform {
         if (cosClient != null) {
             cosClient.shutdown();
         }
+    }
+
+    @Override
+    public String getKey() {
+        return "TENCENT_CLOUD_OSS";
     }
 }

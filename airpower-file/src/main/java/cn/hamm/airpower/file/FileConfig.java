@@ -22,68 +22,9 @@ public class FileConfig {
     private long uploadMaxSize = FILE_SCALE * FILE_SCALE * 10;
 
     /**
-     * 上传平台
-     */
-    private FilePlatform filePlatform = FilePlatform.LOCAL;
-
-    /**
-     * 上传文件目录
-     */
-    private String localAbsoluteDirectory = "/home/static/";
-
-    /**
      * 上传文件目录
      */
     private String uploadDirectory = "upload";
-
-    /**
-     * 阿里云 AccessKeyId
-     */
-    private String aliyunAccessKeyId = "";
-
-    /**
-     * 阿里云 AccessKeySecret
-     */
-    private String aliyunAccessKeySecret = "";
-
-    /**
-     * 阿里云 负载地址
-     */
-    private String aliyunEndPoint = "oss-cn-hangzhou.aliyuncs.com";
-
-    /**
-     * 阿里云 Bucket
-     */
-    private String aliyunBucketName = "airpower";
-
-    /**
-     * 腾讯云 SecretKey
-     */
-    private String tencentSecretKey = "";
-
-    /**
-     * 腾讯云 SecretId
-     */
-    private String tencentSecretId = "";
-
-    /**
-     * 腾讯云 Bucket
-     */
-    private String tencentBucketName = "";
-
-    /**
-     * 腾讯云 负载地址
-     */
-    private String tencentRegion = "ap-shanghai";
-
-    /**
-     * 获取文件存储目录
-     *
-     * @return 文件目录
-     */
-    public String getLocalAbsoluteDirectory() {
-        return FileUtil.formatDirectory(localAbsoluteDirectory);
-    }
 
     /**
      * 获取上传文件目录

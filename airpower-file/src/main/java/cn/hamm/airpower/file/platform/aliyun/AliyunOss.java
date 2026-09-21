@@ -1,7 +1,6 @@
-package cn.hamm.airpower.file.platform;
+package cn.hamm.airpower.file.platform.aliyun;
 
 import cn.hamm.airpower.core.DateTimeUtil;
-import cn.hamm.airpower.file.FileConfig;
 import cn.hamm.airpower.file.IFilePlatform;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
@@ -25,8 +24,12 @@ import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
  */
 @Component
 public class AliyunOss implements IFilePlatform {
+    /**
+     * 阿里云OSS配置
+     */
     @Autowired
-    private FileConfig fileConfig;
+    private AliyunOssConfig aliyunOssConfig;
+
     /**
      * volatile：防止指令重排序
      */
@@ -45,10 +48,13 @@ public class AliyunOss implements IFilePlatform {
         return url;
     }
 
+    /**
+     * 获取 BucketName
+     */
     private String getBucketName() {
-        String aliyunBucketName = fileConfig.getAliyunBucketName();
-        PARAM_INVALID.whenEmpty(aliyunBucketName, "请配置阿里云的 BucketName");
-        return aliyunBucketName;
+        String bucketName = aliyunOssConfig.getBucketName();
+        PARAM_INVALID.whenEmpty(bucketName, "请配置阿里云的 BucketName");
+        return bucketName;
     }
 
     /**
@@ -70,16 +76,16 @@ public class AliyunOss implements IFilePlatform {
         if (ossClient == null) {
             synchronized (this) {
                 if (ossClient == null) {
-                    String accessKeyId = fileConfig.getAliyunAccessKeyId();
+                    String accessKeyId = aliyunOssConfig.getAccessKeyId();
                     PARAM_INVALID.whenEmpty(accessKeyId, "请配置阿里云的 AccessKeyId");
 
-                    String accessKeySecret = fileConfig.getAliyunAccessKeySecret();
+                    String accessKeySecret = aliyunOssConfig.getAccessKeySecret();
                     PARAM_INVALID.whenEmpty(accessKeySecret, "请配置阿里云的 AccessKeySecret");
 
                     CredentialsProvider credentialsProvider =
                             new DefaultCredentialProvider(accessKeyId, accessKeySecret);
 
-                    String endpoint = fileConfig.getAliyunEndPoint();
+                    String endpoint = aliyunOssConfig.getEndPoint();
                     PARAM_INVALID.whenEmpty(endpoint, "请配置阿里云的 Endpoint");
 
                     ossClient = new OSSClientBuilder().build(endpoint, credentialsProvider);
@@ -97,5 +103,10 @@ public class AliyunOss implements IFilePlatform {
         if (ossClient != null) {
             ossClient.shutdown();
         }
+    }
+
+    @Override
+    public String getKey() {
+        return "ALIYUN_OSS";
     }
 }

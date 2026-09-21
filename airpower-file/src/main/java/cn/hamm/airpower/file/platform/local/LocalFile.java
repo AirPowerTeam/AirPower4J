@@ -1,7 +1,6 @@
-package cn.hamm.airpower.file.platform;
+package cn.hamm.airpower.file.platform.local;
 
 import cn.hamm.airpower.core.FileUtil;
-import cn.hamm.airpower.file.FileConfig;
 import cn.hamm.airpower.file.IFilePlatform;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +19,7 @@ import java.io.IOException;
 @Service
 public class LocalFile implements IFilePlatform {
     @Autowired
-    private FileConfig fileConfig;
+    private LocalFileConfig localFileConfig;
 
     /**
      * <h1>保存文件</h1>
@@ -32,12 +31,17 @@ public class LocalFile implements IFilePlatform {
     @Override
     public void save(@NotNull MultipartFile multipartFile, String directory, String fileName) {
         try {
-            FileUtil.saveFile(fileConfig.getLocalAbsoluteDirectory() + directory,
+            FileUtil.saveFile(localFileConfig.getLocalAbsoluteDirectory() + directory,
                     fileName,
                     multipartFile.getBytes()
             );
         } catch (IOException e) {
             throw new RuntimeException("保存文件失败，" + e.getMessage());
         }
+    }
+
+    @Override
+    public String getKey() {
+        return "LOCAL";
     }
 }

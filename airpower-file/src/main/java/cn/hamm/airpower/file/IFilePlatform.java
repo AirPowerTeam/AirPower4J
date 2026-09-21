@@ -39,4 +39,11 @@ public interface IFilePlatform {
     default InputStream download(String path) {
         throw new RuntimeException("暂不支持该平台");
     }
+
+    /**
+     * <h1>获取文件平台键</h1>
+     *
+     * @return 文件平台键
+     */
+    String getKey();
 }

@@ -2,7 +2,6 @@ package cn.hamm.airpower.file;
 
 import cn.hamm.airpower.core.FileUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
-import cn.hamm.airpower.file.platform.local.LocalFile;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
@@ -34,14 +33,11 @@ public class FileHelper {
     @Autowired
     private FileConfig fileConfig;
 
-    @Autowired
-    private LocalFile localFile;
-
     /**
      * <h1>文件存储平台</h1>
      */
     @Setter
-    private IFilePlatform platform = localFile;
+    private IFilePlatform platform;
 
     /**
      * 将 MultipartFile 转换为 File

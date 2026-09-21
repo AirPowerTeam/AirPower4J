@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Date;
 
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
@@ -38,14 +39,15 @@ public class AliyunOss implements IFilePlatform {
     /**
      * 获取文件 URL
      *
-     * @param path 文件路径
+     * @param path   文件路径
+     * @param second 过期时间（秒）
      * @return 文件 URL
      */
     @Override
-    public String getUrl(String path) {
-        String url = getClient().generatePresignedUrl(getBucketName(), path, DateTimeUtil.addDays(7)).toString();
-        ossClient.shutdown();
-        return url;
+    public String getUrl(String path, int second) {
+        return getClient().generatePresignedUrl(getBucketName(), path,
+                DateTimeUtil.addSeconds(new Date(), second)
+        ).toString();
     }
 
     /**

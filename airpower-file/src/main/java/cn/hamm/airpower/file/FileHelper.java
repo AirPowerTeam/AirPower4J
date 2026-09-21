@@ -195,14 +195,4 @@ public class FileHelper {
         }
         return platform;
     }
-
-    /**
-     * 获取文件URL
-     *
-     * @param url 文件URL
-     * @return 文件URL
-     */
-    public String getUrl(String url) {
-        return getPlatform().getUrl(url);
-    }
 }

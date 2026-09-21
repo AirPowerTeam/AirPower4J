@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 @ConfigurationProperties("airpower.file.tencent")
-public class TencentCloudOssConfig {
+public class TencentCloudCosConfig {
     /**
      * 腾讯云 SecretId
      */

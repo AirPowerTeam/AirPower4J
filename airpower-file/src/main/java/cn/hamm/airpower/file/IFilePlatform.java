@@ -23,10 +23,11 @@ public interface IFilePlatform {
     /**
      * <h1>获取文件 URL</h1>
      *
-     * @param path 文件路径
+     * @param path   文件路径
+     * @param second 过期时间(秒)
      * @return 文件 URL
      */
-    default String getUrl(String path) {
+    default String getUrl(String path, int second) {
         return path;
     }
 

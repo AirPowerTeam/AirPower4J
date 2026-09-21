@@ -17,22 +17,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Date;
 
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>腾讯云OSS</h1>
+ * <h1>腾讯云COS</h1>
  *
  * @author Hamm.cn
  */
 @Slf4j
 @Component
-public class TencentCloudOss implements IFilePlatform {
+public class TencentCloudCos implements IFilePlatform {
     /**
-     * 腾讯云OSS配置
+     * 腾讯云 COS 配置
      */
     @Autowired
-    private TencentCloudOssConfig tencentCloudOssConfig;
+    private TencentCloudCosConfig tencentCloudCosConfig;
 
     /**
      * volatile：防止指令重排序
@@ -42,21 +43,22 @@ public class TencentCloudOss implements IFilePlatform {
     /**
      * 获取文件 URL
      *
-     * @param path 文件路径
+     * @param path   文件路径
+     * @param second 过期时间（秒）
      * @return 文件 URL
      */
     @Override
-    public String getUrl(String path) {
-        String url = getClient().generatePresignedUrl(getBucketName(), path, DateTimeUtil.addDays(7)).toString();
-        cosClient.shutdown();
-        return url;
+    public String getUrl(String path, int second) {
+        return getClient().generatePresignedUrl(getBucketName(), path,
+                DateTimeUtil.addSeconds(new Date(), second)
+        ).toString();
     }
 
     /**
      * 获取 BucketName
      */
     private String getBucketName() {
-        String bucketName = tencentCloudOssConfig.getBucketName();
+        String bucketName = tencentCloudCosConfig.getBucketName();
         PARAM_INVALID.whenEmpty(bucketName, "请配置腾讯云的 BucketName");
         return bucketName;
     }
@@ -75,21 +77,21 @@ public class TencentCloudOss implements IFilePlatform {
     }
 
     /**
-     * 获取 OSS Client（单例 + 线程安全）
+     * 获取 COS Client（单例 + 线程安全）
      */
     private COSClient getClient() {
         if (cosClient == null) {
             synchronized (this) {
                 if (cosClient == null) {
-                    String tencentSecretId = tencentCloudOssConfig.getSecretId();
+                    String tencentSecretId = tencentCloudCosConfig.getSecretId();
                     PARAM_INVALID.whenEmpty(tencentSecretId, "请配置腾讯云的 SecretId");
 
-                    String tencentSecretKey = tencentCloudOssConfig.getSecretKey();
+                    String tencentSecretKey = tencentCloudCosConfig.getSecretKey();
                     PARAM_INVALID.whenEmpty(tencentSecretKey, "请配置腾讯云的 SecretKey");
 
                     COSCredentials credentials = new BasicCOSCredentials(tencentSecretId, tencentSecretKey);
 
-                    String tencentRegion = tencentCloudOssConfig.getRegion();
+                    String tencentRegion = tencentCloudCosConfig.getRegion();
                     PARAM_INVALID.whenEmpty(tencentRegion, "请配置腾讯云的 Region");
                     Region region = new Region(tencentRegion);
                     ClientConfig clientConfig = new ClientConfig(region);
@@ -101,7 +103,7 @@ public class TencentCloudOss implements IFilePlatform {
     }
 
     /**
-     * Spring 容器销毁时关闭 OSS Client
+     * Spring 容器销毁时关闭 COS Client
      */
     @PreDestroy
     public void destroy() {
@@ -112,6 +114,6 @@ public class TencentCloudOss implements IFilePlatform {
 
     @Override
     public String getKey() {
-        return "TENCENT_CLOUD_OSS";
+        return "TENCENT_CLOUD_COS";
     }
 }

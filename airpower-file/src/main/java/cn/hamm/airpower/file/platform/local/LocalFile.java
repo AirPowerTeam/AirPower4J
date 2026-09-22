@@ -1,11 +1,11 @@
 package cn.hamm.airpower.file.platform.local;
 
 import cn.hamm.airpower.core.FileUtil;
+import cn.hamm.airpower.file.FilePlatform;
 import cn.hamm.airpower.file.IFilePlatform;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.io.IOException;
  * @author Hamm.cn
  */
 @Slf4j
-@Service
+@FilePlatform("LOCAL")
 public class LocalFile implements IFilePlatform {
     @Autowired
     private LocalFileConfig localFileConfig;
@@ -38,10 +38,5 @@ public class LocalFile implements IFilePlatform {
         } catch (IOException e) {
             throw new RuntimeException("保存文件失败，" + e.getMessage());
         }
-    }
-
-    @Override
-    public String getKey() {
-        return "LOCAL";
     }
 }

@@ -1,6 +1,7 @@
 package cn.hamm.airpower.file.platform.aliyun;
 
 import cn.hamm.airpower.core.DateTimeUtil;
+import cn.hamm.airpower.file.FilePlatform;
 import cn.hamm.airpower.file.IFilePlatform;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
@@ -9,7 +10,6 @@ import com.aliyun.oss.common.auth.DefaultCredentialProvider;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -23,7 +23,7 @@ import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
  *
  * @author Hamm.cn
  */
-@Component
+@FilePlatform("ALIYUN_OSS")
 public class AliyunOss implements IFilePlatform {
     /**
      * 阿里云OSS配置
@@ -105,10 +105,5 @@ public class AliyunOss implements IFilePlatform {
         if (ossClient != null) {
             ossClient.shutdown();
         }
-    }
-
-    @Override
-    public String getKey() {
-        return "ALIYUN_OSS";
     }
 }

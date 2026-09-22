@@ -2,6 +2,7 @@ package cn.hamm.airpower.file.platform.tencent;
 
 import cn.hamm.airpower.core.DateTimeUtil;
 import cn.hamm.airpower.file.FileHelper;
+import cn.hamm.airpower.file.FilePlatform;
 import cn.hamm.airpower.file.IFilePlatform;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
@@ -13,7 +14,6 @@ import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
  * @author Hamm.cn
  */
 @Slf4j
-@Component
+@FilePlatform("TENCENT_CLOUD_COS")
 public class TencentCloudCos implements IFilePlatform {
     /**
      * 腾讯云 COS 配置
@@ -110,10 +110,5 @@ public class TencentCloudCos implements IFilePlatform {
         if (cosClient != null) {
             cosClient.shutdown();
         }
-    }
-
-    @Override
-    public String getKey() {
-        return "TENCENT_CLOUD_COS";
     }
 }

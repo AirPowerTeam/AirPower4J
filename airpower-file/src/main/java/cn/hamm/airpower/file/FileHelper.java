@@ -2,7 +2,7 @@ package cn.hamm.airpower.file;
 
 import cn.hamm.airpower.core.FileUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
-import lombok.Setter;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -15,8 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
@@ -25,19 +24,27 @@ import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
  * <h1>文件封装类</h1>
  *
  * @author Hamm.cn
- * @apiNote 如需自定义上传平台，可调用 {@link #setPlatform(IFilePlatform)}
  */
 @Slf4j
 @Component
 public class FileHelper {
+    /**
+     * 文件存储平台列表
+     * key 为 {@link FilePlatform#value()} 指定的平台标识。
+     */
+    private final Map<String, IFilePlatform> platforms = new HashMap<>();
+
+    /**
+     * 文件配置
+     */
     @Autowired
     private FileConfig fileConfig;
 
     /**
-     * <h1>文件存储平台</h1>
+     * 注入所有 {@link IFilePlatform} 实例
      */
-    @Setter
-    private IFilePlatform platform;
+    @Autowired
+    private List<IFilePlatform> allPlatforms;
 
     /**
      * 将 MultipartFile 转换为 File
@@ -174,21 +181,54 @@ public class FileHelper {
         String relativeDirectory = getUploadDirectory(category);
         String fileName = getFileHash(multipartFile);
         fileName += "." + getFileExtension(multipartFile);
-        return upload(multipartFile, relativeDirectory, fileName,
-                (size) -> PARAM_INVALID.when(size > fileConfig.getUploadMaxSize(), "文件大小超出限制")
-        );
+        return upload(multipartFile, relativeDirectory, fileName);
     }
 
     /**
-     * 获取文件存储平台
+     * 获取默认的文件存储平台
      *
      * @return 文件存储平台
      */
     @Contract(pure = true)
     public IFilePlatform getPlatform() {
+        return getPlatform(fileConfig.getDefaultPlatform());
+    }
+
+    /**
+     * 通过平台标识获取文件存储平台
+     *
+     * @param key 平台标识
+     * @return 文件存储平台
+     */
+    public IFilePlatform getPlatform(String key) {
+        IFilePlatform platform = platforms.get(key);
         if (Objects.isNull(platform)) {
-            throw new ServiceException("文件存储平台未配置");
+            throw new ServiceException("暂未支持的文件存储平台 " + key);
         }
         return platform;
+    }
+
+    /**
+     * 注册所有标记了 {@link FilePlatform} 的文件平台
+     */
+    @PostConstruct
+    private void registerPlatforms() {
+        platforms.clear();
+        for (IFilePlatform platform : allPlatforms) {
+            FilePlatform annotation = platform.getClass().getAnnotation(FilePlatform.class);
+            if (Objects.isNull(annotation)) {
+                continue;
+            }
+            String key = annotation.value();
+            IFilePlatform exists = platforms.put(key, platform);
+            if (Objects.nonNull(exists)) {
+                throw new ServiceException(
+                        "文件存储平台 key 重复: " + key +
+                                " (" + exists.getClass().getName() +
+                                " 和 " + platform.getClass().getName() + ")"
+                );
+            }
+        }
+        log.info("已注册 {} 个文件存储平台: {}", platforms.size(), platforms.keySet());
     }
 }

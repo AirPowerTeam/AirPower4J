@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * <h1>文件平台接口</h1>
@@ -43,8 +44,15 @@ public interface IFilePlatform {
 
     /**
      * <h1>获取文件平台键</h1>
+     * 读取类上的 {@link FilePlatform#value()} 注解值。
      *
      * @return 文件平台键
      */
-    String getKey();
+    default String getKey() {
+        FilePlatform annotation = getClass().getAnnotation(FilePlatform.class);
+        if (Objects.isNull(annotation)) {
+            throw new RuntimeException(getClass().getName() + " 未标记 @FilePlatform 注解");
+        }
+        return annotation.value();
+    }
 }

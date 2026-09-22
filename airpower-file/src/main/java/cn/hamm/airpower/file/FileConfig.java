@@ -27,6 +27,11 @@ public class FileConfig {
     private String uploadDirectory = "upload";
 
     /**
+     * 默认文件存储平台
+     */
+    private String defaultPlatform = "LOCAL";
+
+    /**
      * 获取上传文件目录
      *
      * @return 上传文件目录

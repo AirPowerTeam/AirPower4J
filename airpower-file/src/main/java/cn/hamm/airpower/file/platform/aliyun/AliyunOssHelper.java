@@ -1,8 +1,8 @@
 package cn.hamm.airpower.file.platform.aliyun;
 
 import cn.hamm.airpower.core.DateTimeUtil;
+import cn.hamm.airpower.file.AbstractFilePlatformFactory;
 import cn.hamm.airpower.file.FilePlatform;
-import cn.hamm.airpower.file.IFilePlatform;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.common.auth.CredentialsProvider;
@@ -10,10 +10,10 @@ import com.aliyun.oss.common.auth.DefaultCredentialProvider;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
@@ -24,7 +24,7 @@ import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
  * @author Hamm.cn
  */
 @FilePlatform("ALIYUN_OSS")
-public class AliyunOss implements IFilePlatform {
+public class AliyunOssHelper extends AbstractFilePlatformFactory {
     /**
      * 阿里云OSS配置
      */
@@ -51,6 +51,16 @@ public class AliyunOss implements IFilePlatform {
     }
 
     /**
+     * 删除文件
+     *
+     * @param path 文件路径
+     */
+    @Override
+    public void delete(String path) {
+        getClient().deleteObject(getBucketName(), path);
+    }
+
+    /**
      * 获取 BucketName
      */
     private String getBucketName() {
@@ -60,12 +70,16 @@ public class AliyunOss implements IFilePlatform {
     }
 
     /**
-     * <h1>保存文件</h1>
+     * 保存文件
+     *
+     * @param inputStream 文件输入流
+     * @param directory   目录
+     * @param fileName    文件名
      */
     @Override
-    public void save(@NotNull MultipartFile multipartFile, String directory, String fileName) {
+    public void save(@NotNull InputStream inputStream, String directory, String fileName) {
         try {
-            getClient().putObject(getBucketName(), directory + fileName, new ByteArrayInputStream(multipartFile.getInputStream().readAllBytes()));
+            getClient().putObject(getBucketName(), directory + fileName, new ByteArrayInputStream(inputStream.readAllBytes()));
         } catch (IOException e) {
             throw new RuntimeException("上传文件失败，" + e.getMessage());
         }

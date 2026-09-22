@@ -33,7 +33,7 @@ import java.util.Objects;
 @Slf4j
 public class CurdUtil {
     /**
-     * <h1>扫描实体</h1>
+     * 扫描实体
      *
      * @param packageName 包名
      * @return 扫描到的实体列表

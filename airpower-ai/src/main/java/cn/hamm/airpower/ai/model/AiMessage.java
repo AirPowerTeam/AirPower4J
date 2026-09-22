@@ -26,7 +26,7 @@ public class AiMessage {
     private String content;
 
     /**
-     * <h1>设置角色</h1>
+     * 设置角色0
      *
      * @param role 角色
      * @return 角色

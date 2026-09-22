@@ -1,22 +1,22 @@
 package cn.hamm.airpower.file.platform.tencent;
 
 import cn.hamm.airpower.core.DateTimeUtil;
-import cn.hamm.airpower.file.FileHelper;
+import cn.hamm.airpower.file.AbstractFilePlatformFactory;
 import cn.hamm.airpower.file.FilePlatform;
-import cn.hamm.airpower.file.IFilePlatform;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
+import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.region.Region;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
@@ -28,7 +28,7 @@ import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
  */
 @Slf4j
 @FilePlatform("TENCENT_CLOUD_COS")
-public class TencentCloudCos implements IFilePlatform {
+public class TencentCloudCosHelper extends AbstractFilePlatformFactory {
     /**
      * 腾讯云 COS 配置
      */
@@ -39,6 +39,25 @@ public class TencentCloudCos implements IFilePlatform {
      * volatile：防止指令重排序
      */
     private volatile COSClient cosClient;
+
+    /**
+     * 保存文件
+     *
+     * @param inputStream 文件输入流
+     * @param directory   文件目录
+     * @param fileName    文件名
+     */
+    @Override
+    public void save(@NotNull InputStream inputStream, String directory, String fileName) {
+        try {
+            ObjectMetadata meta = new ObjectMetadata();
+            meta.setContentLength(inputStream.available());
+            PutObjectRequest putObjectRequest = new PutObjectRequest(getBucketName(), directory + fileName, inputStream, meta);
+            getClient().putObject(putObjectRequest);
+        } catch (IOException e) {
+            throw new RuntimeException("上传文件失败，" + e.getMessage());
+        }
+    }
 
     /**
      * 获取文件 URL
@@ -55,25 +74,22 @@ public class TencentCloudCos implements IFilePlatform {
     }
 
     /**
+     * 从文件平台删除文件
+     *
+     * @param path 文件路径
+     */
+    @Override
+    public void delete(String path) {
+        getClient().deleteObject(getBucketName(), path);
+    }
+
+    /**
      * 获取 BucketName
      */
     private String getBucketName() {
         String bucketName = tencentCloudCosConfig.getBucketName();
         PARAM_INVALID.whenEmpty(bucketName, "请配置腾讯云的 BucketName");
         return bucketName;
-    }
-
-    /**
-     * <h1>保存文件</h1>
-     */
-    @Override
-    public void save(@NotNull MultipartFile multipartFile, String directory, String fileName) {
-        try {
-            PutObjectRequest putObjectRequest = new PutObjectRequest(getBucketName(), directory + fileName, FileHelper.multipartFileToFile(multipartFile));
-            getClient().putObject(putObjectRequest);
-        } catch (IOException e) {
-            throw new RuntimeException("上传文件失败，" + e.getMessage());
-        }
     }
 
     /**

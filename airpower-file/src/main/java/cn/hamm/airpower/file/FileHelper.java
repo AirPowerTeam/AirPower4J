@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * <h1>文件封装类</h1>
+ * <h1>文件助手类</h1>
  *
  * @author Hamm.cn
  */

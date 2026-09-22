@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>文件平台接口</h1>
+ * <h1>文件平台抽象工厂</h1>
  *
  * @author Hamm
  */
@@ -137,13 +137,20 @@ public abstract class AbstractFilePlatformFactory {
      * @param fileSizeLimit     文件大小限制 不传入使用默认限制
      * @return 存储的文件路径
      */
-    public String upload(@NotNull InputStream inputStream, @NotNull String relativeDirectory, @NotNull String fileName, @Nullable Consumer<Integer> fileSizeLimit) {
+    public String upload(@NotNull InputStream inputStream,
+                         @NotNull String relativeDirectory,
+                         @NotNull String fileName,
+                         @Nullable Consumer<Integer> fileSizeLimit
+    ) {
         relativeDirectory = FileUtil.formatDirectory(relativeDirectory);
         try {
             if (Objects.nonNull(fileSizeLimit)) {
                 fileSizeLimit.accept(inputStream.available());
             } else {
-                PARAM_INVALID.when(inputStream.available() > fileConfig.getUploadMaxSize(), "文件大小超出限制");
+                PARAM_INVALID.when(
+                        inputStream.available() > fileConfig.getUploadMaxSize(),
+                        "文件大小超出限制"
+                );
             }
             save(inputStream, relativeDirectory, fileName);
             return relativeDirectory + fileName;
@@ -161,7 +168,9 @@ public abstract class AbstractFilePlatformFactory {
      * @param fileName          文件名
      * @return 存储的文件路径
      */
-    public String upload(@NotNull InputStream inputStream, @NotNull String relativeDirectory, @NotNull String fileName) {
+    public String upload(@NotNull InputStream inputStream,
+                         @NotNull String relativeDirectory,
+                         @NotNull String fileName) {
         return upload(inputStream, relativeDirectory, fileName, null);
     }
 
@@ -207,12 +216,14 @@ public abstract class AbstractFilePlatformFactory {
      * @param fileSizeLimit 文件大小限制 不传入使用默认限制
      * @return 存储的文件路径
      */
-    public String upload(@NotNull MultipartFile multipartFile, @NotNull String category, @Nullable Consumer<Integer> fileSizeLimit) {
+    public String upload(@NotNull MultipartFile multipartFile,
+                         @NotNull String category,
+                         @Nullable Consumer<Integer> fileSizeLimit) {
         String relativeDirectory = getUploadDirectory(category);
         String fileName = getFileHash(multipartFile);
         fileName += "." + FileUtil.getExtension(getFileName(multipartFile));
         try {
-            return upload(multipartFile.getInputStream(), relativeDirectory, fileName);
+            return upload(multipartFile.getInputStream(), relativeDirectory, fileName, fileSizeLimit);
         } catch (IOException e) {
             throw new ServiceException("上传文件失败，");
         }
@@ -237,7 +248,9 @@ public abstract class AbstractFilePlatformFactory {
      * @param fileSizeLimit 文件大小限制 不传入使用默认限制
      * @return 存储的文件信息
      */
-    public String upload(@NotNull File file, @NotNull String category, @Nullable Consumer<Integer> fileSizeLimit) {
+    public String upload(@NotNull File file,
+                         @NotNull String category,
+                         @Nullable Consumer<Integer> fileSizeLimit) {
         String relativeDirectory = getUploadDirectory(category);
         String fileName = getFileHash(file);
         fileName += "." + FileUtil.getExtension(getFileName(file));
@@ -255,7 +268,9 @@ public abstract class AbstractFilePlatformFactory {
      * @param directory   文件目录
      * @param fileName    文件名
      */
-    public abstract void save(@NotNull InputStream inputStream, @NotNull String directory, @NotNull String fileName);
+    public abstract void save(@NotNull InputStream inputStream,
+                              @NotNull String directory,
+                              @NotNull String fileName);
 
     /**
      * 获取文件 URL

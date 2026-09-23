@@ -1,6 +1,5 @@
 package cn.hamm.airpower.curd.helper;
 
-import cn.hamm.airpower.core.TaskUtil;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -19,7 +18,6 @@ public class TransactionHelper {
      * 开始执行一个包含若干方法的事务
      *
      * @param function 事务包含的方法集合体
-     * @apiNote 如需无视异常执行多项任务，可使用 {@link TaskUtil#run(Runnable, Runnable...)} 或 {@link TaskUtil#runAsync(Runnable, Runnable...)}
      */
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.REPEATABLE_READ)
     public void run(@NotNull Function function) {
@@ -30,7 +28,6 @@ public class TransactionHelper {
      * 开始执行一个包含若干方法的事务
      *
      * @param supplier 事务包含的方法集合体
-     * @apiNote 如需无视异常执行多项任务，可使用 {@link TaskUtil#run(Runnable, Runnable...)} 或 {@link TaskUtil#runAsync(Runnable, Runnable...)}
      */
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.REPEATABLE_READ)
     public <T> T run(@NotNull Supplier<T> supplier) {

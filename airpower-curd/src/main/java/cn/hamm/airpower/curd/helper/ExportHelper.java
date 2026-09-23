@@ -43,7 +43,7 @@ public class ExportHelper {
     /**
      * 导出文件前缀
      */
-    private static final String EXPORT_CACHE_PREFIX = EXPORT_DIR + "_";
+    private static final String EXPORT_TASK_KEY_PREFIX = EXPORT_DIR + ":task:";
 
     @Autowired
     private RedisHelper redisHelper;
@@ -71,7 +71,7 @@ public class ExportHelper {
      */
     public final String createExportTask(Supplier<String> supplier) {
         String fileCode = RandomUtil.randomString().toLowerCase();
-        final String fileCacheKey = EXPORT_CACHE_PREFIX + fileCode;
+        final String fileCacheKey = EXPORT_TASK_KEY_PREFIX + fileCode;
         Object object = redisHelper.get(fileCacheKey);
         if (Objects.nonNull(object)) {
             return createExportTask(supplier);
@@ -88,7 +88,7 @@ public class ExportHelper {
      * @return 文件 URL
      */
     public final String getExportFileUrl(String fileCode) {
-        Object object = redisHelper.get(EXPORT_CACHE_PREFIX + fileCode);
+        Object object = redisHelper.get(EXPORT_TASK_KEY_PREFIX + fileCode);
         DATA_NOT_FOUND.whenEmpty(object, "文件暂未准备完毕");
         return object.toString();
     }

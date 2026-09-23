@@ -40,7 +40,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
     /**
      * 防重放缓存前缀
      */
-    private static final String NONCE_CACHE_PREFIX = "NONCE_";
+    private static final String NONCE_CACHE_PREFIX = "open:nonce:";
 
     @Autowired(required = false)
     private S openAppService;

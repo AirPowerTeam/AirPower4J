@@ -3,7 +3,6 @@ package cn.hamm.airpower.curd.base;
 import cn.hamm.airpower.api.ApiController;
 import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.ReflectUtil;
-import cn.hamm.airpower.core.TaskUtil;
 import cn.hamm.airpower.core.annotation.Description;
 import cn.hamm.airpower.curd.annotation.Extends;
 import cn.hamm.airpower.curd.config.ExportConfig;
@@ -81,8 +80,6 @@ public class CurdController<
      *
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeAdd(E)
-     * @see #afterAdd(long, E)
-     * @see #afterSaved(long, E)
      */
     @Description("添加")
     @PostMapping("add")
@@ -90,12 +87,7 @@ public class CurdController<
         Curd.Add.checkApiAvailable(this);
         source.excludeReadOnly();
         source = beforeAdd(source);
-        final E finalSource = source;
         long id = service.add(source);
-        TaskUtil.run(
-                () -> afterAdd(id, finalSource),
-                () -> afterSaved(id, finalSource)
-        );
         return Json.data(service.getEntityInstance(id), "添加成功");
     }
 
@@ -104,8 +96,6 @@ public class CurdController<
      *
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeUpdate(E)
-     * @see #afterUpdate(long, E)
-     * @see #afterSaved(long, E)
      */
     @Description("修改")
     @PostMapping("update")
@@ -113,13 +103,7 @@ public class CurdController<
         Curd.Update.checkApiAvailable(this);
         source.excludeReadOnly();
         source = beforeUpdate(source);
-
         service.update(source);
-        final E finalSource = source;
-        TaskUtil.run(
-                () -> afterUpdate(finalSource.getId(), finalSource),
-                () -> afterSaved(finalSource.getId(), finalSource)
-        );
         return Json.data(service.getEntityInstance(source.getId()), "修改成功");
     }
 
@@ -128,7 +112,6 @@ public class CurdController<
      *
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeDelete(E)
-     * @see #afterDelete(long)
      */
     @Description("删除")
     @PostMapping("delete")
@@ -137,7 +120,6 @@ public class CurdController<
         E entity = service.get(source.getId());
         beforeDelete(entity);
         service.delete(entity.getId());
-        TaskUtil.run(() -> afterDelete(entity.getId()));
         return Json.data(service.getEntityInstance(entity.getId()), "删除成功");
     }
 
@@ -159,7 +141,6 @@ public class CurdController<
      *
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeDisable(E)
-     * @see #afterDisable(long)
      */
     @Description("禁用")
     @PostMapping("disable")
@@ -169,7 +150,6 @@ public class CurdController<
         E entity = service.get(id);
         beforeDisable(entity);
         service.disable(entity.getId());
-        TaskUtil.run(() -> afterDisable(id));
         return Json.data(service.getEntityInstance(id), "禁用成功");
     }
 
@@ -178,7 +158,6 @@ public class CurdController<
      *
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeEnable(E)
-     * @see #afterEnable(long)
      */
     @Description("启用")
     @PostMapping("enable")
@@ -188,7 +167,6 @@ public class CurdController<
         E entity = service.get(id);
         beforeEnable(entity);
         service.enable(id);
-        TaskUtil.run(() -> afterEnable(id));
         return Json.data(service.getEntityInstance(id), "启用成功");
     }
 
@@ -280,17 +258,6 @@ public class CurdController<
     }
 
     /**
-     * 新增后置方法
-     *
-     * @param id     主键 ID
-     * @param source 原始实体
-     * @apiNote 可重写后执行新增后的其他业务
-     */
-    @SuppressWarnings({"unused", "EmptyMethod"})
-    protected void afterAdd(long id, @NotNull E source) {
-    }
-
-    /**
      * 修改前置方法
      *
      * @param entity 请求提交的实体数据，可能会缺失很多数据
@@ -299,28 +266,6 @@ public class CurdController<
      */
     protected E beforeUpdate(@NotNull E entity) {
         return entity;
-    }
-
-    /**
-     * 修改后置方法
-     *
-     * @param id     主键 ID
-     * @param source 原始实体
-     * @apiNote 可重写后执行修改之后的其他业务
-     */
-    @SuppressWarnings({"unused", "EmptyMethod"})
-    protected void afterUpdate(long id, @NotNull E source) {
-    }
-
-    /**
-     * 保存后置方法
-     *
-     * @param id     主键 ID
-     * @param source 原始实体
-     * @apiNote 新增和修改最后触发
-     */
-    @SuppressWarnings({"unused", "EmptyMethod"})
-    protected void afterSaved(long id, @NotNull E source) {
     }
 
     /**
@@ -334,16 +279,6 @@ public class CurdController<
     }
 
     /**
-     * 删除后置方法
-     *
-     * @param id 主键
-     * @apiNote 可重写后执行删除之后的其他业务
-     */
-    @SuppressWarnings({"unused", "EmptyMethod"})
-    protected void afterDelete(long id) {
-    }
-
-    /**
      * 禁用前置方法
      *
      * @param entity 禁用前的实体
@@ -354,32 +289,12 @@ public class CurdController<
     }
 
     /**
-     * 禁用后置方法
-     *
-     * @param id 主键 ID
-     * @apiNote 可重写后执行禁用之后的其他业务
-     */
-    @SuppressWarnings({"unused", "EmptyMethod"})
-    protected void afterDisable(long id) {
-    }
-
-    /**
      * 启用前置方法
      *
      * @param entity 启用前的实体
      */
     @SuppressWarnings({"unused", "EmptyMethod"})
     protected void beforeEnable(@NotNull E entity) {
-    }
-
-    /**
-     * 启用后置方法
-     *
-     * @param id 主键 ID
-     * @apiNote 可重写后执行启用之后其他业务
-     */
-    @SuppressWarnings({"unused", "EmptyMethod"})
-    protected void afterEnable(long id) {
     }
 
     /**

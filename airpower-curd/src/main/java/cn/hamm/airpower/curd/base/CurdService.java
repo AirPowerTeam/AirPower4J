@@ -2,7 +2,6 @@ package cn.hamm.airpower.curd.base;
 
 import cn.hamm.airpower.core.CollectionUtil;
 import cn.hamm.airpower.core.ReflectUtil;
-import cn.hamm.airpower.core.TaskUtil;
 import cn.hamm.airpower.core.TraceUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.curd.annotation.NullEnable;
@@ -90,20 +89,18 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterSaved(long, E)
      */
     public final long add(@NotNull E source) {
-        source = beforeAdd(source);
-        SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
-
-        // 新增不允许带主键
-        source.setId(null);
-        long id = addToDatabase(source);
-        final E finalSource = source;
-
-        // 新增完毕后的一些后置处理
-        TaskUtil.run(
-                () -> afterAdd(id, finalSource),
-                () -> afterSaved(id, finalSource)
-        );
-        return id;
+        final E finalEntity = source;
+        return transactionHelper.run(() -> {
+            E forAdd = beforeAdd(finalEntity);
+            SERVICE_ERROR.whenNull(forAdd, DATA_REQUIRED);
+            // 新增不允许带主键
+            forAdd.setId(null);
+            long id = addToDatabase(forAdd);
+            // 新增完毕后的一些后置处理
+            afterAdd(id, forAdd);
+            afterSaved(id, forAdd);
+            return id;
+        });
     }
 
     /**
@@ -114,8 +111,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #add(CurdEntity) 触发前后置的添加方法
      */
     public final long addToDatabase(@NotNull E source) {
-        PARAM_MISSING.whenNotNull(source.getId(), String.format("添加失败，请不要传入%s的ID!", getEntityDescription()));
-        return saveToDatabase(source, false);
+        return transactionHelper.run(() -> {
+            PARAM_MISSING.whenNotNull(source.getId(), String.format("添加失败，请不要传入%s的ID!", getEntityDescription()));
+            return saveToDatabase(source, false);
+        });
     }
 
     /**
@@ -136,10 +135,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterDelete(long)
      */
     public final void delete(long id) {
-        E entity = get(id);
-        beforeDelete(entity);
-        repository.deleteById(id);
-        TaskUtil.run(() -> afterDelete(id));
+        transactionHelper.run(() -> {
+            E entity = get(id);
+            beforeDelete(entity);
+            repository.deleteById(id);
+            afterDelete(id);
+        });
     }
 
     /**
@@ -168,14 +169,14 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterSaved(long, E)
      */
     public final void update(@NotNull E source, boolean withNull) {
-        long id = source.getId();
-        source = beforeUpdate(source);
-        updateToDatabase(source, withNull);
         final E finalSource = source;
-        TaskUtil.run(
-                () -> afterUpdate(id, finalSource),
-                () -> afterSaved(id, finalSource)
-        );
+        transactionHelper.run(() -> {
+            long id = finalSource.getId();
+            E forUpdate = beforeUpdate(finalSource);
+            updateToDatabase(forUpdate, withNull);
+            afterUpdate(id, forUpdate);
+            afterSaved(id, forUpdate);
+        });
     }
 
     /**
@@ -209,9 +210,11 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @param withNull 是否更新空值
      */
     public final void updateToDatabase(@NotNull E source, boolean withNull) {
-        SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
-        PARAM_MISSING.whenNull(source.getId(), String.format("修改失败，请传入%s的ID!", getEntityDescription()));
-        saveToDatabase(source, withNull);
+        transactionHelper.run(() -> {
+            SERVICE_ERROR.whenNull(source, DATA_REQUIRED);
+            PARAM_MISSING.whenNull(source.getId(), String.format("修改失败，请传入%s的ID!", getEntityDescription()));
+            saveToDatabase(source, withNull);
+        });
     }
 
     /**
@@ -222,10 +225,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterEnable(long)
      */
     public final void enable(long id) {
-        E entity = get(id);
-        beforeEnable(entity);
-        updateToDatabase(getEntityInstance(id).setIsDisabled(false));
-        TaskUtil.run(() -> afterEnable(id));
+        transactionHelper.run(() -> {
+            E entity = get(id);
+            beforeEnable(entity);
+            updateToDatabase(getEntityInstance(id).setIsDisabled(false));
+            afterEnable(id);
+        });
     }
 
     /**
@@ -236,10 +241,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #afterDisable(long)
      */
     public final void disable(long id) {
-        E entity = get(id);
-        beforeDisable(entity);
-        updateToDatabase(getEntityInstance(id).setIsDisabled(true));
-        TaskUtil.run(() -> afterDisable(id));
+        transactionHelper.run(() -> {
+            E entity = get(id);
+            beforeDisable(entity);
+            updateToDatabase(getEntityInstance(id).setIsDisabled(true));
+            afterDisable(id);
+        });
     }
 
     /**
@@ -803,21 +810,24 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #updateToDatabase(CurdEntity)
      */
     private long saveToDatabase(@NotNull E entity, boolean withNull) {
-        checkUnique(entity);
-        entity.setUpdateTime(System.currentTimeMillis());
-        if (Objects.isNull(entity.getId())) {
-            // 设置当前时间为创建时间
-            entity.setCreateTime(System.currentTimeMillis())
-                    .setIsDisabled(false);
-            // 新增
-            return saveToDatabase(entity);
-        }
-        // 更新 不允许修改创建时间
-        entity.setCreateTime(null);
-        // 有ID 走修改 且不允许修改下列字段
-        E existEntity = getById(entity.getId());
-        entity = withNull ? entity : getEntityForUpdate(entity, existEntity);
-        return saveToDatabase(entity);
+        final E finalEntity = entity;
+        return transactionHelper.run(() -> {
+            checkUnique(finalEntity);
+            finalEntity.setUpdateTime(System.currentTimeMillis());
+            if (Objects.isNull(finalEntity.getId())) {
+                // 设置当前时间为创建时间
+                finalEntity.setCreateTime(System.currentTimeMillis())
+                        .setIsDisabled(false);
+                // 新增
+                return saveToDatabase(finalEntity);
+            }
+            // 更新 不允许修改创建时间
+            finalEntity.setCreateTime(null);
+            // 有ID 走修改 且不允许修改下列字段
+            E existEntity = getById(finalEntity.getId());
+            E forSave = withNull ? finalEntity : getEntityForUpdate(finalEntity, existEntity);
+            return saveToDatabase(forSave);
+        });
     }
 
     /**

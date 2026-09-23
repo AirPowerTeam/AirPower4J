@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.function.Supplier;
+
 /**
  * <h1>事务助手类</h1>
  *
@@ -24,6 +26,17 @@ public class TransactionHelper {
         function.run();
     }
 
+    /**
+     * 开始执行一个包含若干方法的事务
+     *
+     * @param supplier 事务包含的方法集合体
+     * @apiNote 如需无视异常执行多项任务，可使用 {@link TaskUtil#run(Runnable, Runnable...)} 或 {@link TaskUtil#runAsync(Runnable, Runnable...)}
+     */
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.REPEATABLE_READ)
+    public <T> T run(@NotNull Supplier<T> supplier) {
+        return supplier.get();
+    }
+
     @FunctionalInterface
     public interface Function {
         /**
@@ -31,5 +44,4 @@ public class TransactionHelper {
          */
         void run();
     }
-
 }

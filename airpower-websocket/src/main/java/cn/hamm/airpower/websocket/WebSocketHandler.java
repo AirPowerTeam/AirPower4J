@@ -3,7 +3,6 @@ package cn.hamm.airpower.websocket;
 import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.Json;
-import cn.hamm.airpower.core.TaskUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.mqtt.MqttHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -156,8 +155,8 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
                 default -> throw new ServiceException("WebSocket 暂不支持");
             }
             userIdHashMap.put(session.getId(), userId);
-            log.info("Websocket连接成功1 {}", userId);
-            TaskUtil.run(() -> afterConnectSuccess(session));
+            log.info("Websocket连接成功 {}", userId);
+            afterConnectSuccess(session);
         } catch (Exception exception) {
             log.info("连接失败 {}", exception.getMessage());
         }
@@ -277,7 +276,7 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             if (Objects.nonNull(mqttClientHashMap.get(sessionId))) {
                 mqttClientHashMap.remove(sessionId).close();
             }
-            TaskUtil.run(() -> afterDisconnect(session, userId));
+            afterDisconnect(session, userId);
         } catch (Exception exception) {
             log.error(exception.getMessage());
         }

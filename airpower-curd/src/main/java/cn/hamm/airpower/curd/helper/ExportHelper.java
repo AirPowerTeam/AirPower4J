@@ -77,7 +77,7 @@ public class ExportHelper {
             return createExportTask(supplier);
         }
         redisHelper.set(fileCacheKey, "");
-        TaskUtil.runAsync(() -> redisHelper.set(fileCacheKey, supplier.get()));
+        TaskUtil.run(() -> redisHelper.set(fileCacheKey, supplier.get()));
         return fileCode;
     }
 

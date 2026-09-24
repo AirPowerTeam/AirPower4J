@@ -27,6 +27,11 @@ public class ApiConfig {
     private Boolean requestLog = true;
 
     /**
+     * 输入到日志的请求头列表
+     */
+    private String[] requestLogHeaders = {HttpHeaders.AUTHORIZATION, HttpHeaders.REFERER, HttpHeaders.USER_AGENT};
+
+    /**
      * 输出响应包体日志
      *
      * @apiNote 如配置为 <code>false</code>, 则全局不会输出响应包体日志

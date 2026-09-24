@@ -1,6 +1,5 @@
 package cn.hamm.airpower.curd.interceptor;
 
-import cn.hamm.airpower.api.RequestUtil;
 import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.TraceUtil;
@@ -63,13 +62,6 @@ public class CurdRequestInterceptor implements HandlerInterceptor {
     ) {
         String traceId = request.getHeader(HttpConstant.Header.TRACE_ID);
         TraceUtil.setTraceId(traceId);
-        String ipAddress = "";
-        try {
-            ipAddress = RequestUtil.getIpAddress(request);
-        } catch (Exception e) {
-            log.error("获取IP地址异常 {}", e.getMessage());
-        }
-        log.info("请求信息 {} {}", ipAddress, request.getRequestURI());
         HandlerMethod handlerMethod = (HandlerMethod) object;
         //取出控制器和方法
         Class<?> clazz = handlerMethod.getBeanType();

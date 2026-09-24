@@ -1,6 +1,7 @@
 package cn.hamm.airpower.curd.interceptor;
 
 import cn.hamm.airpower.api.ApiController;
+import cn.hamm.airpower.api.RequestUtil;
 import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.*;
 import cn.hamm.airpower.core.annotation.DesensitizeIgnore;
@@ -88,15 +89,14 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
         if (Objects.isNull(method)) {
             responseResult = beforeResponseFinished(body, request, response);
         } else {
-            responseResult = beforeResponseFinished(getResult(body, controller, method), request, response);
+            responseResult = beforeResponseFinished(getResponseBody(body, controller, method), request, response);
         }
         if (!apiConfig.getBodyTraceId()) {
             // 不在 Body 中响应 那么在 Header 中响应
             String traceId = TraceUtil.getTraceId();
             response.getHeaders().set(HttpConstant.Header.TRACE_ID, traceId);
         }
-        printRequestLog(method, request);
-        printResponseLog(method, Json.toString(responseResult));
+        printLog(method, request, Json.toString(responseResult));
         return responseResult;
     }
 
@@ -106,18 +106,19 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
      * @param method         请求的方法
      * @param responseResult 响应的包体
      */
-    private void printResponseLog(Method method, String responseResult) {
+    private String getResponseString(Method method, String responseResult) {
+        String response = "";
         if (!apiConfig.getResponseLog()) {
-            return;
+            return response;
         }
         if (method != null) {
             DisableResponseLog disableResponseLog = ReflectUtil.getAnnotation(DisableResponseLog.class, method);
             if (Objects.nonNull(disableResponseLog) && disableResponseLog.value()) {
                 // 禁用日志
-                return;
+                return response;
             }
         }
-        log.info("响应包体 {}", responseResult);
+        return responseResult;
     }
 
     /**
@@ -126,31 +127,58 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
      * @param method  请求的方法
      * @param request 请求
      */
-    private void printRequestLog(Method method, @NotNull ServerHttpRequest request) {
+    private void printLog(Method method, @NotNull ServerHttpRequest request, String response) {
+        Map<String, Object> mapLogs = new HashMap<>();
+        Map<String, Object> headers = getHeaderMap(request);
+        mapLogs.put("headers", headers);
+        HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
+        mapLogs.put("request", getRequestString(method, servletRequest));
+        mapLogs.put("response", getResponseString(method, response));
+        log.info("请求响应: {} {} {} {}",
+                request.getMethod().name(),
+                request.getURI(),
+                RequestUtil.getIpAddress(servletRequest),
+                Json.toString(mapLogs)
+        );
+    }
+
+    /**
+     * 获取请求包体
+     *
+     * @param method             请求的方法
+     * @param httpServletRequest 请求
+     * @return 请求包体
+     */
+    private String getRequestString(Method method, HttpServletRequest httpServletRequest) {
+        String request = "";
         if (!apiConfig.getRequestLog()) {
-            return;
+            return request;
         }
         if (method != null) {
             DisableRequestLog disableRequestLog = ReflectUtil.getAnnotation(DisableRequestLog.class, method);
             if (Objects.nonNull(disableRequestLog) && disableRequestLog.value()) {
                 // 禁用日志
-                return;
+                return request;
             }
         }
+        return getRequestBody(httpServletRequest);
+    }
+
+    /**
+     * 获取请求头
+     *
+     * @param request 请求
+     * @return 请求头
+     */
+    private @NotNull Map<String, Object> getHeaderMap(@NotNull ServerHttpRequest request) {
+        Map<String, Object> mapHeaders = new HashMap<>();
         HttpHeaders headers = request.getHeaders();
-        try {
-            String authorization = headers.getFirst(HttpHeaders.AUTHORIZATION);
-            String referer = headers.getFirst(HttpHeaders.REFERER);
-            String userAgent = headers.getFirst(HttpHeaders.USER_AGENT);
-            log.info("请求头部 {}", Json.toString(Map.of(
-                    "authorization", Objects.requireNonNullElse(authorization, ""),
-                    "referer", Objects.requireNonNullElse(referer, ""),
-                    "userAgent", Objects.requireNonNullElse(userAgent, "")
-            )));
-        } catch (Exception e) {
-            log.error("获取请求头失败, {}", e.getMessage(), e);
+        String[] requestLogHeaders = apiConfig.getRequestLogHeaders();
+        for (String key : requestLogHeaders) {
+            Object value = headers.getFirst(key);
+            mapHeaders.put(key, value);
         }
-        log.info("请求包体 {}", getRequestBody(((ServletServerHttpRequest) request).getServletRequest()));
+        return mapHeaders;
     }
 
     /**
@@ -162,7 +190,7 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
      * @return 处理后的数据
      */
     @Contract("null, _, _ -> null")
-    private <M extends RootModel<M>> Object getResult(Object result, ApiController controller, Method method) {
+    private <M extends RootModel<M>> Object getResponseBody(Object result, ApiController controller, Method method) {
         if (!(result instanceof Json json)) {
             // 返回不是JsonData 原样返回
             return result;

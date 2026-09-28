@@ -86,7 +86,8 @@ public class QueryHelper {
     public Pageable createPageable(@Nullable Page page, @Nullable Sort sort) {
         page = requirePageNonNull(page);
         int pageNumber = Math.max(0, page.getPageNum() - 1);
-        int pageSize = Math.max(1, page.getPageSize());
+        int pageSize = Math.max(curdConfig.getMinPageSize(), page.getPageSize());
+        pageSize = Math.min(pageSize, curdConfig.getMaxPageSize());
         return PageRequest.of(pageNumber, pageSize, createSort(sort));
     }
 

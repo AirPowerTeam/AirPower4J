@@ -24,4 +24,14 @@ public class CurdConfig {
      * 默认排序字段
      */
     private String defaultSortField = STRING_ID;
+
+    /**
+     * 最小分页条数
+     */
+    private int minPageSize = 5;
+
+    /**
+     * 最大分页条数
+     */
+    private int maxPageSize = 1000;
 }

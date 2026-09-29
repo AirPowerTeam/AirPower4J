@@ -23,6 +23,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.UUID;
 
 import static cn.hamm.airpower.exception.Errors.UNAUTHORIZED;
 
@@ -63,8 +64,7 @@ public class CurdRequestInterceptor implements HandlerInterceptor {
             @NotNull HttpServletResponse response,
             @NotNull Object object
     ) {
-        String traceId = request.getHeader(HttpConstant.Header.TRACE_ID);
-        TraceUtil.setTraceId(traceId);
+        TraceUtil.setTraceId(UUID.randomUUID().toString());
         HandlerMethod handlerMethod = (HandlerMethod) object;
         //取出控制器和方法
         Class<?> clazz = handlerMethod.getBeanType();

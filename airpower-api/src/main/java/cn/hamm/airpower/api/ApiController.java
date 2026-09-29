@@ -5,7 +5,6 @@ import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.StringUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -29,9 +28,9 @@ public class ApiController {
      * @return 用户 ID
      */
     protected final long getCurrentUserId() {
-        String s = MDC.get(CURRENT_USER_ID);
-        if (StringUtil.hasText(s)) {
-            return Long.parseLong(s);
+        Object attr = request.getAttribute(CURRENT_USER_ID);
+        if (attr != null) {
+            return Long.parseLong(attr.toString());
         }
         return getCurrentUserVerifiedToken().getPayloadId();
     }

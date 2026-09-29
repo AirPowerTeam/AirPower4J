@@ -5,6 +5,7 @@ import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.TraceUtil;
 import cn.hamm.airpower.core.constant.HttpConstant;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.curd.model.Access;
 import cn.hamm.airpower.curd.permission.PermissionUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -147,6 +148,7 @@ public class CurdRequestInterceptor implements HandlerInterceptor {
     public void checkUserPermission(
             AccessTokenUtil.@NotNull VerifiedToken verifiedToken, String permissionIdentity, HttpServletRequest request
     ) {
+        throw new ServiceException("未实现权限校验");
     }
 
     /**

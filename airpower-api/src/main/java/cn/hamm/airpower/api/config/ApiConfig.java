@@ -1,5 +1,7 @@
 package cn.hamm.airpower.api.config;
 
+import cn.hamm.airpower.api.RequestUtil;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -52,4 +54,17 @@ public class ApiConfig {
      * 身份令牌 header 的 key
      */
     private String authorizeHeader = HttpHeaders.AUTHORIZATION;
+
+    /**
+     * 可信代理头
+     */
+    private String trustProxyHeader = "";
+
+    /**
+     * 将 IP 解析配置同步到 {@link RequestUtil}
+     */
+    @PostConstruct
+    public void apply() {
+        RequestUtil.setTrustProxyHeader(trustProxyHeader);
+    }
 }

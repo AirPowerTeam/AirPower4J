@@ -43,13 +43,16 @@ airpower:
     access-token-secret: ${AIRPOWER_API_SECRET}
     # 身份令牌的 Header / Param Key
     authorize-header: authorization
-  ip:
-    # 可信反向代理地址（IP 或 CIDR 网段），只有来自这些地址的请求才会解析 X-Forwarded-For 等代理头
-    # 留空表示不信任任何代理头，仅使用 TCP 连接对端地址
-    trusted-proxies:
-      - 127.0.0.1/32
-      - ::1/128
+    # 可信代理头，按优先级从高到低排列；默认仅 X-Real-IP
+    # 读不到合法 IP 时回退为 TCP 连接对端地址。留空表示只使用 TCP 对端地址
+    trust-proxy-headers:
+      - X-Real-IP
 ```
+
+> 代理头可被客户端伪造，只能填写**由你自己可信的代理写入**的头，
+> 且代理侧需强制覆盖客户端传入的同名头（如 Nginx `proxy_set_header X-Real-IP $remote_addr;`），
+> 否则 IP 白名单、限流、风控都可能被伪造请求头绕过。
+> 常见取值：`X-Real-IP`（Nginx）、`X-Forwarded-For`（通用多级代理）、`CF-Connecting-IP`（Cloudflare）。
 
 源码：[ApiConfig.java](src/main/java/cn/hamm/airpower/api/config/ApiConfig.java)。
 
@@ -93,7 +96,7 @@ AccessTokenUtil.VerifiedToken token = getCurrentUserVerifiedToken();
 ## 六、RequestUtil 工具方法
 
 ```java
-// 解析来源 IP（Forwarded / X-Forwarded-For / X-Real-IP / Proxy-Client-IP / ...）
+// 解析来源 IP（按 ApiConfig.trustProxyHeaders 顺序读头，读不到则回退 TCP 对端地址）
 String ip = RequestUtil.getIpAddress(httpRequest);
 
 // 判断当前请求是否为 multipart/form-data 文件上传
@@ -106,22 +109,25 @@ String qs = RequestUtil.mapToQueryString(Map.of("a", 1, "b", "hello"));
 String full = RequestUtil.buildQueryUrl("https://example.com/api", Map.of("page", 1, "size", 20));
 ```
 
-### 6.1 IP 解析的信任模型
+### 6.1 IP 解析规则
 
-`X-Forwarded-For` 等请求头可被客户端随意构造，直接采信会导致 IP 白名单、限流、风控被绕过，
-因此 `getIpAddress` 采用如下规则：
+`getIpAddress` 只有两步：
 
-1. **先看 TCP 连接对端**：对端地址（`getRemoteAddr()`）不在 `airpower.ip.trusted-proxies` 内时，直接返回对端地址，完全忽略代理头；
-2. **自右向左剥离代理**：对端可信时，解析代理链并跳过所有落在可信网段内的节点，第一个非可信地址即真实来源 IP；
-   客户端在 `X-Forwarded-For` 左侧塞入的伪造地址会被自动丢弃；
-3. **严格校验字面量**：兼容 `1.2.3.4:8080`、`[2001:db8::1]:8080`、`fe80::1%eth0`、`::ffff:1.2.3.4` 等写法，
-   拒绝 `unknown`、`1.2.3`、`010.1.1.1` 及含换行的非法值，避免脏数据进入日志与数据库；
-4. **兜底安全**：全部解析失败时返回 `getRemoteAddr()`，异常时返回 `unknown`（不再抛业务异常）。
+1. **按配置顺序读可信代理头**：依次读取 `airpower.api.trust-proxy-headers` 中配置的请求头，
+   命中第一个合法 IP 立即返回。列表顺序即优先级，默认只有 `X-Real-IP`；
+2. **回退 TCP 对端地址**：没配置可信代理头，或这些头都没读到合法 IP 时，返回 `getRemoteAddr()`；
+   对端地址也拿不到时返回 `unknown`（不再抛业务异常）。
 
-> 常见场景：Nginx 与应用同机部署时默认配置即可使用；应用在容器 / 网关之后，需把网关地址补进 `trusted-proxies`。
-> 代码中也可直接调用 `RequestUtil.setTrustedProxies(...)` 动态调整。
+值解析做了严格校验：兼容 `1.2.3.4:8080`、`[2001:db8::1]:8080`、`fe80::1%eth0`、`::ffff:1.2.3.4` 等写法，
+拒绝 `unknown`、`1.2.3`、`010.1.1.1` 及含换行的非法值，避免脏数据进入日志与数据库；
+逗号分隔的链形头（`X-Forwarded-For`）取最左侧的合法 IP。
 
-源码：[RequestUtil.java](src/main/java/cn/hamm/airpower/api/RequestUtil.java)、[IpConfig.java](src/main/java/cn/hamm/airpower/api/config/IpConfig.java)。
+> ⚠️ 代理头可被客户端随意构造。因此 `trust-proxy-headers` 只能填写**由你自己可信的代理写入**的头，
+> 且代理侧必须强制覆盖客户端传入的同名头，否则攻击者直接 `curl -H "X-Real-IP: 1.2.3.4"` 就能伪造来源 IP。
+> 不确定就不配（留空），此时只用 TCP 对端地址，是最保守的。
+> 代码中也可调用 `RequestUtil.setTrustProxyHeaders(...)` 动态调整。
+
+源码：[RequestUtil.java](src/main/java/cn/hamm/airpower/api/RequestUtil.java)、[ApiConfig.java](src/main/java/cn/hamm/airpower/api/config/ApiConfig.java)。
 
 ## 七、关键类速查
 
@@ -131,7 +137,6 @@ String full = RequestUtil.buildQueryUrl("https://example.com/api", Map.of("page"
 | `ApiController` | `cn.hamm.airpower.api.ApiController`    | 所有控制器的基类                  |
 | `RequestUtil`   | `cn.hamm.airpower.api.RequestUtil`      | IP / 上传 / URL 解析          |
 | `ApiConfig`     | `cn.hamm.airpower.api.config.ApiConfig` | `airpower.api.*` 配置绑定     |
-| `IpConfig`      | `cn.hamm.airpower.api.config.IpConfig`  | `airpower.ip.*` 配置绑定      |
 | `Auto`          | `cn.hamm.airpower.api.Auto`             | `@AutoConfiguration` 装配入口 |
 
 ## 八、典型协作场景

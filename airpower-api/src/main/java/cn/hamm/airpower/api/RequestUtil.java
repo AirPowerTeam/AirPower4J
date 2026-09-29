@@ -1,6 +1,7 @@
 package cn.hamm.airpower.api;
 
 import cn.hamm.airpower.core.StringUtil;
+import cn.hamm.airpower.core.constant.HttpConstant;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -9,13 +10,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.hamm.airpower.core.constant.HttpConstant.ContentType.MULTIPART_FORM_DATA;
-import static cn.hamm.airpower.core.constant.HttpConstant.Proxy.Header;
 
 /**
  * <h1>请求工具类</h1>
@@ -24,26 +22,6 @@ import static cn.hamm.airpower.core.constant.HttpConstant.Proxy.Header;
  */
 @Slf4j
 public class RequestUtil {
-    /**
-     * 默认可信代理：仅本机回环地址
-     *
-     * @apiNote 默认信任 Nginx 与应用同机部署的场景，其余代理需显式配置
-     */
-    public static final List<String> DEFAULT_TRUSTED_PROXIES = List.of("127.0.0.1/32", "::1/128");
-
-    /**
-     * 常用 IP 反向代理 Header 头，按可信度从高到低排列
-     */
-    private static final List<String> PROXY_IP_HEADERS = List.of(
-            Header.FORWARD,
-            Header.X_FORWARDED_FOR,
-            Header.X_REAL_IP,
-            Header.PROXY_CLIENT_IP,
-            Header.WL_PROXY_CLIENT_IP,
-            Header.HTTP_CLIENT_IP,
-            Header.HTTP_X_FORWARDED_FOR
-    );
-
     /**
      * 多 IP 地址分隔符
      */
@@ -70,11 +48,9 @@ public class RequestUtil {
     private static final String UNKNOWN_IP_ADDRESS = "unknown";
 
     /**
-     * 可信代理网段快照
-     *
-     * @apiNote 以 volatile + 不可变列表保证配置变更对所有请求线程可见
+     * 可信代理头
      */
-    private static volatile List<IpRange> trustedProxies = parseTrustedProxies(DEFAULT_TRUSTED_PROXIES);
+    private static volatile String trustProxyHeader = "";
 
     /**
      * 禁止外部实例化
@@ -106,37 +82,32 @@ public class RequestUtil {
     /**
      * 获取请求的来源 IP 地址
      *
-     * <p>反向代理头（{@code Forwarded} / {@code X-Forwarded-For} 等）由客户端随意构造，
-     * 因此仅在 <b>TCP 连接的对端地址命中可信代理网段</b> 时才会解析，并且自右向左逐个剥离可信代理节点，
-     * 取第一个非可信地址作为来源 IP。客户端在 {@code X-Forwarded-For} 左侧伪造的地址会被自动丢弃。
+     * <p>解析顺序：
+     * <ol>
+     *     <li>按 {@code trustProxyHeaders} 配置的优先级依次读取这些请求头，命中第一个合法 IP 立即返回；</li>
+     *     <li>未配置可信代理头，或这些头都没读到合法 IP 时，回退为 TCP 连接对端地址
+     *     {@link HttpServletRequest#getRemoteAddr()}；</li>
+     *     <li>对端地址也拿不到时返回 {@code unknown}，不再抛业务异常。</li>
+     * </ol>
      *
-     * <p>未配置可信代理（或对端不是可信代理）时，仅返回 {@code getRemoteAddr()}，
-     * 避免伪造请求头绕过 IP 白名单、限流与风控。
+     * <p>代理头可被客户端随意构造，因此 {@code trustProxyHeaders} 只能填写<b>由你自己可信的代理写入</b>的头，
+     * 且代理侧需强制覆盖客户端传入的同名头，否则 IP 白名单、限流、风控都可能被伪造请求头绕过。
      *
      * @param request 请求
      * @return 合法 IP 地址，无法解析时返回 {@code unknown}
      */
     public static @NotNull String getIpAddress(@NotNull HttpServletRequest request) {
-        final List<IpRange> proxies = trustedProxies;
         try {
-            final String remoteAddress = parseAddress(request.getRemoteAddr());
-            if (remoteAddress.isEmpty()) {
-                return UNKNOWN_IP_ADDRESS;
+            final String ip = parseHeader(trustProxyHeader, request.getHeader(trustProxyHeader));
+            if (!ip.isEmpty()) {
+                return ip;
             }
-            if (proxies.isEmpty() || !isTrustedProxy(remoteAddress, proxies)) {
+            // 读不到则回退 TCP 连接对端地址
+            final String remoteAddress = parseAddress(request.getRemoteAddr());
+            if (!remoteAddress.isEmpty()) {
                 return remoteAddress;
             }
-            for (String header : PROXY_IP_HEADERS) {
-                final String headerValue = request.getHeader(header);
-                final String ip = Header.FORWARD.equals(header)
-                        ? parseForwardedHeader(headerValue, proxies)
-                        : parseIpChainHeader(headerValue, proxies);
-                if (!ip.isEmpty()) {
-                    return ip;
-                }
-            }
-            log.debug("可信代理 [{}] 转发的请求头中未解析出合法 IP，回退为连接对端地址", remoteAddress);
-            return remoteAddress;
+            return UNKNOWN_IP_ADDRESS;
         } catch (Exception e) {
             log.warn("获取请求 IP 异常: {}", e.getMessage());
             return UNKNOWN_IP_ADDRESS;
@@ -144,13 +115,30 @@ public class RequestUtil {
     }
 
     /**
-     * 配置可信代理地址
+     * 配置可信代理头
      *
-     * @param proxies 可信代理的 IP 或 CIDR 网段，传入空集合表示不信任任何代理头
-     * @apiNote 通常由 {@link cn.hamm.airpower.api.config.IpConfig} 在启动时调用
+     * @param header 传入空表示不信任任何代理头，仅使用 TCP 对端地址
+     * @apiNote 只由 {@link cn.hamm.airpower.api.config.ApiConfig} 在启动时调用
      */
-    public static void setTrustedProxies(@Nullable List<String> proxies) {
-        trustedProxies = parseTrustedProxies(proxies);
+    public static void setTrustProxyHeader(@Nullable String header) {
+        trustProxyHeader = header;
+    }
+
+    /**
+     * 按代理头名称选择对应的解析方式
+     *
+     * @param header      代理头名
+     * @param headerValue 原始请求头
+     * @return 来源 IP，解析失败时返回空字符串
+     */
+    private static @NotNull String parseHeader(@NotNull String header, @Nullable String headerValue) {
+        if (!StringUtil.hasText(headerValue)) {
+            return "";
+        }
+        // Forwarded 是 RFC 7239 的键值对格式，其余均为逗号分隔的 IP 链
+        return header.equalsIgnoreCase(HttpConstant.Proxy.Header.FORWARD)
+                ? parseForwardedHeader(headerValue)
+                : parseIpChainHeader(headerValue);
     }
 
     /**
@@ -165,24 +153,22 @@ public class RequestUtil {
     }
 
     /**
-     * 解析多级代理链请求头
+     * 解析逗号分隔的代理链请求头
      *
-     * @param headerValue 原始请求头，格式为 {@code client, proxy1, proxy2}
-     * @param proxies     可信代理网段
-     * @return 真实来源 IP，解析失败时返回空字符串
+     * <p>可信代理写入的链形如 {@code 203.0.113.9, 198.51.100.7}，最左侧即来源 IP。
+     *
+     * @param headerValue 原始请求头
+     * @return 来源 IP，解析失败时返回空字符串
      */
-    private static @NotNull String parseIpChainHeader(@Nullable String headerValue, @NotNull List<IpRange> proxies) {
+    private static @NotNull String parseIpChainHeader(@Nullable String headerValue) {
         if (!StringUtil.hasText(headerValue)) {
             return "";
         }
-        // 自右向左剥离可信代理节点，第一个非可信地址即真实来源
-        final String[] items = headerValue.split(IP_SEPARATOR);
-        for (int i = items.length - 1; i >= 0; i--) {
-            final String ip = parseAddress(items[i]);
-            if (ip.isEmpty() || isTrustedProxy(ip, proxies)) {
-                continue;
+        for (String item : headerValue.split(IP_SEPARATOR)) {
+            final String ip = parseAddress(item);
+            if (!ip.isEmpty()) {
+                return ip;
             }
-            return ip;
         }
         return "";
     }
@@ -191,27 +177,24 @@ public class RequestUtil {
      * 解析 RFC 7239 标准转发请求头
      *
      * @param headerValue 原始请求头，格式为 {@code for=192.0.2.60;proto=http, for="[2001:db8::1]:8080"}
-     * @param proxies     可信代理网段
-     * @return 真实来源 IP，解析失败时返回空字符串
+     * @return 来源 IP，解析失败时返回空字符串
      */
-    private static @NotNull String parseForwardedHeader(@Nullable String headerValue, @NotNull List<IpRange> proxies) {
+    private static @NotNull String parseForwardedHeader(@Nullable String headerValue) {
         if (!StringUtil.hasText(headerValue)) {
             return "";
         }
-        // 每个代理追加一个元素，最右侧元素由最靠近服务的代理写入
-        final String[] elements = headerValue.split(IP_SEPARATOR);
-        for (int i = elements.length - 1; i >= 0; i--) {
-            for (String pair : elements[i].split(FORWARDED_PAIR_SEPARATOR)) {
-                // 元素之间以逗号分隔，键值对前通常带有空格
+        // 每个代理追加一个元素，最左侧元素由最外层的可信代理写入
+        for (String element : headerValue.split(IP_SEPARATOR)) {
+            for (String pair : element.split(FORWARDED_PAIR_SEPARATOR)) {
+                // 键值对前通常带有空格
                 final String item = pair.trim();
                 if (!item.regionMatches(true, 0, FORWARDED_FOR_KEY, 0, FORWARDED_FOR_KEY.length())) {
                     continue;
                 }
                 final String ip = parseAddress(item.substring(FORWARDED_FOR_KEY.length()));
-                if (ip.isEmpty() || isTrustedProxy(ip, proxies)) {
-                    continue;
+                if (!ip.isEmpty()) {
+                    return ip;
                 }
-                return ip;
             }
         }
         return "";
@@ -260,27 +243,6 @@ public class RequestUtil {
             ip = ip.substring(IPV4_MAPPED_PREFIX.length());
         }
         return ip;
-    }
-
-    /**
-     * IP 是否命中可信代理网段
-     *
-     * @param ip      IP 地址
-     * @param proxies 可信代理网段
-     * @return 判定结果
-     */
-    @Contract(pure = true)
-    private static boolean isTrustedProxy(@NotNull String ip, @NotNull List<IpRange> proxies) {
-        final byte[] address = toInetBytes(ip);
-        if (address == null) {
-            return false;
-        }
-        for (IpRange range : proxies) {
-            if (range.contains(address)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -382,66 +344,6 @@ public class RequestUtil {
     }
 
     /**
-     * 解析可信代理配置
-     *
-     * @param proxies 可信代理的 IP 或 CIDR 网段
-     * @return 不可变的可信代理网段列表
-     */
-    private static @NotNull List<IpRange> parseTrustedProxies(@Nullable List<String> proxies) {
-        if (proxies == null || proxies.isEmpty()) {
-            return List.of();
-        }
-        final List<IpRange> ranges = new ArrayList<>(proxies.size());
-        for (String proxy : proxies) {
-            if (!StringUtil.hasText(proxy)) {
-                continue;
-            }
-            String value = proxy.trim();
-            int prefix = -1;
-            final int slash = value.indexOf('/');
-            if (slash > 0) {
-                try {
-                    prefix = Integer.parseInt(value.substring(slash + 1).trim());
-                } catch (NumberFormatException e) {
-                    log.warn("可信代理 [{}] 的掩码不合法，已忽略", proxy);
-                    continue;
-                }
-                value = value.substring(0, slash).trim();
-            }
-            final byte[] network = toInetBytes(parseAddress(value));
-            if (network == null) {
-                log.warn("可信代理 [{}] 不是合法的 IP 或网段，已忽略", proxy);
-                continue;
-            }
-            final int max = network.length * Byte.SIZE;
-            if (prefix < 0) {
-                prefix = max;
-            }
-            if (prefix > max) {
-                log.warn("可信代理 [{}] 的掩码超出地址长度，已忽略", proxy);
-                continue;
-            }
-            ranges.add(new IpRange(maskNetwork(network, prefix), prefix));
-        }
-        return List.copyOf(ranges);
-    }
-
-    /**
-     * 按前缀长度将网络地址的主机位清零
-     *
-     * @param network 网络地址
-     * @param prefix  前缀长度（bit）
-     * @return 对齐后的网络地址
-     */
-    private static byte @NotNull [] maskNetwork(byte @NotNull [] network, int prefix) {
-        final byte[] masked = network.clone();
-        for (int i = prefix; i < masked.length * Byte.SIZE; i++) {
-            masked[i / Byte.SIZE] &= (byte) ~(1 << (7 - i % Byte.SIZE));
-        }
-        return masked;
-    }
-
-    /**
      * 将 Map 参数转换为 QueryString
      *
      * @param map 参数
@@ -462,32 +364,5 @@ public class RequestUtil {
      */
     public static @NotNull String buildQueryUrl(@NotNull String url, Map<String, Object> map) {
         return url + "?" + mapToQueryString(map);
-    }
-
-    /**
-     * IP 网段
-     *
-     * @param network 按掩码对齐后的网络地址
-     * @param prefix  前缀长度（bit）
-     */
-    private record IpRange(byte[] network, int prefix) {
-        /**
-         * 判断 IP 是否落在本网段内
-         *
-         * @param address IP 字节数组
-         * @return 判定结果
-         */
-        boolean contains(byte[] address) {
-            if (network.length != address.length) {
-                return false;
-            }
-            for (int i = 0; i < prefix; i++) {
-                final int mask = 1 << (7 - i % Byte.SIZE);
-                if ((network[i / Byte.SIZE] & mask) != (address[i / Byte.SIZE] & mask)) {
-                    return false;
-                }
-            }
-            return true;
-        }
     }
 }

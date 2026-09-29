@@ -87,9 +87,18 @@ public class PermissionUtil {
      * @return 权限标识
      */
     public static @NotNull String getPermissionIdentity(@NotNull Class<?> clazz, @NotNull Method method) {
-        return StringUtils.uncapitalize(clazz.getSimpleName()
-                .replace(CONTROLLER, "")) +
-                "_" + method.getName();
+        return baseIdentity(clazz) + ":" + method.getName();
+    }
+
+    /**
+     * 获取基础权限标识
+     *
+     * @param clazz 类
+     * @return 权限标识
+     */
+    private static @NotNull String baseIdentity(@NotNull Class<?> clazz) {
+        // 由全限定名派生 => 跨模块全局唯一，且是唯一真源
+        return StringUtils.uncapitalize(clazz.getName().replace('$', '.').replace(CONTROLLER, ""));
     }
 
     /**

@@ -5,6 +5,7 @@ import cn.hamm.airpower.ai.mcp.method.McpMethod;
 import cn.hamm.airpower.ai.mcp.method.McpMethods;
 import cn.hamm.airpower.ai.mcp.method.McpOptional;
 import cn.hamm.airpower.ai.mcp.model.*;
+import cn.hamm.airpower.api.ApiController;
 import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.ReflectUtil;
 import cn.hamm.airpower.core.StringUtil;
@@ -167,7 +168,7 @@ public class McpService {
      */
     public final @Nullable McpResponse run(AccessTokenUtil.@NotNull VerifiedToken verifiedToken, @NotNull McpRequest mcpRequest, Consumer<McpTool> checkPermission, McpServerInfo mcpServerInfo) throws ServiceException {
         McpErrorCode.InvalidRequest.whenNull(verifiedToken);
-        MDC.put("CURRENT_USER_ID", String.valueOf(verifiedToken.getPayloadId()));
+        MDC.put(ApiController.CURRENT_USER_ID, String.valueOf(verifiedToken.getPayloadId()));
         McpResponse responseData = new McpResponse();
         responseData.setId(mcpRequest.getId());
         McpMethods mcpMethods = Arrays.stream(McpMethods.values())

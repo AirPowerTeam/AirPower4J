@@ -21,6 +21,11 @@
         </dependency>
         <dependency>
             <groupId>cn.hamm</groupId>
+            <artifactId>airpower-api</artifactId>
+            <version>${airpower.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.hamm</groupId>
             <artifactId>airpower-exception</artifactId>
             <version>${airpower.version}</version>
         </dependency>

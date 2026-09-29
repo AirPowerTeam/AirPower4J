@@ -1,5 +1,6 @@
 package cn.hamm.airpower.curd.interceptor;
 
+import cn.hamm.airpower.api.ApiController;
 import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.TraceUtil;
@@ -10,6 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -159,5 +162,19 @@ public class CurdRequestInterceptor implements HandlerInterceptor {
     protected void interceptRequest(
             HttpServletRequest request, HttpServletResponse response, Class<?> clazz, Method method
     ) {
+    }
+
+    /**
+     * 请求完成
+     *
+     * @param request  请求对象
+     * @param response 响应对象
+     * @param handler  处理器
+     * @param ex       异常
+     */
+    @Override
+    public final void afterCompletion(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler, @Nullable Exception ex) {
+        MDC.remove(HttpConstant.Header.TRACE_ID);
+        MDC.remove(ApiController.CURRENT_USER_ID);
     }
 }

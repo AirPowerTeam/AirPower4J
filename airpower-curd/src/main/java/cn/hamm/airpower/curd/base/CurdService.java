@@ -320,7 +320,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @see #updateWithLock(long, Consumer)
      */
     public final @NotNull E getForUpdate(long id) {
-        entityManager.clear();
         E forUpdate = repository.getForUpdateById(id);
         DATA_NOT_FOUND.whenNull(forUpdate, String.format("没有查询到ID为%s的%s", id, getEntityDescription()));
         return forUpdate;
@@ -792,7 +791,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private @NotNull E getById(Long id) {
         String description = getEntityDescription();
         PARAM_MISSING.whenNull(id, String.format("查询失败，请传入%s的ID！", description));
-        entityManager.clear();
         Optional<E> optional = repository.findById(id);
         if (optional.isEmpty()) {
             throw new ServiceException(DATA_NOT_FOUND, String.format("没有查询到ID为%s的%s", id, description));

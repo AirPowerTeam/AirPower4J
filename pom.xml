@@ -60,6 +60,7 @@
         <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
         <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
     </properties>
     <packaging>pom</packaging>
     <modules>
@@ -156,6 +157,14 @@
 
     <build>
         <plugins>
+            <!-- ==================== 测试插件 ==================== -->
+            <!-- 默认的 surefire 2.12.4 不支持 JUnit5，必须显式指定版本，否则测试会被静默跳过 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.plugin.version}</version>
+            </plugin>
+
             <!-- ==================== 发布插件 ==================== -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>

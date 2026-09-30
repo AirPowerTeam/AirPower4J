@@ -15,16 +15,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -83,6 +83,21 @@ public class RedisHelper {
      * @apiNote 配置缺失或非法时使用
      */
     private static final long DEFAULT_LEASE_TIMEOUT = 60 * 1000L;
+
+    /**
+     * 清空数据时每批删除的 key 数量
+     */
+    private static final int DELETE_BATCH_SIZE = 500;
+
+    /**
+     * 清空数据时每次 SCAN 游标返回的 key 数量
+     */
+    private static final int SCAN_COUNT = 1000;
+
+    /**
+     * JPA 动态代理类的名字特征
+     */
+    private static final String HIBERNATE_PROXY = "$$HibernateProxy";
 
     @Resource
     private RedisConnectionFactory redisConnectionFactory;
@@ -147,8 +162,12 @@ public class RedisHelper {
      * @return 值
      */
     public final long increment(String key, long delta) {
-        //noinspection DataFlowIssue
-        return getRedisTemplate().opsForValue().increment(getKey(key), delta);
+        try {
+            return getRedisTemplate().opsForValue().increment(getKey(key), delta);
+        } catch (Exception e) {
+            log.error(REDIS_ERROR.getMessage(), e);
+            throw new ServiceException(REDIS_ERROR);
+        }
     }
 
     /**
@@ -435,12 +454,27 @@ public class RedisHelper {
     /**
      * 删除所有满足条件的数据
      *
-     * @param pattern 正则
+     * @param pattern 通配符模式，如 {@code "*"}、{@code "User_*"}
+     * @apiNote 模式会自动补上 {@link RedisConfig#getPrefix()} 前缀，只清理本组件自己的数据。
+     * 内部使用 {@code SCAN} 分批删除，不会像 {@code KEYS} 那样阻塞 Redis 主线程。
      */
     public final void clearAll(String pattern) {
         try {
-            Set<String> keys = getRedisTemplate().keys(pattern);
-            getRedisTemplate().delete(keys);
+            String redisPattern = getPattern(pattern);
+            List<String> batch = new ArrayList<>(DELETE_BATCH_SIZE);
+            try (Cursor<String> cursor = getRedisTemplate().scan(
+                    ScanOptions.scanOptions().match(redisPattern).count(SCAN_COUNT).build())) {
+                while (cursor.hasNext()) {
+                    batch.add(cursor.next());
+                    if (batch.size() >= DELETE_BATCH_SIZE) {
+                        deleteBatch(batch);
+                        batch.clear();
+                    }
+                }
+            }
+            deleteBatch(batch);
+        } catch (ServiceException e) {
+            throw e;
         } catch (Exception e) {
             log.error(REDIS_ERROR.getMessage(), e);
             throw new ServiceException(REDIS_ERROR);
@@ -471,8 +505,10 @@ public class RedisHelper {
     public final boolean hasKey(String key) {
         try {
             return getRedisTemplate().hasKey(getKey(key));
-        } catch (Exception ignored) {
-            return false;
+        } catch (Exception e) {
+            // 不能吞掉异常返回 false：Redis 一抖动，「幂等 / 防重放」校验就会全部放行
+            log.error(REDIS_ERROR.getMessage(), e);
+            throw new ServiceException(REDIS_ERROR);
         }
     }
 
@@ -528,7 +564,8 @@ public class RedisHelper {
             if (second > 0) {
                 getRedisTemplate().opsForValue().set(getKey(key), value.toString(), second, TimeUnit.SECONDS);
             } else {
-                set(key, value);
+                // 无限期：直接写入，不能再调用自己，否则会无限递归直到栈溢出
+                getRedisTemplate().opsForValue().set(getKey(key), value.toString());
             }
         } catch (Exception e) {
             log.error(REDIS_ERROR.getMessage(), e);
@@ -560,7 +597,7 @@ public class RedisHelper {
      */
     private @NotNull <T extends RootModel<T>> String getCacheKey(@NotNull Class<T> clazz, Long id) {
         REDIS_ERROR.whenNull(id, "ID 不能为空");
-        return clazz.getSimpleName() + "_" + id;
+        return getTypeName(clazz) + "_" + id;
     }
 
     /**
@@ -572,6 +609,66 @@ public class RedisHelper {
     private <E extends RootModel<E> & IEntity<E>> @NotNull String getEntityCacheKey(@NotNull E entity) {
         //noinspection unchecked
         return getCacheKey(entity.getClass(), entity.getId());
+    }
+
+    /**
+     * 获取参与缓存 key 计算的类型名
+     *
+     * @param clazz 类型
+     * @return 全限定类名
+     * @apiNote 1. 不能用 {@code getSimpleName()}：{@code com.a.user.User} 与 {@code com.b.order.User}
+     * 会得到同一个 key，导致缓存串号、锁互相阻塞；
+     * 2. 实体是 JPA 代理时 {@code getClass()} 拿到的是 {@code Xxx$HibernateProxy$xxx}，
+     * 必须回溯到真实类型，否则每次查出来的 key 都不一样，缓存和锁全部失效
+     */
+    @Contract(pure = true)
+    private @NotNull String getTypeName(@NotNull Class<?> clazz) {
+        Class<?> current = clazz;
+        while (Objects.nonNull(current) && current.getName().contains(HIBERNATE_PROXY)) {
+            current = current.getSuperclass();
+        }
+        return current.getName();
+    }
+
+    /**
+     * 拼接出通配符模式
+     *
+     * @param pattern 通配符模式
+     * @return 补上前缀后的模式
+     * @apiNote 历史上存在调用方直接传入已带前缀的写法，这里做一次兼容，避免出现「双前缀」
+     */
+    @Contract(pure = true)
+    private @NotNull String getPattern(String pattern) {
+        String value = Objects.nonNull(pattern) ? pattern : "*";
+        String prefix = redisConfig.getPrefix();
+        if (Objects.isNull(prefix) || prefix.isEmpty() || value.startsWith(prefix)) {
+            return value;
+        }
+        return prefix + value;
+    }
+
+    /**
+     * 批量删除 key
+     *
+     * @param keys 已经拼好前缀的 key
+     * @apiNote 优先使用 {@code UNLINK} 在后台释放内存，旧版本 Redis 不支持时退回 {@code DEL}
+     */
+    private void deleteBatch(@NotNull List<String> keys) {
+        if (keys.isEmpty()) {
+            return;
+        }
+        RedisTemplate<String, Object> template = getRedisTemplate();
+        try {
+            template.execute((RedisCallback<Long>) connection -> {
+                byte[][] rawKeys = keys.stream()
+                        .map(it -> it.getBytes(StandardCharsets.UTF_8))
+                        .toArray(byte[][]::new);
+                return connection.keyCommands().unlink(rawKeys);
+            });
+        } catch (Exception e) {
+            log.warn("UNLINK 删除失败，退回 DEL：{}", e.getMessage());
+            template.delete(new ArrayList<>(keys));
+        }
     }
 
     /**
@@ -703,18 +800,8 @@ public class RedisHelper {
      * @return 脚本执行结果，无结果时为 {@code 0}
      */
     private long executeLong(@NotNull RedisScript<Long> script, @NotNull String redisKey, String... args) {
-        Object result = getRedisTemplate().execute(script, Collections.singletonList(redisKey), (Object[]) args);
-        if (result instanceof Number number) {
-            return number.longValue();
-        }
-        if (result instanceof String text && !text.isBlank()) {
-            try {
-                return Long.parseLong(text.trim());
-            } catch (NumberFormatException e) {
-                return 0L;
-            }
-        }
-        return 0L;
+        Number result = getRedisTemplate().execute(script, Collections.singletonList(redisKey), (Object[]) args);
+        return result.longValue();
     }
 
     /**

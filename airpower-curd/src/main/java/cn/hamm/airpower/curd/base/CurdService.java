@@ -10,8 +10,6 @@ import cn.hamm.airpower.curd.helper.TransactionHelper;
 import cn.hamm.airpower.curd.model.query.*;
 import cn.hamm.airpower.curd.service.RootService;
 import jakarta.persistence.Column;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -57,19 +55,13 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 提交的数据不允许为空
      */
     private static final String DATA_REQUIRED = "提交的数据不允许为空";
-    /**
-     * 实体管理器
-     *
-     * @apiNote 框架自身不使用，保留给子类。严禁调用 {@code clear()}：它会丢弃未 flush 的变更
-     * 和已标记的删除，并在加锁读取之前固定读视图
-     */
-    @PersistenceContext
-    protected EntityManager entityManager;
+
     /**
      * 数据源
      */
     @Autowired(required = false)
     protected R repository;
+
     /**
      * 事务助手（不是事务管理器，本类不直接开事务）
      */

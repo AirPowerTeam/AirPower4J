@@ -38,6 +38,10 @@ public class QueryHelper {
     @Autowired
     private CurdConfig curdConfig;
 
+    private static @NotNull String escapeLike(@NotNull String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
     /**
      * 获取非空的分页对象
      *
@@ -192,11 +196,11 @@ public class QueryHelper {
                 // 标记了搜索 则模糊搜索
                 if (searchAnnotation.fullLike()) {
                     predicateList.add(builder.like(root.get(field.getName()),
-                            "%" + fieldValue + "%"));
+                            "%" + escapeLike(fieldValue.toString()) + "%"));
                     return;
                 }
                 predicateList.add(builder.like(root.get(field.getName()),
-                        fieldValue + "%"));
+                        escapeLike(fieldValue.toString()) + "%"));
                 return;
             }
             // 最后兜底还是强匹配

@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
+
 /**
  * <h1>文件封装类</h1>
  *
@@ -50,10 +52,20 @@ public class LocalFileHelper extends AbstractFilePlatformFactory {
      */
     @Override
     public void delete(String path) {
+        PARAM_INVALID.whenEmpty(path, "文件路径不能为空");
+        Path root = Path.of(localFileConfig.getLocalAbsoluteDirectory()).toAbsolutePath().normalize();
+        Path target = root.resolve(path).normalize();
+        if (!target.startsWith(root)) {
+            throw new ServiceException("非法的文件路径");
+        }
+        if (Files.isSymbolicLink(target)) {
+            throw new ServiceException("不允许操作符号链接");
+        }
         try {
-            Files.deleteIfExists(Path.of(localFileConfig.getLocalAbsoluteDirectory() + path));
+            Files.deleteIfExists(target);
         } catch (IOException e) {
-            throw new ServiceException("删除文件失败，" + e.getMessage());
+            log.error("删除文件失败 path={}", path, e);
+            throw new ServiceException("删除文件失败");
         }
     }
 }

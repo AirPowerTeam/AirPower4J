@@ -1,5 +1,7 @@
 package cn.hamm.airpower.curd.config;
 
+import cn.hamm.airpower.curd.permission.PermissionUtil;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -34,4 +36,15 @@ public class CurdConfig {
      * 最大分页条数
      */
     private int maxPageSize = 1000;
+
+    /**
+     * 包名
+     */
+    private String basePackageName = "";
+
+
+    @PostConstruct
+    public void apply() {
+        PermissionUtil.setBasePackageName(basePackageName);
+    }
 }

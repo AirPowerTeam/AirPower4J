@@ -1,6 +1,7 @@
 package cn.hamm.airpower.file.platform.local;
 
 import cn.hamm.airpower.core.FileUtil;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.file.AbstractFilePlatformFactory;
 import cn.hamm.airpower.file.FilePlatform;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,7 @@ public class LocalFileHelper extends AbstractFilePlatformFactory {
         try {
             Files.deleteIfExists(Path.of(localFileConfig.getLocalAbsoluteDirectory() + path));
         } catch (IOException e) {
-            log.error("删除文件失败，{}", e.getMessage(), e);
+            throw new ServiceException("删除文件失败，" + e.getMessage());
         }
     }
 }

@@ -43,11 +43,25 @@ public class PermissionUtil {
     private static final String CONTROLLER = "Controller";
 
     /**
+     * 基础包名
+     */
+    private static String basePackageName = "";
+
+    /**
      * 禁止外部实例化
      */
     @Contract(pure = true)
     private PermissionUtil() {
 
+    }
+
+    /**
+     * 设置基础包名
+     *
+     * @param basePackageName 基础包名
+     */
+    public static void setBasePackageName(String basePackageName) {
+        PermissionUtil.basePackageName = basePackageName;
     }
 
     /**
@@ -58,7 +72,7 @@ public class PermissionUtil {
      * @return 需要授权的选项
      */
     public static @NotNull Access getWhatNeedAccess(@NotNull Class<?> clazz, @NotNull Method method) {
-        // 默认无标记时，不需要登录和授权
+        // 默认无标记时，需要登录和授权
         Access access = new Access();
 
         // 判断类是否标记访问权限
@@ -98,7 +112,7 @@ public class PermissionUtil {
      */
     private static @NotNull String baseIdentity(@NotNull Class<?> clazz) {
         // 由全限定名派生 => 跨模块全局唯一，且是唯一真源
-        return StringUtils.uncapitalize(clazz.getName().replace('$', '.').replace(CONTROLLER, ""));
+        return StringUtils.uncapitalize(clazz.getName().replace('$', '.').replace(basePackageName, "").replace(CONTROLLER, ""));
     }
 
     /**
@@ -148,12 +162,12 @@ public class PermissionUtil {
                 }
 
                 String customClassName = ReflectUtil.getDescription(clazz);
-                String identity = clazz.getSimpleName().replace(CONTROLLER, "");
+                String identity = baseIdentity(clazz);
                 P permission = permissionClass.getConstructor().newInstance();
 
                 permission.setName(customClassName).setIdentity(identity).setChildren(new ArrayList<>());
 
-                String apiPath = identity + "_";
+                String apiPath = identity + ":";
 
                 // 取出所有控制器方法
                 Method[] methods = clazz.getMethods();

@@ -14,10 +14,10 @@ public class Access {
     /**
      * 需要登录
      */
-    private boolean login = false;
+    private boolean login = true;
 
     /**
      * 需要授权访问
      */
-    private boolean authorize = false;
+    private boolean authorize = true;
 }

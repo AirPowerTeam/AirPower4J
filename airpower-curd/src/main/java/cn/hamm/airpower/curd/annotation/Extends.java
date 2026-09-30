@@ -16,6 +16,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <li>如标记黑名单,则只需要写不继承的接口</li>
  *
  * @author Hamm.cn
+ * @apiNote {@code value} 与 {@code exclude} 同时列出同一个接口属于配置错误，启动时直接抛异常；
+ * 继承链上子类的 {@code exclude} 会屏蔽掉父类的 {@code value}
  * @see Curd
  */
 @Target(TYPE)

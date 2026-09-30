@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 public class AccessConfig {
 
     /**
-     * 身份令牌有效期
+     * 身份令牌有效期，单位：秒。默认一天
      */
     private long authorizeExpireSecond = DateTimeUtil.SECOND_PER_DAY;
 }

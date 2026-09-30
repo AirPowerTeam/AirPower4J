@@ -14,12 +14,14 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("airpower.curd.export")
 public class ExportConfig {
     /**
-     * 导出分页大小
+     * 导出分页大小，单位：条。决定一次查询多少行写盘
      */
     private Integer exportPageSize = 5000;
 
     /**
-     * 导出文件路径
+     * 导出文件根路径，不配则导出时报错
+     *
+     * @apiNote 实际文件落在 {@code 根路径/日期/文件名} 下，日期目录由生成时自动推导
      */
     private String exportPath = "";
 }

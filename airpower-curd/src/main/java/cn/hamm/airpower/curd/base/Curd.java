@@ -83,6 +83,8 @@ public enum Curd implements IDictionary {
      *
      * @param clazz 类
      * @return 可用 API 列表
+     * @apiNote 沿类继承链自下而上合并：子类的黑名单优先级高于父类的白名单，
+     * 越靠近 {@code Object} 的标记越晚生效
      */
     public static @NotNull List<Curd> getCurdList(@NotNull Class<?> clazz) {
         List<Curd> whiteList = new ArrayList<>();
@@ -125,6 +127,7 @@ public enum Curd implements IDictionary {
      *
      * @param controller 控制器类
      * @param <T>        泛型
+     * @apiNote 不被 {@link Extends} 继承的接口在运行期调用会被拒绝
      */
     public <T extends CurdController<?, ?, ?>> void checkApiAvailable(@NotNull T controller) {
         List<Curd> curdList = getCurdList(controller.getClass());

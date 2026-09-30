@@ -16,6 +16,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface DisableRequestLog {
     /**
      * 是否禁止请求日志
+     *
+     * @apiNote 需配合全局开关 {@code airpower.api.request-log} 使用，全局关闭时本注解无意义
      */
     boolean value() default true;
 }

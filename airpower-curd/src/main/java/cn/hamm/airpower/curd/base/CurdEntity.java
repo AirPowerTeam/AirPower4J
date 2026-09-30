@@ -27,9 +27,12 @@ import java.io.Serializable;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 /**
- * <h1>实体根类</h1>
+ * <h1>实体基类</h1>
  *
+ * @param <E> 实体类型
  * @author Hamm.cn
+ * @apiNote 提供主键、创建时间、修改时间、禁用标记四个公共字段，子类无需重复声明
+ * @apiNote {@code createTime} / {@code updateTime} 均为毫秒时间戳
  */
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -127,6 +130,8 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
      * 复制一个只包含 ID 的实体
      *
      * @return 只复制 ID 的实体
+     * @apiNote 用于 {@code repository.deleteById()} 等只需主键的场景；
+     * 子类必须保留无参构造，否则反射实例化会失败
      */
     public final @org.jetbrains.annotations.NotNull E copyOnlyId() {
         try {
@@ -142,6 +147,7 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel<E>
      * 复制一个新实体
      *
      * @return 返回实例
+     * @apiNote 浅拷贝，集合等引用类型仍与原实体共享；子类必须保留无参构造
      */
     public final @org.jetbrains.annotations.NotNull E copy() {
         try {

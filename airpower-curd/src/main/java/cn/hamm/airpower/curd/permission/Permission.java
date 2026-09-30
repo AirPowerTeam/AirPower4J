@@ -12,6 +12,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <h1>是否需要登录和授权</h1>
  *
  * @author Hamm.cn
+ * @apiNote 类上的标记作为默认值，被方法上的标记整体覆盖（不是逐属性覆盖）。
+ * 标在基类控制器上则所有子接口默认需要登录
  */
 @Target({METHOD, TYPE})
 @Retention(RUNTIME)
@@ -24,6 +26,8 @@ public @interface Permission {
 
     /**
      * 需要授权
+     *
+     * @apiNote {@code login} 为 {@code false} 时本项不生效
      */
     boolean authorize() default true;
 }

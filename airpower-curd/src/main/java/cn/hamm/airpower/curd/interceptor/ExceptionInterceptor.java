@@ -42,6 +42,8 @@ import static cn.hamm.airpower.exception.Errors.*;
  * <h1>全局异常处理拦截器</h1>
  *
  * @author Hamm.cn
+ * @apiNote 统一把异常转成 {@link Json} 错误响应，HTTP 状态码一律 {@code 200}，
+ * 错误码放在包体里由前端判断
  * @see Errors
  */
 @ControllerAdvice
@@ -55,7 +57,10 @@ public class ExceptionInterceptor {
     private static final String MESSAGE_AND_DESCRIPTION = "%s (%s)";
 
     /**
-     * 参数验证失败
+     * 参数验证失败（{@code @RequestBody} 绑定失败）
+     *
+     * @param exception 异常
+     * @return 错误响应，{@code data} 中带全部字段错误，前一条进消息便于直接展示
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Json badRequestHandle(@NotNull MethodArgumentNotValidException exception) {
@@ -77,7 +82,10 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * 参数校验失败
+     * 参数校验失败（方法参数上的约束注解）
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public Json badRequestHandle(@NotNull ConstraintViolationException exception) {
@@ -92,6 +100,9 @@ public class ExceptionInterceptor {
 
     /**
      * 删除时的数据关联校验异常
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler({SQLIntegrityConstraintViolationException.class, DataIntegrityViolationException.class})
     public Json deleteUsingDataException(@NotNull Exception exception) {
@@ -101,6 +112,9 @@ public class ExceptionInterceptor {
 
     /**
      * 访问的接口没有实现
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     public Json notFoundHandle(@NotNull NoHandlerFoundException exception) {
@@ -110,6 +124,9 @@ public class ExceptionInterceptor {
 
     /**
      * 请求的数据不是标准 JSON
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public Json dataExceptionHandle(@NotNull HttpMessageNotReadableException exception) {
@@ -120,6 +137,9 @@ public class ExceptionInterceptor {
 
     /**
      * 不支持的请求方法
+     *
+     * @param exception 异常
+     * @return 错误响应，附带该接口实际支持的请求方法
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public Json methodExceptionHandle(@NotNull HttpRequestMethodNotSupportedException exception) {
@@ -132,6 +152,9 @@ public class ExceptionInterceptor {
 
     /**
      * 不支持的文件上传
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler(MultipartException.class)
     public Json multipartExceptionHandle(@NotNull MultipartException exception) {
@@ -141,6 +164,9 @@ public class ExceptionInterceptor {
 
     /**
      * 未选择上传文件
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler(MissingServletRequestPartException.class)
     public Json missingServletRequestPartExceptionHandle(@NotNull MissingServletRequestPartException exception) {
@@ -153,6 +179,9 @@ public class ExceptionInterceptor {
 
     /**
      * 未提交必要参数
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public Json missingServletRequestParameterExceptionHandle(@NotNull MissingServletRequestParameterException exception) {
@@ -165,6 +194,9 @@ public class ExceptionInterceptor {
 
     /**
      * 不支持的数据类型
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public Json httpMediaTypeNotSupportedExceptionHandle(@NotNull HttpMediaTypeNotSupportedException exception) {
@@ -177,6 +209,9 @@ public class ExceptionInterceptor {
 
     /**
      * 数据库连接发生错误
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler(CannotCreateTransactionException.class)
     public Json databaseExceptionHandle(@NotNull CannotCreateTransactionException exception) {
@@ -186,6 +221,9 @@ public class ExceptionInterceptor {
 
     /**
      * Redis 连接发生错误
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler(RedisConnectionFailureException.class)
     public Json redisExceptionHandle(@NotNull RedisConnectionFailureException exception) {
@@ -195,6 +233,9 @@ public class ExceptionInterceptor {
 
     /**
      * 系统自定义异常
+     *
+     * @param exception 异常
+     * @return 错误响应，{@code data} 透传异常自带的附件数据
      */
     @ExceptionHandler(ServiceException.class)
     public Json systemExceptionHandle(@NotNull ServiceException exception) {
@@ -204,6 +245,10 @@ public class ExceptionInterceptor {
 
     /**
      * 数据字段不存在
+     *
+     * @param exception 异常
+     * @return 错误响应
+     * @apiNote 常见于排序字段写错：{@code ORDER BY} 引用了实体里没有的属性
      */
     @ExceptionHandler(value = PropertyReferenceException.class)
     public Json propertyReferenceExceptionHandle(@NotNull PropertyReferenceException exception) {
@@ -215,6 +260,11 @@ public class ExceptionInterceptor {
 
     /**
      * 数据表或字段异常
+     *
+     * @param exception 异常
+     * @return 错误响应
+     * @apiNote 典型场景是事务外调用加了 {@code @Lock} 的加锁查询，
+     * 底层会抛 {@code InvalidDataAccessApiUsage}
      */
     @ExceptionHandler(value = InvalidDataAccessResourceUsageException.class)
     public Json invalidDataAccessResourceUsageExceptionHandle(
@@ -225,7 +275,10 @@ public class ExceptionInterceptor {
     }
 
     /**
-     * 数据表或字段异常
+     * 上传文件超过大小限制
+     *
+     * @param exception 异常
+     * @return 错误响应
      */
     @ExceptionHandler(value = MaxUploadSizeExceededException.class)
     public Json maxUploadSizeExceededExceptionHandle(@NotNull MaxUploadSizeExceededException exception) {
@@ -233,6 +286,13 @@ public class ExceptionInterceptor {
         return responseError(FORBIDDEN_UPLOAD_MAX_SIZE);
     }
 
+    /**
+     * 乐观锁版本冲突
+     *
+     * @param exception 异常
+     * @return 错误响应
+     * @apiNote 并发修改同一条数据时触发，提示用户刷新后重试
+     */
     @ExceptionHandler(value = ObjectOptimisticLockingFailureException.class)
     public Json objectOptimisticLockingFailureExceptionHandle(@NotNull ObjectOptimisticLockingFailureException exception) {
         logException(exception);
@@ -241,6 +301,10 @@ public class ExceptionInterceptor {
 
     /**
      * 其他异常
+     *
+     * @param exception 异常
+     * @return 错误响应
+     * @apiNote 兜底分支，不向外暴露原始异常信息，避免泄漏内部细节
      */
     @ExceptionHandler(value = {Exception.class, RuntimeException.class})
     public Object otherExceptionHandle(@NotNull Exception exception) {
@@ -252,6 +316,7 @@ public class ExceptionInterceptor {
      * 记录异常信息
      *
      * @param e 异常
+     * @apiNote 带错误码的业务异常把错误码一起打进日志前缀，便于按码聚合告警
      */
     private void logException(@NotNull Exception e) {
         if (e instanceof IException<?> serviceError) {

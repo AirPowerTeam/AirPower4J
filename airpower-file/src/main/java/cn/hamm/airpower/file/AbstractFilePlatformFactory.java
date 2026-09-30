@@ -21,7 +21,9 @@ import java.util.function.Consumer;
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>文件平台抽象工厂</h1>
+ * <h1>文件存储平台基类</h1>
+ * 各存储平台（本地、阿里云 OSS、腾讯云 COS…）的实现基类，统一了文件命名、哈希、上传入口，
+ * 只需实现 {@link #save} 与平台特有的 {@link #getUrl}、{@link #delete}、{@link #download}。
  *
  * @author Hamm
  */
@@ -66,10 +68,10 @@ public abstract class AbstractFilePlatformFactory {
     }
 
     /**
-     * 获取上传文件的MD5
+     * 获取上传文件的 MD5
      *
      * @param multipartFile 文件
-     * @return 文件MD5
+     * @return 文件 MD5
      */
     public @NotNull String getFileHash(MultipartFile multipartFile) {
         if (Objects.isNull(multipartFile)) {
@@ -83,7 +85,7 @@ public abstract class AbstractFilePlatformFactory {
     }
 
     /**
-     * 获取文件输入流的MD5
+     * 获取文件输入流的 MD5
      *
      * @param inputStream 文件输入流
      * @return 文件输入流的 MD5
@@ -111,10 +113,10 @@ public abstract class AbstractFilePlatformFactory {
     }
 
     /**
-     * 获取文件的MD5
+     * 获取文件的 MD5
      *
      * @param file 文件
-     * @return 文件MD5
+     * @return 文件 MD5
      */
     public @NotNull String getFileHash(File file) {
         if (Objects.isNull(file)) {
@@ -129,13 +131,15 @@ public abstract class AbstractFilePlatformFactory {
 
 
     /**
-     * 文件上传(可自定义文件大小限制)
+     * 文件上传（可自定义文件大小限制）
      *
      * @param inputStream       文件输入流
      * @param relativeDirectory 文件相对路径
      * @param fileName          文件名
-     * @param fileSizeLimit     文件大小限制 不传入使用默认限制
+     * @param fileSizeLimit     文件大小的回调，不传入则使用默认限制
      * @return 存储的文件路径
+     * @apiNote 传入回调后<b>不再做</b>默认的大小校验，而是把字节数交给回调自行处理；
+     * 字节数取自 {@code available()}，未标记长度的流该值并不可靠
      */
     public String upload(@NotNull InputStream inputStream,
                          @NotNull String relativeDirectory,
@@ -199,7 +203,7 @@ public abstract class AbstractFilePlatformFactory {
      * 获取上传目录
      *
      * @param category 文件类别
-     * @param isToday  是否是今天
+     * @param isToday  是否追加当天日期目录
      * @return 上传目录
      */
     public String getUploadDirectory(String category, boolean isToday) {
@@ -209,12 +213,13 @@ public abstract class AbstractFilePlatformFactory {
 
 
     /**
-     * 文件上传(可自定义文件大小限制)
+     * 文件上传（可自定义文件大小限制）
      *
      * @param multipartFile 文件
      * @param category      类型
-     * @param fileSizeLimit 文件大小限制 不传入使用默认限制
+     * @param fileSizeLimit 文件大小的回调，不传入则使用默认限制
      * @return 存储的文件路径
+     * @apiNote 文件名取文件 MD5，同一文件重复上传会落到同一路径并被覆盖
      */
     public String upload(@NotNull MultipartFile multipartFile,
                          @NotNull String category,
@@ -241,12 +246,13 @@ public abstract class AbstractFilePlatformFactory {
     }
 
     /**
-     * 文件上传(可自定义文件大小限制)
+     * 文件上传（可自定义文件大小限制）
      *
      * @param file          文件
      * @param category      类型
-     * @param fileSizeLimit 文件大小限制 不传入使用默认限制
+     * @param fileSizeLimit 文件大小的回调，不传入则使用默认限制
      * @return 存储的文件信息
+     * @apiNote 文件名取文件 MD5，同一文件重复上传会落到同一路径并被覆盖
      */
     public String upload(@NotNull File file,
                          @NotNull String category,
@@ -278,6 +284,7 @@ public abstract class AbstractFilePlatformFactory {
      * @param path   文件路径
      * @param second 过期时间(秒)
      * @return 文件 URL
+     * @apiNote 默认实现直接返回路径，私有存储的平台需重写为带签名的临时链接
      */
     public String getUrl(String path, int second) {
         return path;
@@ -288,8 +295,8 @@ public abstract class AbstractFilePlatformFactory {
      *
      * @param path 文件路径
      * @return 文件流
+     * @apiNote 平台未实现下载时直接抛异常
      */
-
     public InputStream download(String path) {
         throw new ServiceException("该平台暂不支持下载文件");
     }
@@ -298,6 +305,7 @@ public abstract class AbstractFilePlatformFactory {
      * 从文件平台删除文件
      *
      * @param path 文件路径
+     * @apiNote 平台未实现删除时直接抛异常
      */
     public void delete(String path) {
         throw new ServiceException("该平台暂不支持删除文件");
@@ -305,9 +313,9 @@ public abstract class AbstractFilePlatformFactory {
 
     /**
      * 获取文件平台键
-     * 读取类上的 {@link FilePlatform#value()} 注解值。
      *
      * @return 文件平台键
+     * @apiNote 读取类上的 {@link FilePlatform#value()} 注解值
      */
     public final String getKey() {
         FilePlatform annotation = getClass().getAnnotation(FilePlatform.class);

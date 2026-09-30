@@ -19,7 +19,7 @@ import java.util.Date;
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>阿里云OSS</h1>
+ * <h1>阿里云 OSS 存储平台</h1>
  *
  * @author Hamm.cn
  */
@@ -32,7 +32,9 @@ public class AliyunOssHelper extends AbstractFilePlatformFactory {
     private AliyunOssConfig aliyunOssConfig;
 
     /**
-     * volatile：防止指令重排序
+     * OSS 客户端
+     *
+     * @apiNote 双重检查锁延迟创建，{@code volatile} 保证其他线程能看到完整构造的实例
      */
     private volatile OSS ossClient;
 
@@ -41,7 +43,8 @@ public class AliyunOssHelper extends AbstractFilePlatformFactory {
      *
      * @param path   文件路径
      * @param second 过期时间（秒）
-     * @return 文件 URL
+     * @return 预签名的文件 URL
+     * @apiNote 私有 Bucket 下 URL 必须带签名，{@code second} 到期后链接即失效
      */
     @Override
     public String getUrl(String path, int second) {
@@ -61,7 +64,10 @@ public class AliyunOssHelper extends AbstractFilePlatformFactory {
     }
 
     /**
-     * 获取 BucketName
+     * 获取 Bucket 名称
+     *
+     * @return Bucket 名称
+     * @apiNote 未配置时抛异常
      */
     private String getBucketName() {
         String bucketName = aliyunOssConfig.getBucketName();
@@ -75,6 +81,7 @@ public class AliyunOssHelper extends AbstractFilePlatformFactory {
      * @param inputStream 文件输入流
      * @param directory   目录
      * @param fileName    文件名
+     * @apiNote 整流一次性读入内存，大文件慎用
      */
     @Override
     public void save(@NotNull InputStream inputStream, String directory, String fileName) {
@@ -86,7 +93,10 @@ public class AliyunOssHelper extends AbstractFilePlatformFactory {
     }
 
     /**
-     * 获取 OSS Client（单例 + 线程安全）
+     * 获取 OSS 客户端
+     *
+     * @return OSS 客户端
+     * @apiNote 双重检查锁延迟创建为单例；缺少 AccessKeyId / AccessKeySecret / Endpoint 时抛异常
      */
     private OSS getClient() {
         if (ossClient == null) {

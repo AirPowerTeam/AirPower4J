@@ -31,7 +31,7 @@ public interface IOpenApp {
     /**
      * 获取 IP 白名单列表
      *
-     * @return IP 白名单
+     * @return IP 白名单，多个 IP 用换行分隔；空表示不限制
      */
     default String getIpWhiteList() {
         return "";
@@ -40,7 +40,7 @@ public interface IOpenApp {
     /**
      * 是否禁用
      *
-     * @return 是否禁用
+     * @return {@code true} 已禁用，禁用后所有调用都会被拒绝
      */
     default Boolean getIsDisabled() {
         return false;

@@ -6,7 +6,6 @@ import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.*;
 import cn.hamm.airpower.core.annotation.DesensitizeIgnore;
 import cn.hamm.airpower.core.annotation.ExposeAll;
-import cn.hamm.airpower.core.constant.HttpConstant;
 import cn.hamm.airpower.curd.annotation.DisableRequestLog;
 import cn.hamm.airpower.curd.annotation.DisableResponseLog;
 import cn.hamm.airpower.curd.base.CurdController;
@@ -38,9 +37,11 @@ import static cn.hamm.airpower.curd.interceptor.CurdRequestInterceptor.REQUEST_C
 import static cn.hamm.airpower.curd.interceptor.CurdRequestInterceptor.REQUEST_METHOD_KEY;
 
 /**
- * <h1>全局拦截响应</h1>
+ * <h1>全局响应拦截器</h1>
  *
  * @author Hamm.cn
+ * @apiNote 统一处理三件事：按 {@code @Meta}/{@code @Desensitize} 裁剪出参、
+ * 写入 {@code traceId}、打印请求响应日志
  */
 @ControllerAdvice
 @Slf4j
@@ -53,6 +54,7 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
      *
      * @param returnType    请求方法
      * @param converterType 转换器
+     * @return 恒为 {@code true}，对所有出参生效
      */
     @Contract(pure = true)
     @Override
@@ -91,20 +93,16 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
         } else {
             responseResult = beforeResponseFinished(getResponseBody(body, controller, method), request, response);
         }
-        if (!apiConfig.getBodyTraceId()) {
-            // 不在 Body 中响应 那么在 Header 中响应
-            String traceId = TraceUtil.getTraceId();
-            response.getHeaders().set(HttpConstant.Header.TRACE_ID, traceId);
-        }
         printLog(method, request, Json.toString(responseResult));
         return responseResult;
     }
 
     /**
-     * 打印响应日志
+     * 获取响应包体
      *
      * @param method         请求的方法
      * @param responseResult 响应的包体
+     * @return 响应的包体，全局关闭或方法标记禁用时返回空串
      */
     private String getResponseString(Method method, String responseResult) {
         String response = "";
@@ -122,10 +120,11 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
     }
 
     /**
-     * 打印请求日志
+     * 打印请求响应日志
      *
-     * @param method  请求的方法
-     * @param request 请求
+     * @param method   请求的方法
+     * @param request  请求
+     * @param response 响应的包体
      */
     private void printLog(Method method, @NotNull ServerHttpRequest request, String response) {
         Map<String, Object> mapLogs = new HashMap<>();
@@ -147,7 +146,7 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
      *
      * @param method             请求的方法
      * @param httpServletRequest 请求
-     * @return 请求包体
+     * @return 请求包体，全局关闭、方法标记禁用或请求未被包装时返回空串
      */
     private String getRequestString(Method method, HttpServletRequest httpServletRequest) {
         String request = "";
@@ -168,7 +167,7 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
      * 获取请求头
      *
      * @param request 请求
-     * @return 请求头
+     * @return 请求头，只含配置里白名单列出的头
      */
     private @NotNull Map<String, Object> getHeaderMap(@NotNull ServerHttpRequest request) {
         Map<String, Object> mapHeaders = new HashMap<>();
@@ -188,6 +187,9 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
      * @param controller 控制器实例
      * @param method     请求的方法
      * @return 处理后的数据
+     * @apiNote 只有 {@link Json} 会被处理，控制器直接返回裸对象时原样放行
+     * @apiNote 未标记 {@link ExposeAll} 时自动把控制器的实体类加入白名单，
+     * 即 CURD 接口默认返回实体的全部 {@code @Meta} 字段
      */
     @Contract("null, _, _ -> null")
     private <M extends RootModel<M>> Object getResponseBody(Object result, ApiController controller, Method method) {
@@ -195,9 +197,7 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
             // 返回不是JsonData 原样返回
             return result;
         }
-        if (apiConfig.getBodyTraceId()) {
-            json.setTraceId(TraceUtil.getTraceId());
-        }
+        json.setTraceId(TraceUtil.getTraceId());
         Object data = json.getData();
         if (Objects.isNull(data)) {
             return json;
@@ -238,7 +238,9 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
     /**
      * 响应结束前置方法
      *
-     * @param body 响应体
+     * @param body     响应体
+     * @param request  请求
+     * @param response 响应
      * @return 响应体
      * @apiNote 如无其他操作，请直接返回 body 参数即可
      */
@@ -266,6 +268,8 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
      *
      * @param request 请求
      * @return 请求体
+     * @apiNote 只能读到 {@code ContentCachingRequestWrapper} 缓存下来的内容，
+     * 请求必须经过 {@code RequestFilter} 包装，否则恒返回空串
      */
     protected String getRequestBody(HttpServletRequest request) {
         String requestBody = "";
@@ -285,6 +289,7 @@ public class CurdResponseInterceptor implements ResponseBodyAdvice<Object> {
      * @param isDesensitize 是否需要脱敏
      * @param <M>           数据类型
      * @return 处理后的数据
+     * @apiNote 递归下钻分页对象与集合，原地修改元素后返回，调用方拿到的仍是同一批对象
      */
     private <M extends RootModel<M>> @NotNull Object filterModelValue(
             @NotNull Object data,

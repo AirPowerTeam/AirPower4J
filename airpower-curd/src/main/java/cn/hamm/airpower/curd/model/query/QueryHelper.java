@@ -38,6 +38,14 @@ public class QueryHelper {
     @Autowired
     private CurdConfig curdConfig;
 
+    /**
+     * 转义 {@code LIKE} 查询值中的通配符
+     *
+     * @param value 查询值
+     * @return 转义后的查询值
+     * @apiNote {@code %} 和 {@code _} 在 {@code LIKE} 中有特殊含义，用户输入时需按字面量处理，
+     * 否则会意外匹配到全表；反斜杠要先转义，否则会把它自己产生的转义符再次转义
+     */
     private static @NotNull String escapeLike(@NotNull String value) {
         return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
@@ -47,6 +55,7 @@ public class QueryHelper {
      *
      * @param page 分页对象
      * @return 分页对象
+     * @apiNote 只补齐非法值，不做上下限裁剪；裁剪在 {@link #createPageable(Page, Sort)} 里做
      */
     @NotNull
     public final Page requirePageNonNull(@Nullable Page page) {
@@ -65,6 +74,7 @@ public class QueryHelper {
      *
      * @param sort 排序对象
      * @return 排序对象
+     * @apiNote 方向只认 {@code asc}（忽略大小写），其余一律降序，避免把非法值拼进 SQL
      */
     public @NotNull Sort requireSortNonNull(@Nullable Sort sort) {
         sort = Objects.requireNonNullElse(sort, new Sort());
@@ -85,6 +95,7 @@ public class QueryHelper {
      * @param page 分页对象
      * @param sort 排序对象
      * @return Spring 分页对象
+     * @apiNote 页码在此处从 1 开始的约定转成 0 开始，并把每页条数夹在配置的上下限之间
      */
     @NotNull
     public Pageable createPageable(@Nullable Page page, @Nullable Sort sort) {
@@ -100,6 +111,8 @@ public class QueryHelper {
      *
      * @param sort 排序对象
      * @return Sort {@code Spring} 的排序对象
+     * @apiNote 末尾必定追加唯一列，保证分页结果稳定。缺了这一步，同值记录在翻页时
+     * 可能重复出现或漏掉
      */
     public @NotNull org.springframework.data.domain.Sort createSort(@Nullable Sort sort) {
         sort = requireSortNonNull(sort);
@@ -132,6 +145,10 @@ public class QueryHelper {
      * @param search  搜索实体
      * @param isEqual 是否强匹配
      * @return 搜索条件
+     * @apiNote 「不传该条件」和「查空值」是两件事：值为 {@code null} 一律不参与筛选，
+     * 值为空串则由 {@link SearchEmpty} 决定是「筛空值」还是「不筛」
+     * @apiNote {@code ManyToOne} 会生成 {@code INNER JOIN}，因此该关联在结果中相当于
+     * 必填；{@code OneToMany} 与 {@code ManyToMany} 不参与搜索
      */
     @NotNull
     public List<Predicate> getPredicateList(
@@ -148,7 +165,7 @@ public class QueryHelper {
         fields.forEach(field -> {
             Object fieldValue = ReflectUtil.getFieldValue(search, field);
             if (Objects.isNull(fieldValue)) {
-                // 没有传入查询值 空字符串 跳过
+                // 没传值 该字段不参与筛选
                 return;
             }
             SearchEmpty searchEmpty = ReflectUtil.getAnnotation(SearchEmpty.class, field);
@@ -191,9 +208,8 @@ public class QueryHelper {
             }
 
             Search searchAnnotation = ReflectUtil.getAnnotation(Search.class, field);
-            // 没有标记搜索 则强匹配
+            // 未标记 Search 时按强匹配处理
             if (Objects.nonNull(searchAnnotation)) {
-                // 标记了搜索 则模糊搜索
                 if (searchAnnotation.fullLike()) {
                     predicateList.add(builder.like(root.get(field.getName()),
                             "%" + escapeLike(fieldValue.toString()) + "%"));
@@ -203,7 +219,6 @@ public class QueryHelper {
                         escapeLike(fieldValue.toString()) + "%"));
                 return;
             }
-            // 最后兜底还是强匹配
             predicateList.add(builder.equal(root.get(field.getName()), fieldValue));
         });
         return predicateList;

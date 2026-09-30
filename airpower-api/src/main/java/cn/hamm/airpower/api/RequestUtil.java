@@ -82,19 +82,12 @@ public class RequestUtil {
     /**
      * 获取请求的来源 IP 地址
      *
-     * <p>解析顺序：
-     * <ol>
-     *     <li>按 {@code trustProxyHeaders} 配置的优先级依次读取这些请求头，命中第一个合法 IP 立即返回；</li>
-     *     <li>未配置可信代理头，或这些头都没读到合法 IP 时，回退为 TCP 连接对端地址
-     *     {@link HttpServletRequest#getRemoteAddr()}；</li>
-     *     <li>对端地址也拿不到时返回 {@code unknown}，不再抛业务异常。</li>
-     * </ol>
-     *
-     * <p>代理头可被客户端随意构造，因此 {@code trustProxyHeaders} 只能填写<b>由你自己可信的代理写入</b>的头，
-     * 且代理侧需强制覆盖客户端传入的同名头，否则 IP 白名单、限流、风控都可能被伪造请求头绕过。
-     *
      * @param request 请求
      * @return 合法 IP 地址，无法解析时返回 {@code unknown}
+     * @apiNote 优先读可信代理头并取链上最左侧的合法 IP，读不到才回退
+     * {@link HttpServletRequest#getRemoteAddr()}，仍拿不到则返回 {@code unknown}，不抛异常。
+     * 代理头可被客户端随意构造，只能填写<b>由你自己可信的代理写入</b>的头，
+     * 且代理侧需强制覆盖客户端传入的同名头，否则 IP 白名单、限流、风控都可能被伪造请求头绕过
      */
     public static @NotNull String getIpAddress(@NotNull HttpServletRequest request) {
         try {
@@ -155,9 +148,7 @@ public class RequestUtil {
     /**
      * 解析逗号分隔的代理链请求头
      *
-     * <p>可信代理写入的链形如 {@code 203.0.113.9, 198.51.100.7}，最左侧即来源 IP。
-     *
-     * @param headerValue 原始请求头
+     * @param headerValue 原始请求头，形如 {@code 203.0.113.9, 198.51.100.7}，最左侧即来源 IP
      * @return 来源 IP，解析失败时返回空字符串
      */
     private static @NotNull String parseIpChainHeader(@Nullable String headerValue) {
@@ -248,11 +239,10 @@ public class RequestUtil {
     /**
      * 将 IP 字面量转换为字节数组
      *
-     * <p>IPv4 采用自研解析，避免 {@code InetAddress} 兼容 {@code 1.2.3} 等简写与八进制歧义写法；
-     * IPv6 仅在首字符为十六进制字符或冒号时交给 {@code InetAddress} 解析，确保不会触发 DNS 查询。
-     *
      * @param ip IP 字面量
      * @return 字节数组，非法时返回 {@code null}
+     * @apiNote IPv4 自研解析，{@code InetAddress} 会兼容 {@code 1.2.3} 等简写与八进制歧义写法；
+     * IPv6 仅在首字符为十六进制字符或冒号时才交给 {@code InetAddress}，避免触发 DNS 查询
      */
     @Contract(value = "null -> null", pure = true)
     private static byte @Nullable [] toInetBytes(@Nullable String ip) {
@@ -348,6 +338,7 @@ public class RequestUtil {
      *
      * @param map 参数
      * @return QueryString
+     * @apiNote 不做 URL 编码，值需由调用方自行编码
      */
     public static String mapToQueryString(@NotNull Map<String, Object> map) {
         return map.entrySet().stream()

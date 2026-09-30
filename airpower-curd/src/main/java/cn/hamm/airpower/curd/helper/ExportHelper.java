@@ -31,6 +31,8 @@ import static cn.hamm.airpower.exception.Errors.SERVICE_ERROR;
  * <h1>导出文件帮助类</h1>
  *
  * @author Hamm.cn
+ * @apiNote 采用「先占位、后台写盘、写完把文件地址写回 Redis」的两段式：创建接口立即返回
+ * 文件编码，客户端轮询该编码取地址，避免长时间请求占用连接
  */
 @Component
 @Slf4j
@@ -56,6 +58,7 @@ public class ExportHelper {
      *
      * @param exportFile 导出文件
      * @param valueList  数据列表
+     * @apiNote 以追加方式写入，便于分页导出时多次追加；表头行由调用方先写一次
      */
     public static void saveCsvListToFile(@NotNull ExportFile exportFile, List<String> valueList) {
         String rowString = String.join(CollectionUtil.CSV_ROW_DELIMITER, valueList);
@@ -68,6 +71,8 @@ public class ExportHelper {
      *
      * @param supplier 自行保存文件并返回路径
      * @return 文件编码
+     * @apiNote 先用空串占位再后台执行，客户端提前轮询到空值说明还没写完；
+     * 随机串撞车时递归重试
      */
     public final String createExportTask(Supplier<String> supplier) {
         String fileCode = RandomUtil.randomString().toLowerCase();
@@ -86,6 +91,7 @@ public class ExportHelper {
      *
      * @param fileCode 文件编码
      * @return 文件 URL
+     * @apiNote 任务未完成时 Redis 中的值为空串，抛「文件暂未准备完毕」由客户端重试
      */
     public final String getExportFileUrl(String fileCode) {
         Object object = redisHelper.get(EXPORT_TASK_KEY_PREFIX + fileCode);
@@ -126,6 +132,8 @@ public class ExportHelper {
      *
      * @param extension 文件后缀
      * @return 文件相对路径
+     * @apiNote 文件名带完整时间戳加随机串，文件落在「日期/文件名」的相对目录下，
+     * 便于按天清理
      */
     public final @NotNull ExportFile getExportFilePath(String extension) {
         final String exportRootDirectory = exportConfig.getExportPath();
@@ -176,6 +184,7 @@ public class ExportHelper {
          * 获取相对文件地址
          *
          * @return 相对文件地址
+         * @apiNote 存 Redis 的是这个相对路径，不含根目录，换部署目录不影响已生成的地址
          */
         public String getRelativeFile() {
             return relativeDirectory + fileName;

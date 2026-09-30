@@ -13,7 +13,8 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>API 控制器</h1>
+ * <h1>API 控制器注解</h1>
+ * 组合了 {@link RestController} 与 {@link RequestMapping}，标注即成为一个 REST 控制器。
  *
  * @author Hamm.cn
  */
@@ -25,9 +26,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @RequestMapping
 public @interface Api {
     /**
-     * API 的路径
+     * 接口路径
      *
-     * @see RequestMapping#path()
+     * @apiNote {@link AliasFor} 到 {@link RequestMapping#path()}，
+     * 等价于在类上再写一个 {@code @RequestMapping("/xxx")}
      */
     @SuppressWarnings("UnusedReturnValue")
     @AliasFor(annotation = RequestMapping.class, attribute = "path")

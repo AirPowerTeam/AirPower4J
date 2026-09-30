@@ -43,6 +43,8 @@ import static cn.hamm.airpower.exception.Errors.*;
  * @param <E> 实体
  * @param <R> 数据源
  * @author Hamm.cn
+ * @apiNote 所有写操作都在 {@link TransactionHelper} 的事务内完成。同一事务里连续写多条数据
+ * 互相不影响，不要为了「读到最新数据」去清空持久化上下文
  * @see #getList(QueryListRequest) 通用列表查询 <code>getList(QueryListRequest)</code>
  * @see #getPage(QueryPageRequest) 通用分页查询 <code>getPage(QueryPageRequest)</code>
  * @see #filter(CurdEntity) 实体强匹配列表搜索 <code>filter(CurdEntity)</code>
@@ -57,6 +59,9 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     private static final String DATA_REQUIRED = "提交的数据不允许为空";
     /**
      * 实体管理器
+     *
+     * @apiNote 框架自身不使用，保留给子类。严禁调用 {@code clear()}：它会丢弃未 flush 的变更
+     * 和已标记的删除，并在加锁读取之前固定读视图
      */
     @PersistenceContext
     protected EntityManager entityManager;
@@ -66,7 +71,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     @Autowired(required = false)
     protected R repository;
     /**
-     * 事务管理器
+     * 事务助手（不是事务管理器，本类不直接开事务）
      */
     @Autowired
     protected TransactionHelper transactionHelper;
@@ -96,7 +101,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
             // 新增不允许带主键
             forAdd.setId(null);
             long id = addToDatabase(forAdd);
-            // 新增完毕后的一些后置处理
             afterAdd(id, forAdd);
             afterSaved(id, forAdd);
             return id;
@@ -108,6 +112,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param source 原始实体
      * @return 添加的主键
+     * @apiNote 传入已带主键的实体会直接报错，新增场景请确保主键为空
      * @see #add(CurdEntity) 触发前后置的添加方法
      */
     public final long addToDatabase(@NotNull E source) {
@@ -131,6 +136,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 删除指定的数据
      *
      * @param id 主键
+     * @apiNote 允许在同一个外层事务里连续调用（批量删除）而互不影响：每条删除各自
+     * {@code join} 到外层事务，任何清空持久化上下文的写法都会把前面已标记的删除丢弃
      * @see #beforeDelete(E)
      * @see #afterDelete(long)
      */
@@ -184,6 +191,9 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param id       主键 ID
      * @param consumer 可消费实体
+     * @apiNote 读取行锁必须是本事务的第一个数据库操作。一旦在此之前发生普通读
+     * （比如加载明细的 EAGER 关联），{@code REPEATABLE_READ} 下的读视图就此固定，
+     * 等排到锁队列时仍看不到前一个请求的提交，并发推进会双双判定「未完成」
      */
     public final void updateWithLock(long id, Consumer<E> consumer) {
         transactionHelper.run(() -> {
@@ -197,6 +207,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 更新到数据库 {@code 不触发前后置}
      *
      * @param source 原始实体
+     * @apiNote 未标 {@link NullEnable} 的字段，值为 {@code null} 时不覆盖数据库中的原值
      * @see #update(CurdEntity) 触发前后置的修改方法
      */
     public final void updateToDatabase(@NotNull E source) {
@@ -208,6 +219,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param source   原始实体
      * @param withNull 是否更新空值
+     * @apiNote 传 {@code true} 时值为 {@code null} 的字段会写入数据库，未标
+     * {@link NullEnable} 的字段默认会被跳过
      */
     public final void updateToDatabase(@NotNull E source, boolean withNull) {
         transactionHelper.run(() -> {
@@ -278,7 +291,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         queryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
         queryPageRequest = beforeGetPage(queryPageRequest);
         PageData<E> pageData = queryPage(queryPageRequest.getPage(), queryPageRequest.getFilter(), queryPageRequest.getSort());
-        // 组装分页数据
         QueryPageResponse<E> queryPageResponse = QueryPageResponse.from(pageData);
         queryPageResponse.setSort(queryPageRequest.getSort());
         queryPageResponse = afterGetPage(queryPageResponse);
@@ -317,6 +329,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param id 主键 ID
      * @return 加锁后的数据
+     * @apiNote 加锁查询要求已存在事务，底层方法声明为 {@code Propagation.MANDATORY}，
+     * 事务外调用会抛 {@code InvalidDataAccessApiUsage}
+     * @apiNote 严禁在此之前执行 {@code entityManager.clear()}。清空会让 {@code DELETE}
+     * 标记和未 flush 的变更一起消失（批量删除时表现为「删 N 条只生效 1 条」），
+     * 也会把行锁之前的普通读固化读视图，破坏 {@code REPEATABLE_READ} 下的并发推进。
+     * 同一事务内读到同一实例本就是 JPA 身份映射的预期语义
      * @see #updateWithLock(long, Consumer)
      */
     public final @NotNull E getForUpdate(long id) {
@@ -364,7 +382,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 全匹配查询数据
+     * 全匹配分页查询数据
      *
      * @param filter 过滤器
      * @return 查询结果数据分页对象
@@ -374,7 +392,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 全匹配查询数据
+     * 全匹配分页查询数据
      *
      * @param filter 过滤器
      * @param page   分页对象
@@ -385,7 +403,7 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     }
 
     /**
-     * 全匹配查询数据
+     * 全匹配分页查询数据
      *
      * @param filter 过滤器
      * @param page   分页对象
@@ -470,6 +488,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param queryPageRequest 请求查询的分页参数
      * @return 导出任务 ID
+     * @apiNote 实际导出在独立线程执行，本方法立即返回任务 ID；
+     * {@code traceId} 手动透传，否则后台线程的日志会串到别的请求上
      */
     public final String createExportTask(QueryPageRequest<E> queryPageRequest) {
         final QueryPageRequest<E> finalQueryPageRequest = requireQueryRequestNonNullElse(queryPageRequest, new QueryPageRequest<>());
@@ -477,16 +497,12 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
         return exportHelper.createExportTask(() -> {
             TraceUtil.setTraceId(traceId);
             ExportHelper.ExportFile exportFile = exportHelper.getExportFilePath("csv");
-            // 获取导出字段列表
             List<Field> fieldList = CollectionUtil.getExportFieldList(getEntityClass());
-            // 获取一行用作于表头
             List<String> rowList = CollectionUtil.getCsvHeaderList(fieldList);
             String headerString = String.join(CollectionUtil.CSV_COLUMN_DELIMITER, rowList);
             List<String> header = new ArrayList<>();
             header.add(headerString);
-            // 保存表头到 CSV 文件
             ExportHelper.saveCsvListToFile(exportFile, header);
-            // 查询数据并保存到导出文件
             queryPageToSaveExportFile(finalQueryPageRequest, fieldList, exportFile);
             return exportFile.getRelativeFile();
         });
@@ -497,6 +513,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param entity 查到的数据
      * @return 处理后的数据
+     * @apiNote 传入的是持久化上下文中的同一个实例，此处做字段裁剪会影响后续
+     * 同事务内的读取
      */
     protected E afterGet(@NotNull E entity) {
         return entity;
@@ -536,7 +554,10 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
     /**
      * 数据库操作前的 {@code 最后一次} 确认
      *
+     * @param entity 当前实体
      * @return 当前实体
+     * @apiNote 这是拿到最终待写库实体的时机：只读字段已剔除、创建时间已归零。
+     * 此处返回的实体才是真正写库的对象
      */
     protected @NotNull E beforeSaveToDatabase(@NotNull E entity) {
         return entity;
@@ -611,8 +632,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 保存后置方法
      *
      * @param id     主键 ID
-     * @param source 保存前的原数据
-     * @apiNote 添加或修改后最后触发
+     * @param source 待保存的实体
+     * @apiNote 添加或修改后最后触发，在同一事务内、{@code saveAndFlush} 之后
      */
     @SuppressWarnings({"unused", "EmptyMethod"})
     protected void afterSaved(long id, @NotNull E source) {
@@ -787,6 +808,8 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param id 主键
      * @return 实体
+     * @apiNote 查不到抛异常。不要在此清空持久化上下文：{@link #delete(long)} 第一步就调用
+     * 本方法，批量删除时 {@code clear()} 会丢弃上一轮已标记的删除
      */
     private @NotNull E getById(Long id) {
         String description = getEntityDescription();
@@ -914,23 +937,20 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * @return 需要忽略更新的属性列表
      */
     private String @NotNull [] getUpdateIgnoreFields(@NotNull E source) {
-        // 获取 Bean
         BeanWrapper srcBean = new BeanWrapperImpl(source);
         List<String> ignoreList = new ArrayList<>();
         Arrays.stream(srcBean.getPropertyDescriptors()).map(PropertyDescriptor::getName).forEach(name -> {
-            // 获取属性的 Field
             Field field = ReflectUtil.getField(name, source.getClass());
             if (Objects.isNull(field)) {
-                // 获取属性失败，允许更新
+                // 取不到声明字段，无法判断是否允许写 null，放行
                 return;
             }
             NullEnable nullEnable = ReflectUtil.getAnnotation(NullEnable.class, field);
             if (Objects.nonNull(nullEnable) && nullEnable.value()) {
-                // 允许更新 null
                 return;
             }
             if (Objects.isNull(srcBean.getPropertyValue(name))) {
-                // 没有值 忽略更新
+                // 未开启 NullEnable 的字段，值为空时不覆盖数据库中的原值
                 ignoreList.add(name);
             }
         });
@@ -1015,24 +1035,23 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      * 分页查询导出数据
      *
      * @param queryPageRequest 查询对象
+     * @param fieldList        导出的字段列表
+     * @param exportFile       导出的文件
      */
     private void queryPageToSaveExportFile(QueryPageRequest<E> queryPageRequest, List<Field> fieldList, ExportHelper.ExportFile exportFile) {
         queryPageRequest = beforeExportQuery(queryPageRequest);
         PageData<E> page = queryPage(queryPageRequest.getPage(), queryPageRequest.getFilter(), queryPageRequest.getSort());
         String description = getEntityDescription();
         log.info("导出{} 查询第 {} 页，本页 {} 条", description, page.getPage().getPageNum(), page.getList().size());
-        // 当前页查到的数据列表
         List<E> list = page.getList();
         list = afterExportQuery(list);
 
-        // 获取 CSV 值列表
         List<String> valuelist = CollectionUtil.getCsvValueList(list, fieldList);
 
-        // 保存 CSV 数据
         ExportHelper.saveCsvListToFile(exportFile, valuelist);
 
         if (page.getPage().getPageNum() < page.getPageCount()) {
-            // 继续分页
+            // 递归取下一页
             queryPageRequest.getPage().setPageNum(page.getPage().getPageNum() + 1);
             queryPageToSaveExportFile(queryPageRequest, fieldList, exportFile);
         }

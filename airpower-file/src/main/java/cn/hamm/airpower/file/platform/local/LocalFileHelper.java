@@ -16,7 +16,8 @@ import java.nio.file.Path;
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>文件封装类</h1>
+ * <h1>本地存储平台</h1>
+ * 文件落在本机磁盘，目录由 {@link LocalFileConfig#getLocalAbsoluteDirectory()} 指定。
  *
  * @author Hamm.cn
  */
@@ -32,6 +33,7 @@ public class LocalFileHelper extends AbstractFilePlatformFactory {
      * @param inputStream 文件输入流
      * @param directory   文件目录
      * @param fileName    文件名
+     * @apiNote 整流一次性读入内存，大文件慎用
      */
     @Override
     public void save(@NotNull InputStream inputStream, String directory, String fileName) {
@@ -49,6 +51,7 @@ public class LocalFileHelper extends AbstractFilePlatformFactory {
      * 删除文件
      *
      * @param path 文件路径
+     * @apiNote 规范化后必须仍在根目录内，且拒绝符号链接，避免越权删除或被链接绕过
      */
     @Override
     public void delete(String path) {

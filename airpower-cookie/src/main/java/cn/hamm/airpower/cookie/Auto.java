@@ -4,7 +4,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
- * <h1>自动装配类</h1>
+ * <h1>Cookie 模块自动装配</h1>
  *
  * @author Hamm.cn
  */

@@ -7,9 +7,10 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * <h1>分页类</h1>
+ * <h1>分页请求参数</h1>
  *
  * @author Hamm.cn
+ * @apiNote {@code pageNum} 从 1 开始，转换为 Spring Data 的 {@code Pageable} 时才减 1
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

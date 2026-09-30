@@ -42,9 +42,15 @@ public class CurdConfig {
      */
     private String basePackageName = "";
 
+    /**
+     * 权限包名
+     */
+    private Boolean permissionWithPackage = true;
+
 
     @PostConstruct
     public void apply() {
         PermissionUtil.setBasePackageName(basePackageName);
+        PermissionUtil.setPermissionWithPackage(permissionWithPackage);
     }
 }

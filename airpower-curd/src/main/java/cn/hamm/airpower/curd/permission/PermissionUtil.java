@@ -48,6 +48,11 @@ public class PermissionUtil {
     private static String basePackageName = "";
 
     /**
+     * 是否使用包名作为权限标识的前缀
+     */
+    private static Boolean permissionWithPackage = true;
+
+    /**
      * 禁止外部实例化
      */
     @Contract(pure = true)
@@ -62,6 +67,15 @@ public class PermissionUtil {
      */
     public static void setBasePackageName(String basePackageName) {
         PermissionUtil.basePackageName = basePackageName;
+    }
+
+    /**
+     * 设置是否使用包名作为权限标识的前缀
+     *
+     * @param permissionWithPackage 是否使用包名作为权限标识的前缀
+     */
+    public static void setPermissionWithPackage(Boolean permissionWithPackage) {
+        PermissionUtil.permissionWithPackage = permissionWithPackage;
     }
 
     /**
@@ -111,8 +125,12 @@ public class PermissionUtil {
      * @return 权限标识
      */
     private static @NotNull String baseIdentity(@NotNull Class<?> clazz) {
-        // 由全限定名派生 => 跨模块全局唯一，且是唯一真源
-        return StringUtils.uncapitalize(clazz.getName().replace('$', '.').replace(basePackageName, "").replace(CONTROLLER, ""));
+        if (permissionWithPackage) {
+            // 由全限定名派生 => 跨模块全局唯一，且是唯一真源
+            return StringUtils.uncapitalize(clazz.getName().replace('$', '.').replace(basePackageName + ".", "").replace(CONTROLLER, ""));
+        } else {
+            return StringUtils.uncapitalize(clazz.getSimpleName().replace(CONTROLLER, ""));
+        }
     }
 
     /**

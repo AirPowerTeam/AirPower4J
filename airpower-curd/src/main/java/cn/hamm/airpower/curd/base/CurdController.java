@@ -85,8 +85,8 @@ public class CurdController<
     @PostMapping("add")
     public Json add(@RequestBody @Validated(WhenAdd.class) E source) {
         Curd.Add.checkApiAvailable(this);
-        source.excludeReadOnly();
         source = beforeAdd(source);
+        source.excludeReadOnly();
         long id = service.add(source);
         return Json.data(service.getEntityInstance(id), "添加成功");
     }
@@ -101,8 +101,8 @@ public class CurdController<
     @PostMapping("update")
     public Json update(@RequestBody @Validated(WhenUpdate.class) @NotNull E source) {
         Curd.Update.checkApiAvailable(this);
-        source.excludeReadOnly();
         source = beforeUpdate(source);
+        source.excludeReadOnly();
         service.update(source);
         return Json.data(service.getEntityInstance(source.getId()), "修改成功");
     }

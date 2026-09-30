@@ -15,10 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
@@ -163,7 +160,10 @@ public class RedisHelper {
      */
     public final long increment(String key, long delta) {
         try {
-            return getRedisTemplate().opsForValue().increment(getKey(key), delta);
+            ValueOperations<String, Object> stringObjectValueOperations = getRedisTemplate().opsForValue();
+            Long increment = stringObjectValueOperations.increment(getKey(key), delta);
+            REDIS_ERROR.whenNull(increment, "自增操作失败");
+            return increment;
         } catch (Exception e) {
             log.error(REDIS_ERROR.getMessage(), e);
             throw new ServiceException(REDIS_ERROR);
@@ -184,24 +184,20 @@ public class RedisHelper {
      * 释放锁
      *
      * @param lock 锁
-     * @return {@code true} 释放成功; {@code false} 锁已过期或已被其他线程重新获取，未做任何改动
-     * @apiNote 使用 Lua 脚本在 Redis 服务端原子完成「比对 + 删除」，
-     * 避免 {@code GET} 与 {@code DEL} 之间锁过期，导致误删其他线程刚拿到的锁
      */
-    public final boolean releaseLock(@NotNull Lock lock) {
+    public final void releaseLock(@NotNull Lock lock) {
         REDIS_ERROR.whenNull(lock, "释放锁失败，传入的锁为空");
         REDIS_ERROR.whenEmpty(lock.getKey(), "释放锁失败，传入的锁的 key 为空");
         REDIS_ERROR.whenEmpty(lock.getValue(), "释放锁失败，传入的锁的 value 为空");
         try {
             if (executeLong(UNLOCK_SCRIPT, getKey(lock.getKey()), lock.getValue()) < 1) {
                 log.warn("释放锁无效，锁已过期或已被其他线程重新获取，key={}", lock.getKey());
-                return false;
+                throw new ServiceException(REDIS_ERROR);
             }
         } catch (Exception e) {
             log.error("释放锁失败, key={}, error={}", lock.getKey(), e.getMessage(), e);
             throw new ServiceException(REDIS_ERROR);
         }
-        return true;
     }
 
     /**

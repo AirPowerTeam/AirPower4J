@@ -329,12 +329,6 @@ public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> 
      *
      * @param id 主键 ID
      * @return 加锁后的数据
-     * @apiNote 加锁查询要求已存在事务，底层方法声明为 {@code Propagation.MANDATORY}，
-     * 事务外调用会抛 {@code InvalidDataAccessApiUsage}
-     * @apiNote 严禁在此之前执行 {@code entityManager.clear()}。清空会让 {@code DELETE}
-     * 标记和未 flush 的变更一起消失（批量删除时表现为「删 N 条只生效 1 条」），
-     * 也会把行锁之前的普通读固化读视图，破坏 {@code REPEATABLE_READ} 下的并发推进。
-     * 同一事务内读到同一实例本就是 JPA 身份映射的预期语义
      * @see #updateWithLock(long, Consumer)
      */
     public final @NotNull E getForUpdate(long id) {

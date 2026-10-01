@@ -84,10 +84,12 @@ public class RequestUtil {
      *
      * @param request 请求
      * @return 合法 IP 地址，无法解析时返回 {@code unknown}
-     * @apiNote 优先读可信代理头并取链上最左侧的合法 IP，读不到才回退
+     * @apiNote 优先读可信代理头并取链上<b>最右侧</b>的合法 IP，读不到才回退
      * {@link HttpServletRequest#getRemoteAddr()}，仍拿不到则返回 {@code unknown}，不抛异常。
      * 代理头可被客户端随意构造，只能填写<b>由你自己可信的代理写入</b>的头，
-     * 且代理侧需强制覆盖客户端传入的同名头，否则 IP 白名单、限流、风控都可能被伪造请求头绕过
+     * 且代理侧必须覆盖或追加该头（原样透传客户端的值等于没有可信头），
+     * 否则 IP 白名单、限流、风控都可能被伪造请求头绕过。
+     * 多级代理时最右侧是最后跳代理而非真实客户端，框架不维护可信代理网段，故无法再向左还原
      */
     public static @NotNull String getIpAddress(@NotNull HttpServletRequest request) {
         try {
@@ -148,15 +150,17 @@ public class RequestUtil {
     /**
      * 解析逗号分隔的代理链请求头
      *
-     * @param headerValue 原始请求头，形如 {@code 203.0.113.9, 198.51.100.7}，最左侧即来源 IP
+     * @param headerValue 原始请求头，形如 {@code 198.51.100.7, 203.0.113.9}，最右侧由离服务端最近的代理追加
      * @return 来源 IP，解析失败时返回空字符串
      */
     private static @NotNull String parseIpChainHeader(@Nullable String headerValue) {
         if (!StringUtil.hasText(headerValue)) {
             return "";
         }
-        for (String item : headerValue.split(IP_SEPARATOR)) {
-            final String ip = parseAddress(item);
+        final String[] items = headerValue.split(IP_SEPARATOR);
+        // 从右往左取：链上只有最右侧那一项由最近的代理写入，客户端填的前缀一律不可信
+        for (int i = items.length - 1; i >= 0; i--) {
+            final String ip = parseAddress(items[i]);
             if (!ip.isEmpty()) {
                 return ip;
             }
@@ -174,9 +178,10 @@ public class RequestUtil {
         if (!StringUtil.hasText(headerValue)) {
             return "";
         }
-        // 每个代理追加一个元素，最左侧元素由最外层的可信代理写入
-        for (String element : headerValue.split(IP_SEPARATOR)) {
-            for (String pair : element.split(FORWARDED_PAIR_SEPARATOR)) {
+        // 与逗号分隔的代理链同一取值方向，从右往左取
+        final String[] elements = headerValue.split(IP_SEPARATOR);
+        for (int i = elements.length - 1; i >= 0; i--) {
+            for (String pair : elements[i].split(FORWARDED_PAIR_SEPARATOR)) {
                 // 键值对前通常带有空格
                 final String item = pair.trim();
                 if (!item.regionMatches(true, 0, FORWARDED_FOR_KEY, 0, FORWARDED_FOR_KEY.length())) {

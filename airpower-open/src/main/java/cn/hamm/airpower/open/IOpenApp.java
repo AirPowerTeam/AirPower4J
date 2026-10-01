@@ -31,7 +31,7 @@ public interface IOpenApp {
     /**
      * 获取 IP 白名单列表
      *
-     * @return IP 白名单，多个 IP 用换行分隔；空表示不限制
+     * @return IP 白名单，多个 IP 用空格分开，空表示不限制
      */
     default String getIpWhiteList() {
         return "";

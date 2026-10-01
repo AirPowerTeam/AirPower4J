@@ -77,10 +77,6 @@ public class RequestUtil {
      * @return 合法 IP 地址，无法解析时返回空字符串
      * @apiNote 优先读可信代理头并取链上<b>最右侧</b>的合法 IP，读不到才回退
      * {@link HttpServletRequest#getRemoteAddr()}，仍拿不到则返回空字符串，不抛异常。
-     * 代理头可被客户端随意构造，只能填写<b>由你自己可信的代理写入</b>的头，
-     * 且代理侧必须覆盖或追加该头（原样透传客户端的值等于没有可信头），
-     * 否则 IP 白名单、限流、风控都可能被伪造请求头绕过。
-     * 多级代理时最右侧是最后跳代理而非真实客户端，框架不维护可信代理网段，故无法再向左还原
      */
     public static @NotNull String getIpAddress(@NotNull HttpServletRequest request) {
         try {
@@ -192,9 +188,6 @@ public class RequestUtil {
      *
      * @param raw 原始 IP 字符串
      * @return 合法 IP 地址
-     * @apiNote 兼容引号包裹、端口后缀、IPv6 zone id 与 IPv4 映射地址，
-     * 并严格校验字面量格式，避免非法内容（含换行、{@code unknown} 等占位值）流入日志或数据库。
-     * 包内可见，供 {@link IpMatcher} 复用同一套归一化口径
      */
     static @NotNull String parseAddress(@Nullable String raw) {
         if (!StringUtil.hasText(raw)) {
@@ -238,9 +231,6 @@ public class RequestUtil {
      *
      * @param ip IP 字面量
      * @return 字节数组，非法时返回 {@code null}
-     * @apiNote IPv4 自研解析，{@code InetAddress} 会兼容 {@code 1.2.3} 等简写与八进制歧义写法；
-     * IPv6 仅在首字符为十六进制字符或冒号时才交给 {@code InetAddress}，避免触发 DNS 查询。
-     * 包内可见，供 {@link IpMatcher} 按字节比较地址
      */
     @Contract(value = "null -> null", pure = true)
     static byte @Nullable [] toInetBytes(@Nullable String ip) {

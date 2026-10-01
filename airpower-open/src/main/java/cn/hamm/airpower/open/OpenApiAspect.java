@@ -1,9 +1,9 @@
 package cn.hamm.airpower.open;
 
-import cn.hamm.airpower.api.IpMatcher;
 import cn.hamm.airpower.api.RequestUtil;
 import cn.hamm.airpower.core.DateTimeUtil;
 import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.StringUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.redis.RedisHelper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import static cn.hamm.airpower.exception.Errors.*;
 
@@ -141,7 +142,18 @@ public class OpenApiAspect<S extends IOpenAppService> {
      * @apiNote 白名单未配置时放行：它是可选的第二道防线，不是必选项
      */
     void checkIpWhiteList(@NotNull IOpenApp openApp, @NotNull String appKey) {
-        final String ipStr = openApp.getIpWhiteList();
+        String ipStr = openApp.getIpWhiteList();
+        ipStr = ipStr
+                // 避免输入换行、全角空格、半角逗号和分号
+                .replace("\n", " ")
+                .replace(";", " ")
+                .replace(",", " ")
+                .replace("　", " ");
+        do {
+            ipStr = ipStr.replace("  ", " ");
+        } while (ipStr.contains("  "));
+        System.out.println(ipStr);
+        System.out.println(Arrays.toString(ipStr.split(" ")));
         if (!StringUtils.hasText(ipStr)) {
             log.warn("开放应用未配置 IP 白名单，所有来源 IP 均可调用。appKey={}", appKey);
             return;
@@ -151,8 +163,15 @@ public class OpenApiAspect<S extends IOpenAppService> {
         if (!StringUtils.hasText(ip)) {
             throw new ServiceException(MISSING_REQUEST_ADDRESS);
         }
-        if (IpMatcher.matches(ipStr, ip)) {
-            return;
+        String[] strings = ipStr.split(" ");
+        log.info("IP 白名单检查，ip={}, appKey={}, 已配置={}", ip, appKey, strings);
+        for (String s : strings) {
+            if (StringUtil.isEmpty(s)) {
+                continue;
+            }
+            if (ip.equals(s)) {
+                return;
+            }
         }
         // 来源 IP 与白名单内容只进服务端日志，不回显给调用方
         log.warn("IP 白名单拒绝，ip={}, appKey={}", ip, appKey);

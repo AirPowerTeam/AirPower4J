@@ -6,11 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import cn.hamm.airpower.api.RequestUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.mock.web.MockHttpServletRequest;
 
@@ -18,9 +14,7 @@ import java.lang.reflect.Field;
 
 import static cn.hamm.airpower.exception.Errors.INVALID_REQUEST_ADDRESS;
 import static cn.hamm.airpower.exception.Errors.MISSING_REQUEST_ADDRESS;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <h1>Open API 切面的 IP 白名单校验单元测试</h1>
@@ -115,7 +109,7 @@ class OpenApiAspectIpWhiteListTest {
         void blankWhiteListPasses() {
             MockHttpServletRequest request = new MockHttpServletRequest();
             request.setRemoteAddr("10.0.0.1");
-            assertDoesNotThrow(() -> aspectWith(request).checkIpWhiteList(openApp("  \n "), APP_KEY));
+            assertDoesNotThrow(() -> aspectWith(request).checkIpWhiteList(openApp("     "), APP_KEY));
         }
 
         @Test
@@ -154,7 +148,7 @@ class OpenApiAspectIpWhiteListTest {
         void hitPasses() {
             MockHttpServletRequest request = new MockHttpServletRequest();
             request.setRemoteAddr("10.0.0.1");
-            assertDoesNotThrow(() -> aspectWith(request).checkIpWhiteList(openApp("10.0.0.1\n10.0.0.2"), APP_KEY));
+            assertDoesNotThrow(() -> aspectWith(request).checkIpWhiteList(openApp("10.0.0.1  ;   10.0.0.2"), APP_KEY));
         }
 
         @Test

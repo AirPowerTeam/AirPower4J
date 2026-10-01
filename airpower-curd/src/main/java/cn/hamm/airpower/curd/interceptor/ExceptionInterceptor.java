@@ -236,11 +236,20 @@ public class ExceptionInterceptor {
      *
      * @param exception 异常
      * @return 错误响应，{@code data} 透传异常自带的附件数据
+     * @apiNote <b>data 绝不携带异常或堆栈。</b>堆栈只经 {@code logException} 进日志。
+     * 这里再兜一层：即便将来有别的异常类型把 Throwable 塞进 data，
+     * 也不会被序列化到响应体
      */
     @ExceptionHandler(ServiceException.class)
     public Json systemExceptionHandle(@NotNull ServiceException exception) {
         logException(exception);
-        return responseError(exception).setData(exception.getData());
+        Object data = exception.getData();
+        if (data instanceof Throwable) {
+            // 理论上 ServiceException 已在构造时拦下，这里是纵深防御
+            log.error("[{}]{} data 中出现异常，已丢弃以免泄露堆栈", exception.getCode(), exception.getMessage());
+            return responseError(exception);
+        }
+        return responseError(exception).setData(data);
     }
 
     /**

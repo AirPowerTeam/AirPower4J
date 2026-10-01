@@ -5,7 +5,7 @@ import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.ReflectUtil;
 import cn.hamm.airpower.core.annotation.Description;
 import cn.hamm.airpower.curd.annotation.Extends;
-import cn.hamm.airpower.curd.config.ExportConfig;
+import cn.hamm.airpower.curd.config.CurdConfig;
 import cn.hamm.airpower.curd.model.query.*;
 import cn.hamm.airpower.curd.permission.Permission;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class CurdController<
     protected S service;
 
     @Autowired
-    private ExportConfig exportConfig;
+    private CurdConfig curdConfig;
 
     /**
      * 创建导出任务
@@ -56,7 +56,7 @@ public class CurdController<
         QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
         queryPageRequest.setSort(queryListRequest.getSort());
         queryPageRequest.setFilter(queryListRequest.getFilter());
-        queryPageRequest.setPage(new Page().setPageSize(exportConfig.getExportPageSize()));
+        queryPageRequest.setPage(new Page().setPageSize(curdConfig.getMaxPageSize()));
         queryPageRequest = beforeExportQuery(queryPageRequest);
         return Json.data(service.createExportTask(queryPageRequest), "导出任务创建成功");
     }

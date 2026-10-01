@@ -26,27 +26,18 @@ public class RequestUtil {
      * 多 IP 地址分隔符
      */
     private static final String IP_SEPARATOR = ",";
-
     /**
      * Forwarded 头中键值对分隔符
      */
     private static final String FORWARDED_PAIR_SEPARATOR = ";";
-
     /**
      * Forwarded 头中来源地址的键
      */
     private static final String FORWARDED_FOR_KEY = "for=";
-
     /**
      * IPv4 映射地址前缀，形如 {@code ::ffff:192.168.1.1}
      */
     private static final String IPV4_MAPPED_PREFIX = "::ffff:";
-
-    /**
-     * 无法解析出 IP 时返回的占位值
-     */
-    private static final String UNKNOWN_IP_ADDRESS = "unknown";
-
     /**
      * 可信代理头
      */
@@ -83,9 +74,9 @@ public class RequestUtil {
      * 获取请求的来源 IP 地址
      *
      * @param request 请求
-     * @return 合法 IP 地址，无法解析时返回 {@code unknown}
+     * @return 合法 IP 地址，无法解析时返回空字符串
      * @apiNote 优先读可信代理头并取链上<b>最右侧</b>的合法 IP，读不到才回退
-     * {@link HttpServletRequest#getRemoteAddr()}，仍拿不到则返回 {@code unknown}，不抛异常。
+     * {@link HttpServletRequest#getRemoteAddr()}，仍拿不到则返回空字符串，不抛异常。
      * 代理头可被客户端随意构造，只能填写<b>由你自己可信的代理写入</b>的头，
      * 且代理侧必须覆盖或追加该头（原样透传客户端的值等于没有可信头），
      * 否则 IP 白名单、限流、风控都可能被伪造请求头绕过。
@@ -102,10 +93,10 @@ public class RequestUtil {
             if (!remoteAddress.isEmpty()) {
                 return remoteAddress;
             }
-            return UNKNOWN_IP_ADDRESS;
+            return "";
         } catch (Exception e) {
             log.warn("获取请求 IP 异常: {}", e.getMessage());
-            return UNKNOWN_IP_ADDRESS;
+            return "";
         }
     }
 
@@ -203,8 +194,9 @@ public class RequestUtil {
      * @return 合法 IP 地址
      * @apiNote 兼容引号包裹、端口后缀、IPv6 zone id 与 IPv4 映射地址，
      * 并严格校验字面量格式，避免非法内容（含换行、{@code unknown} 等占位值）流入日志或数据库。
+     * 包内可见，供 {@link IpMatcher} 复用同一套归一化口径
      */
-    private static @NotNull String parseAddress(@Nullable String raw) {
+    static @NotNull String parseAddress(@Nullable String raw) {
         if (!StringUtil.hasText(raw)) {
             return "";
         }
@@ -247,10 +239,11 @@ public class RequestUtil {
      * @param ip IP 字面量
      * @return 字节数组，非法时返回 {@code null}
      * @apiNote IPv4 自研解析，{@code InetAddress} 会兼容 {@code 1.2.3} 等简写与八进制歧义写法；
-     * IPv6 仅在首字符为十六进制字符或冒号时才交给 {@code InetAddress}，避免触发 DNS 查询
+     * IPv6 仅在首字符为十六进制字符或冒号时才交给 {@code InetAddress}，避免触发 DNS 查询。
+     * 包内可见，供 {@link IpMatcher} 按字节比较地址
      */
     @Contract(value = "null -> null", pure = true)
-    private static byte @Nullable [] toInetBytes(@Nullable String ip) {
+    static byte @Nullable [] toInetBytes(@Nullable String ip) {
         if (!StringUtil.hasText(ip)) {
             return null;
         }

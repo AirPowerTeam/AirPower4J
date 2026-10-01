@@ -183,11 +183,11 @@ class RequestUtilTest {
         }
 
         @Test
-        @DisplayName("代理头与对端地址都不可用时返回占位值")
+        @DisplayName("代理头与对端地址都不可用时返回空串")
         void bothUnavailable() {
             RequestUtil.setTrustProxyHeader("X-Forwarded-For");
-            assertEquals("unknown", RequestUtil.getIpAddress(request("X-Forwarded-For", null, "unknown")),
-                    "取不到来源地址时返回占位值而不是抛异常");
+            assertEquals("", RequestUtil.getIpAddress(request("X-Forwarded-For", null, "unknown")),
+                    "取不到来源地址时返回空串而不是抛异常；返回非空占位值会让白名单误判成「不在名单内」");
         }
     }
 }

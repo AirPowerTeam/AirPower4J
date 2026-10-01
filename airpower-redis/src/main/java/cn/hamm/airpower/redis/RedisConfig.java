@@ -20,11 +20,6 @@ public class RedisConfig {
     private int cacheExpireSecond = DateTimeUtil.SECOND_PER_MINUTE;
 
     /**
-     * 生成文件的目录
-     */
-    private String saveFilePath = "";
-
-    /**
      * Redis 前缀
      */
     private String prefix = "airpower:";

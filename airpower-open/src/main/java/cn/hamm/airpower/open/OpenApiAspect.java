@@ -3,7 +3,6 @@ package cn.hamm.airpower.open;
 import cn.hamm.airpower.api.RequestUtil;
 import cn.hamm.airpower.core.DateTimeUtil;
 import cn.hamm.airpower.core.Json;
-import cn.hamm.airpower.core.StringUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.redis.RedisHelper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -166,9 +165,6 @@ public class OpenApiAspect<S extends IOpenAppService> {
         String[] strings = ipStr.split(" ");
         log.info("IP 白名单检查，ip={}, appKey={}, 已配置={}", ip, appKey, strings);
         for (String s : strings) {
-            if (StringUtil.isEmpty(s)) {
-                continue;
-            }
             if (ip.equals(s)) {
                 return;
             }

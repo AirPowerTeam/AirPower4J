@@ -18,6 +18,9 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Objects;
@@ -59,12 +62,21 @@ public class ExportHelper {
      *
      * @param exportFile 导出文件
      * @param valueList  数据列表
-     * @apiNote 以追加方式写入，便于分页导出时多次追加；表头行由调用方先写一次
+     * @apiNote 以追加方式写入，便于分页导出时多次追加；表头行由调用方先写一次。
+     * <b>只有首次写入（文件尚不存在，即写表头那一行）会前置 UTF-8 BOM</b>，
+     * 后续分页在文件尾部追加，若每页都补 BOM 会在文件中间插入不可见字符，把表格撑出空行
      */
     public static void saveCsvListToFile(@NotNull ExportFile exportFile, List<String> valueList) {
-        String rowString = String.join(CollectionUtil.CSV_ROW_DELIMITER, valueList);
-        // 写入文件
-        FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), rowString + CollectionUtil.CSV_ROW_DELIMITER, StandardOpenOption.APPEND);
+        String rowString = String.join(CollectionUtil.CSV_ROW_DELIMITER, valueList)
+                + CollectionUtil.CSV_ROW_DELIMITER;
+        // 首次写入才补 BOM：Excel 靠 BOM 判定编码，没有它会用系统 ANSI 代码页解码，中文全乱码
+        if (Files.notExists(exportFile.getAbsoluteFile())) {
+            rowString = CollectionUtil.UTF8_BOM + rowString;
+        }
+        // CREATE 必须显式带上：NIO 的 APPEND 自身不蕴含「不存在则创建」，
+        // 只传 APPEND 时第一次写表头就会抛 NoSuchFileException，导出直接失败
+        FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), rowString,
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 
     /**
@@ -179,6 +191,16 @@ public class ExportHelper {
          */
         public String getAbsoluteDirectory() {
             return exportRootDirectory + relativeDirectory;
+        }
+
+        /**
+         * 获取导出文件的绝对路径
+         *
+         * @return 绝对文件路径
+         * @apiNote 供写入方判断「是否首次写入」，从而不重复追加 CSV 的 UTF-8 BOM
+         */
+        public Path getAbsoluteFile() {
+            return Paths.get(getAbsoluteDirectory(), getFileName());
         }
 
         /**

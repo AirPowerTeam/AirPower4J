@@ -88,6 +88,14 @@
             <scope>runtime</scope>
             <version>${mysql.version}</version>
         </dependency>
+
+        <!-- ==================== 测试依赖 ==================== -->
+        <!-- 仅测试期使用，不进入运行时依赖树；版本由父 pom 的 dependencyManagement 统一管理 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

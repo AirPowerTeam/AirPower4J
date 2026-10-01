@@ -27,6 +27,7 @@
 
         <!-- ==================== 第三方库版本 ==================== -->
         <mysql.version>8.0.33</mysql.version>
+        <jakarta.servlet.version>6.1.0</jakarta.servlet.version>
         <jetbrains.annotations.version>26.0.2</jetbrains.annotations.version>
         <commons.codec.version>1.13</commons.codec.version>
         <lombok.version>1.18.36</lombok.version>
@@ -153,6 +154,28 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <!-- ==================== 全模块共享的编译期依赖 ==================== -->
+    <!-- 各模块的源码普遍 import org.jetbrains.annotations 与 jakarta.servlet，
+         过去是吃 airpower-core 的传递依赖。airpower-core 把它们改成 provided 后
+         传递链断开，9 个模块同时编译失败。
+         在父 pom 统一声明一次：所有模块编译期可见，且不传递给下游 -->
+    <dependencies>
+        <!-- @NotNull / @Nullable / @Contract 都是 CLASS 保留期，编译期与 IDE 用，运行期不需要 -->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${jetbrains.annotations.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Servlet API 由容器在运行期提供 -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>${jakarta.servlet.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>

@@ -4,6 +4,7 @@ import cn.hamm.airpower.core.CollectionUtil;
 import cn.hamm.airpower.core.FileUtil;
 import cn.hamm.airpower.core.RandomUtil;
 import cn.hamm.airpower.core.TaskUtil;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.curd.config.ExportConfig;
 import cn.hamm.airpower.redis.RedisHelper;
 import lombok.Getter;
@@ -101,8 +102,14 @@ public class ExportHelper {
         if (Objects.nonNull(object)) {
             return createExportTask(supplier);
         }
-        redisHelper.set(fileCacheKey, "");
-        TaskUtil.run(() -> redisHelper.set(fileCacheKey, supplier.get()));
+        try {
+            TaskUtil.run(() -> redisHelper.set(fileCacheKey, supplier.get()));
+        } catch (ServiceException e) {
+            // 队列满时任务不会执行，占位符必须撤掉：否则 fileCode 永远停在空串，
+            // 客户端会一直轮询到超时，却等不到文件也看不到任何报错
+            redisHelper.set(fileCacheKey, null);
+            throw e;
+        }
         return fileCode;
     }
 

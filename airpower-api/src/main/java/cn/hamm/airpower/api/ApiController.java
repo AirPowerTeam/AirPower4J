@@ -19,12 +19,12 @@ import org.springframework.stereotype.Controller;
 public class ApiController {
     /**
      * 当前登录用户 ID 的 request 属性名
-     *
-     * @apiNote 拦截器或业务代码预先写入该属性后，可跳过再次解析 {@code AccessToken}
      */
     public static final String CURRENT_USER_ID = "CURRENT_USER_ID";
+
     @Autowired
     protected ApiConfig apiConfig;
+
     @Autowired
     protected HttpServletRequest request;
 
@@ -51,6 +51,9 @@ public class ApiController {
         String accessToken = request.getParameter(apiConfig.getAuthorizeHeader());
         if (StringUtil.isEmpty(accessToken)) {
             accessToken = request.getHeader(apiConfig.getAuthorizeHeader());
+        }
+        if (StringUtil.isEmpty(accessToken)) {
+            throw new RuntimeException("身份令牌缺失，请先登录后再操作");
         }
         return AccessTokenUtil.create().verify(
                 accessToken,

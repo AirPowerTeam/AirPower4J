@@ -852,7 +852,7 @@ public class RedisHelper {
         private static final AtomicLong INDEX = new AtomicLong();
 
         @Override
-        public Thread newThread(@NotNull Runnable runnable) {
+        public @NotNull Thread newThread(@NotNull Runnable runnable) {
             Thread thread = new Thread(runnable, "airpower-lock-renew-" + INDEX.incrementAndGet());
             thread.setDaemon(true);
             return thread;

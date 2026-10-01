@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import static cn.hamm.airpower.core.enums.DateTimeFormatter.FULL_TIME;
@@ -75,7 +76,7 @@ public class ExportHelper {
      * 随机串撞车时递归重试
      */
     public final String createExportTask(Supplier<String> supplier) {
-        String fileCode = RandomUtil.randomString().toLowerCase();
+        String fileCode = UUID.randomUUID().toString().replace("-", "");
         final String fileCacheKey = EXPORT_TASK_KEY_PREFIX + fileCode;
         Object object = redisHelper.get(fileCacheKey);
         if (Objects.nonNull(object)) {

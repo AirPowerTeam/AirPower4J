@@ -27,11 +27,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface Api {
     /**
      * 接口路径
-     *
-     * @apiNote {@link AliasFor} 到 {@link RequestMapping#path()}，
-     * 等价于在类上再写一个 {@code @RequestMapping("/xxx")}
      */
-    @SuppressWarnings("UnusedReturnValue")
     @AliasFor(annotation = RequestMapping.class, attribute = "path")
     String value();
 }

@@ -130,10 +130,10 @@ public class QueryHelper {
         }
         if (!CurdEntity.STRING_CREATE_TIME.equals(sort.getField())) {
             // 如果非创建时间排序，则自动追加一个创建时间排序
-            result.and(by(desc(CurdEntity.STRING_CREATE_TIME)));
+            result = result.and(by(desc(CurdEntity.STRING_CREATE_TIME)));
         }
         // 继续追加一个 ID 排序，解决创建时间相同的记录排序
-        result.and(by(desc(Constant.ID)));
+        result = result.and(by(desc(Constant.ID)));
         return result;
     }
 

@@ -85,19 +85,7 @@ public enum Errors implements IException<ServiceException>, IDictionary {
     ;
 
     private final int code;
-    private String message;
-
-    /**
-     * 设置错误信息
-     *
-     * @param message 错误信息
-     * @return 当前异常
-     */
-    @Contract(value = "_ -> this", mutates = "this")
-    public Errors setMessage(String message) {
-        this.message = message;
-        return this;
-    }
+    private final String message;
 
     @Contract(pure = true)
     @Override

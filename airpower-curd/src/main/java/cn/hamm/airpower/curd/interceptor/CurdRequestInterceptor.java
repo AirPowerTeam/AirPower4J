@@ -1,15 +1,19 @@
 package cn.hamm.airpower.curd.interceptor;
 
+import cn.hamm.airpower.api.ApiController;
 import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.AccessTokenUtil;
 import cn.hamm.airpower.core.TraceUtil;
 import cn.hamm.airpower.core.constant.HttpConstant;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.curd.model.Access;
 import cn.hamm.airpower.curd.permission.PermissionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -20,13 +24,16 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.UUID;
 
 import static cn.hamm.airpower.exception.Errors.UNAUTHORIZED;
 
 /**
- * <h1>权限拦截器抽象类</h1>
+ * <h1>请求权限拦截器</h1>
  *
  * @author Hamm.cn
+ * @apiNote 校验顺序：先落 {@code traceId} 与共享数据，再判断是否需要登录，最后才是 RBAC。
+ * 抛异常即为拦截，放行则一律返回 {@code true}
  * @see #checkUserPermission(AccessTokenUtil.VerifiedToken, String, HttpServletRequest)
  * @see #interceptRequest(HttpServletRequest, HttpServletResponse, Class, Method)
  */
@@ -39,7 +46,7 @@ public class CurdRequestInterceptor implements HandlerInterceptor {
     public static final String REQUEST_METHOD_KEY = "REQUEST_METHOD_KEY";
 
     /**
-     * 缓存的 {@code REQUEST_METHOD_KEY}
+     * 缓存的 {@code REQUEST_CONTROLLER_KEY}
      */
     public static final String REQUEST_CONTROLLER_KEY = "REQUEST_CONTROLLER_KEY";
 
@@ -60,12 +67,11 @@ public class CurdRequestInterceptor implements HandlerInterceptor {
             @NotNull HttpServletResponse response,
             @NotNull Object object
     ) {
-        String traceId = request.getHeader(HttpConstant.Header.TRACE_ID);
-        TraceUtil.setTraceId(traceId);
+        TraceUtil.setTraceId(UUID.randomUUID().toString());
         HandlerMethod handlerMethod = (HandlerMethod) object;
-        //取出控制器和方法
         Class<?> clazz = handlerMethod.getBeanType();
         Method method = handlerMethod.getMethod();
+        // 响应拦截器读不到拦截器的局部变量，只能通过请求域传递
         setShareData(REQUEST_METHOD_KEY, method);
         setShareData(REQUEST_CONTROLLER_KEY, handlerMethod.getBean());
         handleRequest(request, response, clazz, method);
@@ -101,13 +107,12 @@ public class CurdRequestInterceptor implements HandlerInterceptor {
         interceptRequest(request, response, clazz, method);
         Access access = PermissionUtil.getWhatNeedAccess(clazz, method);
         if (!access.isLogin()) {
-            // 不需要登录 直接返回有权限
+            // 无需登录即视为有权限，不校验 RBAC
             return;
         }
-        //需要登录
         String accessToken = request.getHeader(apiConfig.getAuthorizeHeader());
 
-        // 优先使用 Get 参数传入的身份
+        // GET 参数传入的令牌优先，便于浏览器下载类场景
         String accessTokenFromParam = request.getParameter(apiConfig.getAuthorizeHeader());
         if (StringUtils.hasText(accessTokenFromParam)) {
             accessToken = accessTokenFromParam;
@@ -115,9 +120,7 @@ public class CurdRequestInterceptor implements HandlerInterceptor {
         UNAUTHORIZED.whenEmpty(accessToken);
         AccessTokenUtil.VerifiedToken verifiedToken = getVerifiedToken(accessToken);
 
-        //需要 RBAC
         if (access.isAuthorize()) {
-            //验证用户是否有接口的访问权限
             checkUserPermission(verifiedToken, PermissionUtil.getPermissionIdentity(clazz, method), request);
         }
     }
@@ -139,11 +142,13 @@ public class CurdRequestInterceptor implements HandlerInterceptor {
      * @param verifiedToken      合法令牌
      * @param permissionIdentity 权限标识
      * @param request            请求对象
+     * @apiNote 基类未实现，抛「未实现权限校验」。RBAC 由业务模块（如 SPMS）重写
      * @apiNote 抛出异常则为拦截
      */
     public void checkUserPermission(
             AccessTokenUtil.@NotNull VerifiedToken verifiedToken, String permissionIdentity, HttpServletRequest request
     ) {
+        throw new ServiceException("未实现权限校验");
     }
 
     /**
@@ -159,5 +164,20 @@ public class CurdRequestInterceptor implements HandlerInterceptor {
     protected void interceptRequest(
             HttpServletRequest request, HttpServletResponse response, Class<?> clazz, Method method
     ) {
+    }
+
+    /**
+     * 请求完成
+     *
+     * @param request  请求对象
+     * @param response 响应对象
+     * @param handler  处理器
+     * @param ex       异常
+     * @apiNote 必须清理 {@code MDC}，否则线程池复用会把上一条请求的 {@code traceId} 带到下一条
+     */
+    @Override
+    public final void afterCompletion(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler, @Nullable Exception ex) {
+        MDC.remove(HttpConstant.Header.TRACE_ID);
+        MDC.remove(ApiController.CURRENT_USER_ID);
     }
 }

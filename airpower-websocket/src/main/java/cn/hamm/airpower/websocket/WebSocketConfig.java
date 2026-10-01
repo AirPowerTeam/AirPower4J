@@ -43,5 +43,5 @@ public class WebSocketConfig {
     /**
      * WebSocket 允许的跨域
      */
-    private String allowedOrigins = "*";
+    private String allowedOrigins = "";
 }

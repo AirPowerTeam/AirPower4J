@@ -15,6 +15,7 @@ import java.util.List;
  *
  * @param <M> 模型
  * @author Hamm.cn
+ * @apiNote 对外页码从 1 开始，与请求参数保持一致
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -50,6 +51,8 @@ public class PageData<M extends RootModel<M>> extends RootModel<M> {
      * @param page Spring 分页数据
      * @param <M>  实体类型
      * @return 实例
+     * @apiNote Spring Data 的页码从 0 开始，这里 {@code +1} 转成对外的 1 开始；
+     * 总数超过 {@code int} 范围会抛 {@link ArithmeticException}
      */
     public static <M extends RootModel<M>> @NotNull PageData<M> newInstance(org.springframework.data.domain.@NotNull Page<M> page) {
         PageData<M> pageData = new PageData<>();

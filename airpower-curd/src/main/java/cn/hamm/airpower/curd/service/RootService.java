@@ -18,8 +18,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * <h1>根服务</h1>
+ * <h1>服务基类</h1>
  *
+ * @param <E> 模型
  * @author Hamm.cn
  */
 @Getter
@@ -52,6 +53,8 @@ public class RootService<E extends RootModel<E>> {
      * 获取泛型参数
      *
      * @return 类
+     * @apiNote 取直接父类泛型的第一个实参。中间插入其他父类会解析失败，
+     * 实体类型必须写在第一段泛型里
      */
     public final @NotNull Class<E> getFirstParameterizedTypeClass() {
         //noinspection unchecked
@@ -62,6 +65,8 @@ public class RootService<E extends RootModel<E>> {
      * 脱敏
      *
      * @param entity 待脱敏实体
+     * @apiNote 只在「当前值已退化为掩码」时置空，命中即把字段改成 {@code null}：
+     * 数据库中仍保存原值，接口不再返回，避免读-改-写时把掩码写回库里
      */
     protected void desensitize(E entity) {
         List<Field> fieldList = ReflectUtil.getFieldList(getFirstParameterizedTypeClass());

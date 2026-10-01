@@ -7,6 +7,11 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
 import java.util.concurrent.Executors;
 
+/**
+ * <h1>Redis发布订阅配置</h1>
+ *
+ * @author Hamm.cn
+ */
 @Configuration
 public class RedisPubSubConfig {
     @Bean

@@ -11,6 +11,7 @@ import lombok.experimental.Accessors;
  *
  * @param <M> 数据模型
  * @author Hamm.cn
+ * @apiNote {@code filter} 为空时会自动 new 一个空实体，等价于「不筛选」
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

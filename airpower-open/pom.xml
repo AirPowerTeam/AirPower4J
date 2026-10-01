@@ -6,7 +6,7 @@
         <groupId>cn.hamm</groupId>
         <artifactId>airpower</artifactId>
         <!-- POM 统一版本-->
-        <version>8.0.1</version>
+        <version>9.0.0</version>
     </parent>
     <artifactId>airpower-open</artifactId>
     <name>airpower-open</name>
@@ -46,6 +46,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
             <version>${spring-boot-starter-aop.version}</version>
+        </dependency>
+
+        <!-- 仅测试期使用，不进入运行时依赖树；版本由父 pom 的 dependencyManagement 统一管理 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

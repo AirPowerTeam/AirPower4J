@@ -5,15 +5,15 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>Open API</h1>
+ * <h1>Open API 注解</h1>
  *
  * @author Hamm.cn
  */
-@Target({FIELD, METHOD, TYPE})
+@Target(METHOD)
 @Retention(RUNTIME)
 @Inherited
 @Documented

@@ -29,7 +29,7 @@ import static cn.hamm.airpower.exception.Errors.WEBSOCKET_ERROR;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * <h1>WebSocket Handler</h1>
+ * <h1>WebSocket 会话处理器</h1>
  *
  * @author Hamm
  */
@@ -37,27 +37,31 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Slf4j
 public class WebSocketHandler extends TextWebSocketHandler implements MessageListener {
     /**
-     * 订阅用户频道前缀
+     * 用户私有频道的逻辑名前缀，实际频道为 {@code 前缀_WEBSOCKET_USER_用户ID}
+     *
+     * @apiNote 逻辑频道名，真实频道还要拼上 {@link WebSocketConfig#getChannelPrefix()}，见 {@link #getRealChannel(String)}
      */
     public static final String CHANNEL_USER_PREFIX = "WEBSOCKET_USER_";
 
     /**
-     * 订阅全频道
+     * 广播给所有在线会话的逻辑频道名
+     *
+     * @apiNote 逻辑频道名，真实频道还要拼上 {@link WebSocketConfig#getChannelPrefix()}，见 {@link #getRealChannel(String)}
      */
     public static final String CHANNEL_ALL = "WEBSOCKET_ALL";
 
     /**
-     * Redis 连接列表
+     * 会话 ID 到 Redis 订阅连接的映射，断开时需逐个关闭，否则连接池被占满
      */
     protected final ConcurrentHashMap<String, RedisConnection> redisConnectionHashMap = new ConcurrentHashMap<>();
 
     /**
-     * MQTT 客户端列表
+     * 会话 ID 到 MQTT 客户端的映射，断开时需逐个关闭
      */
     protected final ConcurrentHashMap<String, MqttClient> mqttClientHashMap = new ConcurrentHashMap<>();
 
     /**
-     * 用户 ID 列表
+     * 会话 ID 到登录用户 ID 的映射
      */
     protected final ConcurrentHashMap<String, Long> userIdHashMap = new ConcurrentHashMap<>();
 
@@ -77,10 +81,12 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     private RedisMessageListenerContainer redisMessageListenerContainer;
 
     /**
-     * 收到 WebSocket 消息时
+     * 收到 WebSocket 文本消息时
      *
      * @param session     会话
      * @param textMessage 文本消息
+     * @apiNote 先比对心跳报文（{@link WebSocketConfig#getPing()}），命中就直接回 {@code PONG} 并结束，
+     * 不走 JSON 反序列化。解析失败只记日志不断开连接，避免客户端一条脏数据就掉线
      */
     @Override
     protected final void handleTextMessage(@NonNull WebSocketSession session, @NotNull TextMessage textMessage) {
@@ -102,10 +108,11 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * 发送 {@code } 事件负载
+     * 向下推送事件负载
      *
      * @param session          会话
      * @param webSocketPayload 事件负载
+     * @apiNote 下行消息会补上事件 ID 与时间戳，客户端应以此判断是否为同一次事件的重复推送
      */
     protected final void sendWebSocketPayload(@NotNull WebSocketSession session,
                                               @NotNull WebSocketPayload webSocketPayload) {
@@ -118,18 +125,23 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * 当 WebSocket 负载到达时
+     * 收到客户端上行负载时的扩展点
      *
      * @param webSocketPayload 负载对象
+     * @param session          会话
+     * @apiNote 基类只记日志，业务消息的处理交由子类重写此方法，不要改基类的解析逻辑
      */
     protected void onWebSocketPayload(@NotNull WebSocketPayload webSocketPayload, @NotNull WebSocketSession session) {
         log.info("负载类型: {}, 负载内容: {}", webSocketPayload.getType(), webSocketPayload.getData());
     }
 
     /**
-     * 连接就绪后监听队列
+     * 建立连接：鉴权后按配置订阅消息源
      *
      * @param session 会话
+     * @apiNote 令牌取自 query string（整段当作令牌，不解析键值对），详见类注释。
+     * 令牌无效会抛异常，被这里的 catch 吞掉并只记日志——连接不会关闭，
+     * 客户端能连上但收不到任何消息
      */
     @Override
     public final void afterConnectionEstablished(@NonNull WebSocketSession session) {
@@ -163,9 +175,10 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
     }
 
     /**
-     * 连接成功后置方法
+     * 连接成功后的扩展点
      *
      * @param session 会话
+     * @apiNote 订阅已就绪，可以直接往 {@link #subscribe(String, WebSocketSession)} 里加业务频道
      */
     protected void afterConnectSuccess(@NonNull WebSocketSession session) {
         log.info("连接成功 会话ID: {}", session.getId());
@@ -261,6 +274,14 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
         }
     }
 
+    /**
+     * 连接断开：释放该会话占用的连接与订阅
+     *
+     * @param session 会话
+     * @param status  关闭状态
+     * @apiNote 方法是 {@code final} 的，子类改不了；释放动作全部由基类完成，
+     * 业务清理请写在 {@link #afterDisconnect(WebSocketSession, Long)} 里
+     */
     @Contract(pure = true)
     @Override
     public final void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) {

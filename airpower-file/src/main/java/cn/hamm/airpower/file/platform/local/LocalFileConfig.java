@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * <h1>文件配置文件</h1>
+ * <h1>本地存储配置</h1>
  *
  * @author Hamm.cn
  */
@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("airpower.file.local")
 public class LocalFileConfig {
     /**
-     * 上传文件目录
+     * 文件存储的绝对目录
      */
     private String localAbsoluteDirectory = "/home/static/";
 

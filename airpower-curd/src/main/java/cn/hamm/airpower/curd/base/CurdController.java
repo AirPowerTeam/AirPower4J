@@ -5,7 +5,7 @@ import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.ReflectUtil;
 import cn.hamm.airpower.core.annotation.Description;
 import cn.hamm.airpower.curd.annotation.Extends;
-import cn.hamm.airpower.curd.config.ExportConfig;
+import cn.hamm.airpower.curd.config.CurdConfig;
 import cn.hamm.airpower.curd.model.query.*;
 import cn.hamm.airpower.curd.permission.Permission;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +22,14 @@ import java.util.Objects;
 /**
  * <h1>增删改查控制器</h1>
  *
- * @param <S> Service
- * @param <E> 实体或实体的子类
+ * @param <E> 实体
+ * @param <S> 实体服务
+ * @param <R> 实体数据源
  * @author Hamm.cn
- * @apiNote 提供了 {@link Extends} 处理接口黑白名单，同时提供了一些 前置/后置 方法，可被子控制器类重写(不建议)
+ * @apiNote 提供 {@link Extends} 黑白名单来裁剪子控制器暴露的接口，同时提供
+ * 前置/后置钩子供子控制器重写
+ * @apiNote 钩子不推荐重写接口方法本身。接口方法可被 {@link Extends} 继承或排除，
+ * 业务逻辑应放进 {@code beforeXxx} / {@code afterXxx}，这样接口的可用性与业务解耦
  */
 @Slf4j
 @Permission
@@ -37,20 +41,23 @@ public class CurdController<
     protected S service;
 
     @Autowired
-    private ExportConfig exportConfig;
+    private CurdConfig curdConfig;
 
     /**
      * 创建导出任务
+     *
+     * @param queryListRequest 查询请求
+     * @return 导出任务的文件编码
      */
     @Description("创建导出任务")
     @PostMapping("export")
     public Json export(@RequestBody QueryListRequest<E> queryListRequest) {
         Curd.Export.checkApiAvailable(this);
         QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
-        queryPageRequest.setSort(queryListRequest.getSort());
         queryPageRequest.setFilter(queryListRequest.getFilter());
-        queryPageRequest.setPage(new Page().setPageSize(exportConfig.getExportPageSize()));
+        queryPageRequest.setPage(new Page().setPageSize(curdConfig.getMaxPageSize()));
         queryPageRequest = beforeExportQuery(queryPageRequest);
+        queryPageRequest.setSort(null);
         return Json.data(service.createExportTask(queryPageRequest), "导出任务创建成功");
     }
 
@@ -66,6 +73,10 @@ public class CurdController<
 
     /**
      * 查询异步导出结果
+     *
+     * @param queryExport 查询导出模型
+     * @return 导出文件的下载地址
+     * @apiNote 需要登录但不校验 RBAC，导出任务的文件编码本身就是访问凭证
      */
     @Description("查询异步导出结果")
     @PostMapping("queryExport")
@@ -78,6 +89,8 @@ public class CurdController<
     /**
      * 添加一条新数据接口
      *
+     * @param source 提交的实体
+     * @return 仅含 ID 的新实体
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeAdd(E)
      */
@@ -85,8 +98,8 @@ public class CurdController<
     @PostMapping("add")
     public Json add(@RequestBody @Validated(WhenAdd.class) E source) {
         Curd.Add.checkApiAvailable(this);
-        source.excludeReadOnly();
         source = beforeAdd(source);
+        source.excludeReadOnly();
         long id = service.add(source);
         return Json.data(service.getEntityInstance(id), "添加成功");
     }
@@ -94,6 +107,8 @@ public class CurdController<
     /**
      * 修改一条已存在的数据接口
      *
+     * @param source 提交的实体，仅校验 {@link WhenUpdate} 分组
+     * @return 仅含 ID 的实体
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeUpdate(E)
      */
@@ -101,8 +116,8 @@ public class CurdController<
     @PostMapping("update")
     public Json update(@RequestBody @Validated(WhenUpdate.class) @NotNull E source) {
         Curd.Update.checkApiAvailable(this);
-        source.excludeReadOnly();
         source = beforeUpdate(source);
+        source.excludeReadOnly();
         service.update(source);
         return Json.data(service.getEntityInstance(source.getId()), "修改成功");
     }
@@ -110,6 +125,8 @@ public class CurdController<
     /**
      * 删除一条已存在的数据接口
      *
+     * @param source 提交的实体，仅校验 {@link WhenIdRequired} 分组
+     * @return 仅含 ID 的实体
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeDelete(E)
      */
@@ -126,6 +143,8 @@ public class CurdController<
     /**
      * 查询一条详情数据
      *
+     * @param source 提交的实体，仅校验 {@link WhenIdRequired} 分组
+     * @return 查到的实体
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #afterGetDetail(E)
      */
@@ -139,6 +158,8 @@ public class CurdController<
     /**
      * 禁用一条已存在的数据
      *
+     * @param source 提交的实体，仅校验 {@link WhenIdRequired} 分组
+     * @return 仅含 ID 的实体
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeDisable(E)
      */
@@ -156,6 +177,8 @@ public class CurdController<
     /**
      * 启用一条已存在的数据
      *
+     * @param source 提交的实体，仅校验 {@link WhenIdRequired} 分组
+     * @return 仅含 ID 的实体
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeEnable(E)
      */
@@ -173,6 +196,8 @@ public class CurdController<
     /**
      * 不分页查询
      *
+     * @param queryListRequest 查询请求
+     * @return 数据列表
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeGetList(QueryListRequest)
      * @see #afterGetList(List)
@@ -189,6 +214,8 @@ public class CurdController<
     /**
      * 分页查询
      *
+     * @param queryPageRequest 查询请求
+     * @return 分页数据
      * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
      * @see #beforeGetPage(QueryPageRequest)
      * @see #afterGetPage(QueryPageResponse)
@@ -205,6 +232,8 @@ public class CurdController<
     /**
      * 查询分页后置方法
      *
+     * @param queryPageResponse 查询到的分页数据
+     * @return 处理后的分页数据
      * @see #getPage(QueryPageRequest)
      */
     protected QueryPageResponse<E> afterGetPage(QueryPageResponse<E> queryPageResponse) {
@@ -214,6 +243,8 @@ public class CurdController<
     /**
      * 查询分页前置方法
      *
+     * @param queryPageRequest 查询请求
+     * @return 处理后的查询请求
      * @apiNote 可重写后重新设置查询条件
      * @see #getPage(QueryPageRequest)
      */
@@ -224,6 +255,8 @@ public class CurdController<
     /**
      * 查询不分页前置方法
      *
+     * @param queryListRequest 查询请求
+     * @return 处理后的查询请求
      * @apiNote 可重写后重新设置查询条件
      */
     protected QueryListRequest<E> beforeGetList(QueryListRequest<E> queryListRequest) {
@@ -233,6 +266,8 @@ public class CurdController<
     /**
      * 查询不分页后置方法
      *
+     * @param list 查询到的数据
+     * @return 处理后的数据
      * @apiNote 可重写后执行装载更多数据的业务
      */
     protected List<E> afterGetList(List<E> list) {
@@ -242,6 +277,8 @@ public class CurdController<
     /**
      * 查询详情后置方法
      *
+     * @param entity 查到的数据
+     * @return 处理后的数据
      * @apiNote 可重写后执行装载更多数据的业务
      */
     protected E afterGetDetail(@NotNull E entity) {
@@ -251,6 +288,8 @@ public class CurdController<
     /**
      * 新增前置方法
      *
+     * @param entity 提交的实体
+     * @return 处理后的实体
      * @apiNote 可重写后执行新增前的数据处理
      */
     protected E beforeAdd(@NotNull E entity) {
@@ -292,6 +331,7 @@ public class CurdController<
      * 启用前置方法
      *
      * @param entity 启用前的实体
+     * @apiNote 可重写后执行启用之前的业务处理或拦截
      */
     @SuppressWarnings({"unused", "EmptyMethod"})
     protected void beforeEnable(@NotNull E entity) {
@@ -316,6 +356,8 @@ public class CurdController<
      * 获取实体类
      *
      * @return 类
+     * @apiNote 通过直接父类的第一个泛型实参推导，子控制器必须把实体类型写在
+     * {@code extends CurdController} 的第一段泛型里；中间插入其他父类会解析失败
      */
     @SuppressWarnings("unchecked")
     public final Class<E> getEntityClass() {

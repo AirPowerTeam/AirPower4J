@@ -22,7 +22,7 @@ import java.util.Date;
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>腾讯云COS</h1>
+ * <h1>腾讯云 COS 存储平台</h1>
  *
  * @author Hamm.cn
  */
@@ -36,7 +36,9 @@ public class TencentCloudCosHelper extends AbstractFilePlatformFactory {
     private TencentCloudCosConfig tencentCloudCosConfig;
 
     /**
-     * volatile：防止指令重排序
+     * COS 客户端
+     *
+     * @apiNote 双重检查锁延迟创建，{@code volatile} 保证其他线程能看到完整构造的实例
      */
     private volatile COSClient cosClient;
 
@@ -46,6 +48,7 @@ public class TencentCloudCosHelper extends AbstractFilePlatformFactory {
      * @param inputStream 文件输入流
      * @param directory   文件目录
      * @param fileName    文件名
+     * @apiNote COS 要求上传前就声明 Content-Length，故先取 {@code available()}
      */
     @Override
     public void save(@NotNull InputStream inputStream, String directory, String fileName) {
@@ -64,7 +67,8 @@ public class TencentCloudCosHelper extends AbstractFilePlatformFactory {
      *
      * @param path   文件路径
      * @param second 过期时间（秒）
-     * @return 文件 URL
+     * @return 预签名的文件 URL
+     * @apiNote 私有 Bucket 下 URL 必须带签名，{@code second} 到期后链接即失效
      */
     @Override
     public String getUrl(String path, int second) {
@@ -84,7 +88,10 @@ public class TencentCloudCosHelper extends AbstractFilePlatformFactory {
     }
 
     /**
-     * 获取 BucketName
+     * 获取 Bucket 名称
+     *
+     * @return Bucket 名称
+     * @apiNote 未配置时抛异常
      */
     private String getBucketName() {
         String bucketName = tencentCloudCosConfig.getBucketName();
@@ -93,7 +100,10 @@ public class TencentCloudCosHelper extends AbstractFilePlatformFactory {
     }
 
     /**
-     * 获取 COS Client（单例 + 线程安全）
+     * 获取 COS 客户端
+     *
+     * @return COS 客户端
+     * @apiNote 双重检查锁延迟创建为单例；缺少 SecretId / SecretKey / Region 时抛异常
      */
     private COSClient getClient() {
         if (cosClient == null) {

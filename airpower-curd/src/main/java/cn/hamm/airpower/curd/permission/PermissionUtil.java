@@ -34,6 +34,8 @@ import static org.springframework.core.io.support.ResourcePatternResolver.CLASSP
  * <h1>权限处理工具类</h1>
  *
  * @author Hamm.cn
+ * @apiNote 权限标识由类的全限定名派生，是「类」与「方法」的全局唯一真源：
+ * 改名或移动类都会让已入库的权限标识失效，需要重新同步权限
  */
 @Slf4j
 public class PermissionUtil {
@@ -41,6 +43,16 @@ public class PermissionUtil {
      * {@code Controller}
      */
     private static final String CONTROLLER = "Controller";
+
+    /**
+     * 基础包名
+     */
+    private static String basePackageName = "";
+
+    /**
+     * 是否使用包名作为权限标识的前缀
+     */
+    private static Boolean permissionWithPackage = true;
 
     /**
      * 禁止外部实例化
@@ -51,28 +63,43 @@ public class PermissionUtil {
     }
 
     /**
+     * 设置基础包名
+     *
+     * @param basePackageName 基础包名
+     */
+    public static void setBasePackageName(String basePackageName) {
+        PermissionUtil.basePackageName = basePackageName;
+    }
+
+    /**
+     * 设置是否使用包名作为权限标识的前缀
+     *
+     * @param permissionWithPackage 是否使用包名作为权限标识的前缀
+     */
+    public static void setPermissionWithPackage(Boolean permissionWithPackage) {
+        PermissionUtil.permissionWithPackage = permissionWithPackage;
+    }
+
+    /**
      * 获取需要被授权的类型
      *
      * @param clazz  类
      * @param method 方法
      * @return 需要授权的选项
+     * @apiNote 方法上的 {@link Permission} 整体覆盖类上的，而不是逐属性合并，
+     * 覆写时两个属性都要写全
      */
     public static @NotNull Access getWhatNeedAccess(@NotNull Class<?> clazz, @NotNull Method method) {
-        // 默认无标记时，不需要登录和授权
+        // 未标记时默认既需要登录也需要授权
         Access access = new Access();
-
-        // 判断类是否标记访问权限
         Permission permissionClass = clazz.getAnnotation(Permission.class);
         if (Objects.nonNull(permissionClass)) {
-            // 类做了标记 先记下来 后续可能被方法覆盖
             access.setLogin(permissionClass.login());
-            // 需要登录时 RBAC选项才能启用
+            // 需要登录时 RBAC 选项才能启用
             access.setAuthorize(permissionClass.login() && permissionClass.authorize());
         }
-        // 如果方法也标注了 方法将覆盖类的注解配置
         Permission permissionMethod = method.getAnnotation(Permission.class);
         if (Objects.nonNull(permissionMethod)) {
-            // 方法标记覆盖类的配置
             access.setLogin(permissionMethod.login());
             access.setAuthorize(permissionMethod.login() && permissionMethod.authorize());
         }
@@ -87,9 +114,23 @@ public class PermissionUtil {
      * @return 权限标识
      */
     public static @NotNull String getPermissionIdentity(@NotNull Class<?> clazz, @NotNull Method method) {
-        return StringUtils.uncapitalize(clazz.getSimpleName()
-                .replace(CONTROLLER, "")) +
-                "_" + method.getName();
+        return baseIdentity(clazz) + ":" + method.getName();
+    }
+
+    /**
+     * 获取基础权限标识
+     *
+     * @param clazz 类
+     * @return 权限标识
+     * @apiNote 内部类以 {@code $} 分隔，转成 {@code .} 以便与包名路径一致；
+     * 开头的 {@code permissionWithPackage} 保证多模块下同名控制器不会撞标识
+     */
+    private static @NotNull String baseIdentity(@NotNull Class<?> clazz) {
+        if (permissionWithPackage) {
+            return StringUtils.uncapitalize(clazz.getName().replace('$', '.').replace(basePackageName + ".", "").replace(CONTROLLER, ""));
+        } else {
+            return StringUtils.uncapitalize(clazz.getSimpleName().replace(CONTROLLER, ""));
+        }
     }
 
     /**
@@ -99,6 +140,8 @@ public class PermissionUtil {
      * @param permissionClass 权限类
      * @param <P>             权限类型
      * @return 权限列表
+     * @apiNote 以入口类所在包为起点扫描 {@code *Controller.class}，并以异常被吞掉的方式
+     * 返回已有结果，因此权限数量对不上时先查「扫描权限出错」日志
      */
     public static <P extends IPermission<P>> @NotNull List<P> scanPermission(
             @NotNull Class<?> clazz, Class<P> permissionClass
@@ -139,12 +182,12 @@ public class PermissionUtil {
                 }
 
                 String customClassName = ReflectUtil.getDescription(clazz);
-                String identity = clazz.getSimpleName().replace(CONTROLLER, "");
+                String identity = baseIdentity(clazz);
                 P permission = permissionClass.getConstructor().newInstance();
 
                 permission.setName(customClassName).setIdentity(identity).setChildren(new ArrayList<>());
 
-                String apiPath = identity + "_";
+                String apiPath = identity + ":";
 
                 // 取出所有控制器方法
                 Method[] methods = clazz.getMethods();
@@ -191,6 +234,7 @@ public class PermissionUtil {
      *
      * @param method 方法
      * @return 权限标识
+     * @apiNote 非 {@code @RequestMapping} 系列映射的方法视为内部方法，不生成权限
      */
     private static @Nullable String getMethodPermissionIdentity(Method method) {
         RequestMapping requestMapping = ReflectUtil.getAnnotation(RequestMapping.class, method);
@@ -209,6 +253,7 @@ public class PermissionUtil {
      * @param password 明文密码
      * @param salt     盐
      * @return {@code sha1} 散列摘要
+     * @apiNote 对「密码+盐」和「盐+密码」分别摘要后再拼起来摘要，消除密码与盐交换位置的歧义
      */
     public static @NotNull String encodePassword(@NotNull String password, @NotNull String salt) {
         PARAM_MISSING.whenEmpty(password, "密码不能为空");

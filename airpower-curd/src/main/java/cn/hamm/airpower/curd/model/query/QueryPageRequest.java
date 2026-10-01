@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * <h1>查询分页请求</h1>
+ * <h1>分页查询请求</h1>
  *
  * @param <M> 数据模型
  * @author Hamm.cn

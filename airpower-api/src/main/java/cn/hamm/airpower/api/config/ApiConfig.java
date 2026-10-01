@@ -1,12 +1,14 @@
 package cn.hamm.airpower.api.config;
 
+import cn.hamm.airpower.api.RequestUtil;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 
 /**
- * <h1>API 配置文件</h1>
+ * <h1>API 模块配置</h1>
  *
  * @author Hamm.cn
  */
@@ -14,11 +16,6 @@ import org.springframework.http.HttpHeaders;
 @Configuration
 @ConfigurationProperties("airpower.api")
 public class ApiConfig {
-    /**
-     * 服务是否运行
-     */
-    public static boolean isServerRunning = true;
-
     /**
      * 输出请求包体日志
      *
@@ -39,17 +36,28 @@ public class ApiConfig {
     private Boolean responseLog = true;
 
     /**
-     * 响应 Trace 到返回包体
-     */
-    private Boolean bodyTraceId = true;
-
-    /**
      * {@code AccessToken} 的密钥
      */
     private String accessTokenSecret;
 
     /**
-     * 身份令牌 header 的 key
+     * 身份令牌所在的请求参数名或请求头名
      */
     private String authorizeHeader = HttpHeaders.AUTHORIZATION;
+
+    /**
+     * 可信代理头
+     *
+     * @apiNote 留空表示不信任任何代理头，来源 IP 一律取 TCP 对端地址。
+     * 该头可被客户端伪造，代理侧必须强制覆盖客户端传入的同名头，否则 IP 白名单、限流都可被绕过
+     */
+    private String trustProxyHeader = "";
+
+    /**
+     * 将可信代理头配置同步到 {@link RequestUtil}
+     */
+    @PostConstruct
+    public void apply() {
+        RequestUtil.setTrustProxyHeader(trustProxyHeader);
+    }
 }

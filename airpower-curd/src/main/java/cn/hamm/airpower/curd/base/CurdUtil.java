@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * <h1>CURD 工具类</h1>
+ * <h1>实体元数据扫描工具类</h1>
  *
  * @author Hamm.cn
  */
@@ -37,6 +37,8 @@ public class CurdUtil {
      *
      * @param packageName 包名
      * @return 扫描到的实体列表
+     * @apiNote 按 {@code *Entity.class} 命名约定扫描，并只保留带 {@link Entity} 注解的类。
+     * 扫描异常被吞掉并记日志，因此结果为空时先看日志而不是怀疑包名写错
      */
     public static @NotNull List<EntityMeta> scanEntity(
             String packageName
@@ -140,17 +142,17 @@ public class CurdUtil {
             private String type;
 
             /**
-             * 字典
+             * 字典（仅标记了 {@code @Dictionary} 的字段才有值）
              */
             private List<Map<String, Object>> options;
 
             /**
-             * 是否唯一
+             * 是否唯一（对应 {@code @Column(unique = true)}，由数据库保证）
              */
             private Boolean isUnique = false;
 
             /**
-             * 数据库定义
+             * 数据库定义（{@code @Column(columnDefinition)} 原文，DDL 迁移用）
              */
             private String definition;
 

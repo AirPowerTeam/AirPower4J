@@ -13,7 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * <h1>文件助手类</h1>
+ * <h1>文件存储平台注册与获取</h1>
+ * 启动时收集容器中所有 {@link FilePlatform} 实现，按平台标识建索引，供业务侧按标识取用。
  *
  * @author Hamm.cn
  */
@@ -33,7 +34,7 @@ public class FileHelper {
     private FileConfig fileConfig;
 
     /**
-     * 注入所有 {@link AbstractFilePlatformFactory} 实例
+     * 容器中所有文件存储平台实例
      */
     @Autowired
     private List<AbstractFilePlatformFactory> allPlatforms;
@@ -53,6 +54,7 @@ public class FileHelper {
      *
      * @param key 平台标识
      * @return 文件存储平台
+     * @apiNote 标识不存在时抛异常
      */
     public AbstractFilePlatformFactory getPlatform(String key) {
         AbstractFilePlatformFactory platform = platforms.get(key);
@@ -64,6 +66,8 @@ public class FileHelper {
 
     /**
      * 注册所有标记了 {@link FilePlatform} 的文件平台
+     *
+     * @apiNote 标识重复直接抛异常，避免启动后不确定落到哪个平台
      */
     @PostConstruct
     private void registerPlatforms() {

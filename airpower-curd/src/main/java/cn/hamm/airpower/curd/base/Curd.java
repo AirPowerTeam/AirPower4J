@@ -7,10 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static cn.hamm.airpower.exception.Errors.API_SERVICE_UNSUPPORTED;
 
@@ -86,6 +83,8 @@ public enum Curd implements IDictionary {
      *
      * @param clazz 类
      * @return 可用 API 列表
+     * @apiNote 沿类继承链自下而上合并：子类的黑名单优先级高于父类的白名单，
+     * 越靠近 {@code Object} 的标记越晚生效
      */
     public static @NotNull List<Curd> getCurdList(@NotNull Class<?> clazz) {
         List<Curd> whiteList = new ArrayList<>();
@@ -108,9 +107,17 @@ public enum Curd implements IDictionary {
         }
         Extends extend = clazz.getAnnotation(Extends.class);
         if (Objects.nonNull(extend)) {
-            // 先添加当前类可用的
-            whiteList.addAll(Arrays.stream(extend.value()).filter(curd -> !blackList.contains(curd)).toList());
-            blackList.addAll(Arrays.stream(extend.exclude()).toList());
+            List<Curd> own = Arrays.asList(extend.value());
+            List<Curd> ownExcluded = Arrays.asList(extend.exclude());
+            Set<Curd> conflict = new HashSet<>(own);
+            conflict.retainAll(ownExcluded);
+            if (!conflict.isEmpty()) {
+                throw new IllegalStateException(clazz.getName() + " 的 @Extends 同时包含和排除了: " + conflict);
+            }
+            whiteList.addAll(own.stream()
+                    .filter(c -> !blackList.contains(c) && !ownExcluded.contains(c))
+                    .toList());
+            blackList.addAll(ownExcluded);
         }
         return getCurdList(clazz.getSuperclass(), whiteList, blackList);
     }
@@ -120,6 +127,7 @@ public enum Curd implements IDictionary {
      *
      * @param controller 控制器类
      * @param <T>        泛型
+     * @apiNote 不被 {@link Extends} 继承的接口在运行期调用会被拒绝
      */
     public <T extends CurdController<?, ?, ?>> void checkApiAvailable(@NotNull T controller) {
         List<Curd> curdList = getCurdList(controller.getClass());

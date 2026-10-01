@@ -129,15 +129,17 @@ class ExportHelperTest {
         }
 
         @Test
-        @DisplayName("空数据列表不应让文件消失，也不应重复写入 BOM")
+        @DisplayName("空数据页不产生空行，也不重复写入 BOM")
         void emptyValueList() throws IOException {
             ExportHelper.ExportFile exportFile = exportFileOf("empty.csv");
             ExportHelper.saveCsvListToFile(exportFile, List.of("表头A"));
             ExportHelper.saveCsvListToFile(exportFile, List.of());
 
             String text = new String(readBytes(exportFile.getAbsoluteFile()), StandardCharsets.UTF_8);
-            assertEquals(CollectionUtil.UTF8_BOM + "表头A\n\n", text,
-                    "空数据页只应产生一个空行，且不重复追加 BOM");
+            // 逐行改为「每行后跟一个换行」后，空页不再写出多余的换行：
+            // 原实现是 join(空列表) 得空串再拼一个换行，凭空多出一个空行
+            assertEquals(CollectionUtil.UTF8_BOM + "表头A\n", text,
+                    "空数据页不应产生空行，且不重复追加 BOM");
         }
     }
 }

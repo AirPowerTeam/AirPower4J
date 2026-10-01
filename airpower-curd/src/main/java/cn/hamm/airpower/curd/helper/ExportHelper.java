@@ -4,7 +4,6 @@ import cn.hamm.airpower.core.CollectionUtil;
 import cn.hamm.airpower.core.FileUtil;
 import cn.hamm.airpower.core.RandomUtil;
 import cn.hamm.airpower.core.TaskUtil;
-import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.curd.config.ExportConfig;
 import cn.hamm.airpower.redis.RedisHelper;
 import lombok.Getter;
@@ -16,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,15 +65,24 @@ public class ExportHelper {
      * 后续分页在文件尾部追加，若每页都补 BOM 会在文件中间插入不可见字符，把表格撑出空行
      */
     public static void saveCsvListToFile(@NotNull ExportFile exportFile, List<String> valueList) {
-        String rowString = String.join(CollectionUtil.CSV_ROW_DELIMITER, valueList)
-                + CollectionUtil.CSV_ROW_DELIMITER;
+        // 预估总长直接建 StringBuilder：String.join 的结果若再拼一个换行，
+        // 会把整页内容在堆里再复制一份
+        int rows = valueList.size();
+        int total = CollectionUtil.CSV_ROW_DELIMITER.length() * Math.max(rows, 1);
+        for (String row : valueList) {
+            total += row.length();
+        }
+        StringBuilder rowString = new StringBuilder(total);
+        for (String row : valueList) {
+            rowString.append(row).append(CollectionUtil.CSV_ROW_DELIMITER);
+        }
         // 首次写入才补 BOM：Excel 靠 BOM 判定编码，没有它会用系统 ANSI 代码页解码，中文全乱码
         if (Files.notExists(exportFile.getAbsoluteFile())) {
-            rowString = CollectionUtil.UTF8_BOM + rowString;
+            rowString.insert(0, CollectionUtil.UTF8_BOM);
         }
         // CREATE 必须显式带上：NIO 的 APPEND 自身不蕴含「不存在则创建」，
         // 只传 APPEND 时第一次写表头就会抛 NoSuchFileException，导出直接失败
-        FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), rowString,
+        FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), rowString.toString(),
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 
@@ -131,12 +138,10 @@ public class ExportHelper {
      */
     public final @NotNull String saveExportFileStream(@NotNull InputStream inputStream, String extension) {
         ExportFile exportFile = getExportFilePath(extension);
-        try {
-            FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), inputStream.readAllBytes());
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            throw new ServiceException("保存导出的文件失败，" + e.getMessage());
-        }
+        // 不用 readAllBytes()：那会把整个流读成一个 byte[] 常驻堆里，
+        // FileUtil 的流式重载用固定 8KB 缓冲边读边落盘，堆占用与文件大小无关。
+        // 写盘失败由 FileUtil 统一包成 ServiceException（消息里带异常类型），这里不再重复包装
+        FileUtil.saveFile(exportFile.getAbsoluteDirectory(), exportFile.getFileName(), inputStream);
         return exportFile.getRelativeFile();
     }
 

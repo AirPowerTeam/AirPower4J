@@ -142,7 +142,7 @@ class QueryHelperSortTest {
             org.springframework.data.domain.Sort result = queryHelper.createSort(null);
             assertEquals(1, orders(result).size(),
                     "默认排序字段就是主键，ORDER BY 只有一列。实际为：" + result);
-            assertTrue(orders(result).get(0).getProperty().equals(Constant.ID));
+            assertEquals(Constant.ID, orders(result).get(0).getProperty());
         }
     }
 
@@ -160,7 +160,7 @@ class QueryHelperSortTest {
             assertEquals(1, orders(base).size(),
                     "这条是前提：如果 and() 会就地修改，下面的 append 断言就不成立");
             assertEquals(2, orders(appended).size());
-            assertFalse(orders(base).equals(orders(appended)));
+            assertNotEquals(orders(base), orders(appended));
         }
 
         @Test

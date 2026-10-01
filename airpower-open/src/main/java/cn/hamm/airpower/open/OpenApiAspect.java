@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 import static cn.hamm.airpower.exception.Errors.*;
 
@@ -151,8 +150,6 @@ public class OpenApiAspect<S extends IOpenAppService> {
         do {
             ipStr = ipStr.replace("  ", " ");
         } while (ipStr.contains("  "));
-        System.out.println(ipStr);
-        System.out.println(Arrays.toString(ipStr.split(" ")));
         if (!StringUtils.hasText(ipStr)) {
             log.warn("开放应用未配置 IP 白名单，所有来源 IP 均可调用。appKey={}", appKey);
             return;

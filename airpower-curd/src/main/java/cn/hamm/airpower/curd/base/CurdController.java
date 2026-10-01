@@ -54,10 +54,10 @@ public class CurdController<
     public Json export(@RequestBody QueryListRequest<E> queryListRequest) {
         Curd.Export.checkApiAvailable(this);
         QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
-        queryPageRequest.setSort(queryListRequest.getSort());
         queryPageRequest.setFilter(queryListRequest.getFilter());
         queryPageRequest.setPage(new Page().setPageSize(curdConfig.getMaxPageSize()));
         queryPageRequest = beforeExportQuery(queryPageRequest);
+        queryPageRequest.setSort(null);
         return Json.data(service.createExportTask(queryPageRequest), "导出任务创建成功");
     }
 

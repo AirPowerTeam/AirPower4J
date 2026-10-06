@@ -125,6 +125,60 @@ class RequestUtilTest {
             String actual = RequestUtil.getIpAddress(request(XFF, "unknown, garbage", REMOTE_ADDR));
             assertEquals(REMOTE_ADDR, actual, "代理头不可用时应回退到 TCP 对端地址");
         }
+
+        @Test
+        @DisplayName("链尾多余逗号产生的空段应被跳过")
+        void skipsEmptyTailSegment() {
+            RequestUtil.setTrustProxyHeader(XFF);
+            String actual = RequestUtil.getIpAddress(request(XFF, "10.0.0.1, 203.0.113.9,", REMOTE_ADDR));
+            assertEquals("203.0.113.9", actual, "尾随逗号会切出一段空串，从右往左扫时不能因此中断或取错");
+        }
+    }
+
+    @Nested
+    @DisplayName("可信代理头配置")
+    class TrustProxyHeaderTest {
+
+        /**
+         * 信任的代理头名
+         */
+        private static final String XFF = "X-Forwarded-For";
+
+        @Test
+        @DisplayName("配置为 null 时按未配置处理")
+        void nullTreatedAsUnconfigured() {
+            // 配置文件里写成 `trust-proxy-header:` 绑定出来是 null，不能因此抛异常
+            RequestUtil.setTrustProxyHeader(null);
+            String actual = RequestUtil.getIpAddress(request(XFF, "10.0.0.1", REMOTE_ADDR));
+            assertEquals(REMOTE_ADDR, actual, "null 头名等同于不信任任何代理头");
+        }
+
+        @Test
+        @DisplayName("头名首尾空格应被忽略")
+        void trimsHeaderName() {
+            RequestUtil.setTrustProxyHeader("  X-Forwarded-For  ");
+            String actual = RequestUtil.getIpAddress(request(XFF, "203.0.113.9", REMOTE_ADDR));
+            assertEquals("203.0.113.9", actual, "头名两端带空格时也应能查到，否则会静默退化成只认对端地址");
+        }
+
+        @Test
+        @DisplayName("未配置代理头时不应发起空名请求头查找")
+        void skipsLookupWhenUnconfigured() {
+            RequestUtil.setTrustProxyHeader("");
+            // 默认配置下绝大多数请求走这条路，不该为不存在的头名白跑一次容器查找
+            MockHttpServletRequest request = new MockHttpServletRequest() {
+                @Override
+                public String getHeader(String name) {
+                    if (null == name || name.isBlank()) {
+                        throw new IllegalArgumentException("发起了空名请求头查找: " + name);
+                    }
+                    return super.getHeader(name);
+                }
+            };
+            request.addHeader(XFF, "10.0.0.1");
+            request.setRemoteAddr(REMOTE_ADDR);
+            assertEquals(REMOTE_ADDR, RequestUtil.getIpAddress(request));
+        }
     }
 
     @Nested

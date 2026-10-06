@@ -39,9 +39,20 @@ public class RequestUtil {
      */
     private static final String IPV4_MAPPED_PREFIX = "::ffff:";
     /**
-     * 可信代理头
+     * 可信代理头配置快照
+     *
+     * @param name      代理头名，空串表示不信任任何代理头
+     * @param forwarded 是否为 RFC 7239 的 {@code Forwarded} 头
      */
-    private static volatile String trustProxyHeader = "";
+    private record TrustedHeader(@NotNull String name, boolean forwarded) {
+    }
+
+    /**
+     * 当前生效的可信代理头配置
+     *
+     * @apiNote 用不可变快照承载，保证「头名」与「是否为 Forwarded」两个字段读到的是同一份配置
+     */
+    private static volatile TrustedHeader trustedHeader = new TrustedHeader("", false);
 
     /**
      * 禁止外部实例化
@@ -79,17 +90,18 @@ public class RequestUtil {
      * {@link HttpServletRequest#getRemoteAddr()}，仍拿不到则返回空字符串，不抛异常。
      */
     public static @NotNull String getIpAddress(@NotNull HttpServletRequest request) {
+        // 一次 volatile 读拿到配置快照，后续逻辑不再反复读字段
+        final TrustedHeader header = trustedHeader;
         try {
-            final String ip = parseHeader(trustProxyHeader, request.getHeader(trustProxyHeader));
-            if (!ip.isEmpty()) {
-                return ip;
+            // 默认未配置可信代理头，此时直接跳过，不去容器里做一次注定落空的头查找
+            if (!header.name().isEmpty()) {
+                final String ip = parseHeader(header, request.getHeader(header.name()));
+                if (!ip.isEmpty()) {
+                    return ip;
+                }
             }
-            // 读不到则回退 TCP 连接对端地址
-            final String remoteAddress = parseAddress(request.getRemoteAddr());
-            if (!remoteAddress.isEmpty()) {
-                return remoteAddress;
-            }
-            return "";
+            // 回退 TCP 连接对端地址，parseAddress 恒返回非 null
+            return parseAddress(request.getRemoteAddr());
         } catch (Exception e) {
             log.warn("获取请求 IP 异常: {}", e.getMessage());
             return "";
@@ -103,22 +115,24 @@ public class RequestUtil {
      * @apiNote 只由 {@link cn.hamm.airpower.api.config.ApiConfig} 在启动时调用
      */
     public static void setTrustProxyHeader(@Nullable String header) {
-        trustProxyHeader = header;
+        // 配置文件里写成 `trust-proxy-header:` 会得到 null，这里一并归一
+        final String name = null == header ? "" : header.trim();
+        trustedHeader = new TrustedHeader(name, name.equalsIgnoreCase(HttpConstant.Proxy.Header.FORWARD));
     }
 
     /**
      * 按代理头名称选择对应的解析方式
      *
-     * @param header      代理头名
+     * @param header      代理头配置
      * @param headerValue 原始请求头
      * @return 来源 IP，解析失败时返回空字符串
      */
-    private static @NotNull String parseHeader(@NotNull String header, @Nullable String headerValue) {
+    private static @NotNull String parseHeader(@NotNull TrustedHeader header, @Nullable String headerValue) {
         if (!StringUtil.hasText(headerValue)) {
             return "";
         }
         // Forwarded 是 RFC 7239 的键值对格式，其余均为逗号分隔的 IP 链
-        return header.equalsIgnoreCase(HttpConstant.Proxy.Header.FORWARD)
+        return header.forwarded()
                 ? parseForwardedHeader(headerValue)
                 : parseIpChainHeader(headerValue);
     }
@@ -139,18 +153,21 @@ public class RequestUtil {
      *
      * @param headerValue 原始请求头，形如 {@code 198.51.100.7, 203.0.113.9}，最右侧由离服务端最近的代理追加
      * @return 来源 IP，解析失败时返回空字符串
+     * @apiNote 该方法在每个请求上都会执行，用 {@code lastIndexOf} 从右往左切片，
+     * 省掉 {@code split} 产生的数组与全部子串分配
      */
-    private static @NotNull String parseIpChainHeader(@Nullable String headerValue) {
-        if (!StringUtil.hasText(headerValue)) {
-            return "";
-        }
-        final String[] items = headerValue.split(IP_SEPARATOR);
+    private static @NotNull String parseIpChainHeader(@NotNull String headerValue) {
         // 从右往左取：链上只有最右侧那一项由最近的代理写入，客户端填的前缀一律不可信
-        for (int i = items.length - 1; i >= 0; i--) {
-            final String ip = parseAddress(items[i]);
+        int end = headerValue.length();
+        while (end > 0) {
+            // 逗号不存在时 lastIndexOf 返回 -1，正好取到最左边那一整段
+            final int comma = headerValue.lastIndexOf(IP_SEPARATOR, end - 1);
+            final String ip = parseAddress(headerValue.substring(comma + 1, end));
             if (!ip.isEmpty()) {
                 return ip;
             }
+            // -1 表示已经扫到链首，下一轮循环自然结束
+            end = comma;
         }
         return "";
     }
@@ -161,10 +178,7 @@ public class RequestUtil {
      * @param headerValue 原始请求头，格式为 {@code for=192.0.2.60;proto=http, for="[2001:db8::1]:8080"}
      * @return 来源 IP，解析失败时返回空字符串
      */
-    private static @NotNull String parseForwardedHeader(@Nullable String headerValue) {
-        if (!StringUtil.hasText(headerValue)) {
-            return "";
-        }
+    private static @NotNull String parseForwardedHeader(@NotNull String headerValue) {
         // 与逗号分隔的代理链同一取值方向，从右往左取
         final String[] elements = headerValue.split(IP_SEPARATOR);
         for (int i = elements.length - 1; i >= 0; i--) {

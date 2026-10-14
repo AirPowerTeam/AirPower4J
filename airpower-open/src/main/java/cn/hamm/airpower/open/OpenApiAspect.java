@@ -34,12 +34,12 @@ public class OpenApiAspect<S extends IOpenAppService> {
     /**
      * 防重放时长
      */
-    private static final int NONCE_CACHE_SECOND = 300;
+    private static final int NONCE_SECOND = 300;
 
     /**
-     * 防重放缓存前缀
+     * Redis 前缀
      */
-    private static final String NONCE_CACHE_PREFIX = "open:nonce:";
+    private static final String REDIS_PREFIX = "open:";
 
     @Autowired(required = false)
     private S openAppService;
@@ -99,7 +99,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
             throw new ServiceException("OpenApi 必须接收一个 OpenRequest参数");
         }
         checkTimestamp(openRequest.getTimestamp());
-        checkNonce(openRequest.getNonce());
+        checkNonce(openRequest.getAppKey(), openRequest.getNonce());
         return openRequest;
     }
 
@@ -110,7 +110,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
      */
     private void checkTimestamp(long timestamp) {
         long currentTimeMillis = System.currentTimeMillis();
-        int nonceExpireMillisecond = NONCE_CACHE_SECOND * DateTimeUtil.MILLISECONDS_PER_SECOND;
+        int nonceExpireMillisecond = NONCE_SECOND * DateTimeUtil.MILLISECONDS_PER_SECOND;
         TIMESTAMP_INVALID.when(
                 timestamp > currentTimeMillis + nonceExpireMillisecond ||
                         timestamp < currentTimeMillis - nonceExpireMillisecond
@@ -173,11 +173,14 @@ public class OpenApiAspect<S extends IOpenAppService> {
 
     /**
      * 防重放检测
+     *
+     * @param appKey 应用标识
+     * @param nonce  随机字符串
      */
-    private void checkNonce(String nonce) {
-        String cacheKey = NONCE_CACHE_PREFIX + nonce;
+    private void checkNonce(String appKey, String nonce) {
+        String cacheKey = REDIS_PREFIX + appKey + ":nonce:" + nonce;
         Object savedNonce = redisHelper.get(cacheKey);
         REPEAT_REQUEST.whenNotNull(savedNonce);
-        redisHelper.set(cacheKey, 1, NONCE_CACHE_SECOND);
+        redisHelper.set(cacheKey, 1, NONCE_SECOND);
     }
 }

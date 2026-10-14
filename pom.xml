@@ -21,11 +21,6 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <!-- ==================== 主要框架版本 ==================== -->
-        <!-- Spring 全家桶（Spring Framework / Spring Data / Spring Integration / Jedis /
-             MySQL 驱动 / Jakarta Mail / Tomcat / Jackson 等）的版本一律由下面的
-             spring-boot-dependencies BOM 托管，任何模块都不要单独手写版本号。
-             原因：手写版本一旦落后于 BOM，就会出现「spring-core 6.2.19 而 spring-web 6.2.5」
-             这类同族版本错配，编译能过、运行期才抛 NoSuchMethodError。 -->
         <springboot.version>3.5.16</springboot.version>
         <!-- Jackson 必须与 airpower-core 的编译版本一致（core 10.0.0 用的是 2.22.3），
              否则 BOM 里的 2.21.4 会把 core 依赖的 Jackson 降级 -->
@@ -47,7 +42,7 @@
         <!-- ==================== Java EE/Jakarta EE版本 ==================== -->
         <!-- 刻意覆盖 BOM 托管的 3.0.2 / 3.1.0，与 airpower-core 10.0.0 及 Hibernate 实际使用的版本对齐 -->
         <jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
-        <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
+        <jakarta.persistence-api.version>3.1.0</jakarta.persistence-api.version>
 
         <!-- ==================== Maven插件版本 ==================== -->
         <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
@@ -72,8 +67,6 @@
     <dependencyManagement>
         <dependencies>
             <!-- ==================== AirPower 内部依赖 ==================== -->
-            <!-- 全部子模块统一由父 pom 托管版本：子模块之间互相依赖时不再各自写版本号，
-                 升级 airpower.version 一处即可，避免出现「A 引 B:10.0.0 而 B 自己还是 9.x」 -->
             <dependency>
                 <groupId>cn.hamm</groupId>
                 <artifactId>airpower-web</artifactId>

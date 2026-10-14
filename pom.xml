@@ -5,12 +5,12 @@
     <groupId>cn.hamm</groupId>
     <artifactId>airpower</artifactId>
     <!-- POM 统一版本-->
-    <version>9.0.1</version>
+    <version>10.0.0</version>
     <name>airpower</name>
     <description>AirPower is a fast backend development tool based on SpringBoot3 and JPA.</description>
     <properties>
         <!-- ==================== 项目版本 ==================== -->
-        <airpower.version>9.0.1</airpower.version>
+        <airpower.version>10.0.0</airpower.version>
         <airpower-core.version>10.0.0</airpower-core.version>
 
         <!-- ==================== 构建配置 ==================== -->
@@ -21,46 +21,40 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <!-- ==================== 主要框架版本 ==================== -->
-        <springboot.version>3.4.4</springboot.version>
-        <spring-boot.version>3.4.4</spring-boot.version>
-        <spring-framework.version>6.2.5</spring-framework.version>
+        <!-- Spring 全家桶（Spring Framework / Spring Data / Spring Integration / Jedis /
+             MySQL 驱动 / Jakarta Mail / Tomcat / Jackson 等）的版本一律由下面的
+             spring-boot-dependencies BOM 托管，任何模块都不要单独手写版本号。
+             原因：手写版本一旦落后于 BOM，就会出现「spring-core 6.2.19 而 spring-web 6.2.5」
+             这类同族版本错配，编译能过、运行期才抛 NoSuchMethodError。 -->
+        <springboot.version>3.5.16</springboot.version>
+        <!-- Jackson 必须与 airpower-core 的编译版本一致（core 10.0.0 用的是 2.22.3），
+             否则 BOM 里的 2.21.4 会把 core 依赖的 Jackson 降级 -->
+        <jackson.version>2.22.3</jackson.version>
 
         <!-- ==================== 第三方库版本 ==================== -->
-        <mysql.version>8.0.33</mysql.version>
         <jakarta.servlet.version>6.1.0</jakarta.servlet.version>
-        <jetbrains.annotations.version>26.0.2</jetbrains.annotations.version>
-        <commons.codec.version>1.13</commons.codec.version>
-        <lombok.version>1.18.36</lombok.version>
-        <relections.version>0.10.1</relections.version>
-        <jedis.version>5.1.0</jedis.version>
-
-        <!-- ==================== Spring生态版本 ==================== -->
-        <spring.integration.mqtt.version>6.3.3</spring.integration.mqtt.version>
-        <springboot.integration.version>3.2.0</springboot.integration.version>
-        <spring-data-commons.version>3.4.0</spring-data-commons.version>
-        <spring-data-redis.version>${springboot.version}</spring-data-redis.version>
-        <spring-context-support.version>${spring-framework.version}</spring-context-support.version>
-        <spring-web.version>${spring-framework.version}</spring-web.version>
-        <spring-webmvc.version>${spring-framework.version}</spring-webmvc.version>
-        <spring-websocket.version>${spring-framework.version}</spring-websocket.version>
+        <jetbrains.annotations.version>26.1.0</jetbrains.annotations.version>
+        <commons.codec.version>1.23.0</commons.codec.version>
+        <lombok.version>1.18.48</lombok.version>
+        <reflections.version>0.10.2</reflections.version>
+        <aliyun.oss.version>3.18.5</aliyun.oss.version>
+        <qcloud.cos.version>5.6.281</qcloud.cos.version>
+        <!-- Spring Integration 6.4 起把 Paho 客户端改成了 optional，必须由使用方显式声明 -->
+        <paho.version>1.2.5</paho.version>
+        <httpclient.version>4.5.14</httpclient.version>
+        <commons.logging.version>1.3.4</commons.logging.version>
 
         <!-- ==================== Java EE/Jakarta EE版本 ==================== -->
+        <!-- 刻意覆盖 BOM 托管的 3.0.2 / 3.1.0，与 airpower-core 10.0.0 及 Hibernate 实际使用的版本对齐 -->
         <jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
         <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
-        <jakarta.mail.version>2.0.3</jakarta.mail.version>
-
-        <!-- ==================== Spring Boot启动器版本 ==================== -->
-        <spring-boot-starter-data-jpa.version>${springboot.version}</spring-boot-starter-data-jpa.version>
-        <spring-boot-starter-validation.version>${springboot.version}</spring-boot-starter-validation.version>
-        <spring-boot-starter-aop.version>${springboot.version}</spring-boot-starter-aop.version>
-        <spring-boot-starter-data-redis.version>${springboot.version}</spring-boot-starter-data-redis.version>
 
         <!-- ==================== Maven插件版本 ==================== -->
         <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
-        <maven.central.publishing.plugin.version>0.9.0</maven.central.publishing.plugin.version>
+        <maven.central.publishing.plugin.version>0.12.0</maven.central.publishing.plugin.version>
         <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
         <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
-        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <maven.compiler.plugin.version>3.16.0</maven.compiler.plugin.version>
     </properties>
     <packaging>pom</packaging>
     <modules>
@@ -78,6 +72,8 @@
     <dependencyManagement>
         <dependencies>
             <!-- ==================== AirPower 内部依赖 ==================== -->
+            <!-- 全部子模块统一由父 pom 托管版本：子模块之间互相依赖时不再各自写版本号，
+                 升级 airpower.version 一处即可，避免出现「A 引 B:10.0.0 而 B 自己还是 9.x」 -->
             <dependency>
                 <groupId>cn.hamm</groupId>
                 <artifactId>airpower-web</artifactId>
@@ -88,8 +84,67 @@
                 <artifactId>airpower-core</artifactId>
                 <version>${airpower-core.version}</version>
             </dependency>
+            <dependency>
+                <groupId>cn.hamm</groupId>
+                <artifactId>airpower-api</artifactId>
+                <version>${airpower.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hamm</groupId>
+                <artifactId>airpower-cookie</artifactId>
+                <version>${airpower.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hamm</groupId>
+                <artifactId>airpower-curd</artifactId>
+                <version>${airpower.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hamm</groupId>
+                <artifactId>airpower-email</artifactId>
+                <version>${airpower.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hamm</groupId>
+                <artifactId>airpower-exception</artifactId>
+                <version>${airpower.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hamm</groupId>
+                <artifactId>airpower-file</artifactId>
+                <version>${airpower.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hamm</groupId>
+                <artifactId>airpower-mqtt</artifactId>
+                <version>${airpower.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hamm</groupId>
+                <artifactId>airpower-open</artifactId>
+                <version>${airpower.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hamm</groupId>
+                <artifactId>airpower-redis</artifactId>
+                <version>${airpower.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hamm</groupId>
+                <artifactId>airpower-websocket</artifactId>
+                <version>${airpower.version}</version>
+            </dependency>
 
             <!-- ==================== Spring Boot 依赖 ==================== -->
+            <!-- Jackson BOM 必须排在 spring-boot-dependencies 之前：多个 import 冲突时「先声明者胜」，
+                 这样才能把 BOM 自带的 Jackson 2.21.4 顶成与 airpower-core 一致的 2.22.3 -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -114,19 +169,10 @@
             </dependency>
 
             <!-- ==================== 数据库相关依赖 ==================== -->
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <scope>runtime</scope>
-                <version>${mysql.version}</version>
-            </dependency>
-
-            <!-- ==================== Spring 生态依赖 ==================== -->
-            <dependency>
-                <groupId>org.springframework.integration</groupId>
-                <artifactId>spring-integration-mqtt</artifactId>
-                <version>${spring.integration.mqtt.version}</version>
-            </dependency>
+            <!-- MySQL 驱动：旧坐标 mysql:mysql-connector-java 已废弃并冻结在 8.0.33（存在已知漏洞），
+                 官方迁移到 com.mysql:mysql-connector-j。这里刻意不写 dependencyManagement 条目：
+                 Maven 的 dependencyManagement 是「整体覆盖不合并字段」，条目缺 version 就等于
+                 没托管版本，反而会让子模块报 version is missing。直接交给 BOM 托管即可。 -->
 
             <!-- ==================== Java EE/Jakarta EE 依赖 ==================== -->
             <dependency>
@@ -134,12 +180,24 @@
                 <artifactId>jakarta.validation-api</artifactId>
                 <version>${jakarta.validation-api.version}</version>
             </dependency>
+            <dependency>
+                <groupId>jakarta.persistence</groupId>
+                <artifactId>jakarta.persistence-api</artifactId>
+                <version>${jakarta.persistence-api.version}</version>
+            </dependency>
 
             <!-- ==================== 第三方通用库 ==================== -->
+            <!-- lombok 统一锁到与 airpower-core 一致的版本：否则 BOM 的版本号会与本属性打架，
+                 同一次构建里不同模块拿到不同 lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+            <!-- 实际作用域由下面的 <dependencies> 统一为 provided，这里只锁版本 -->
             <dependency>
                 <groupId>org.jetbrains</groupId>
                 <artifactId>annotations</artifactId>
-                <scope>compile</scope>
                 <version>${jetbrains.annotations.version}</version>
             </dependency>
             <dependency>
@@ -150,7 +208,42 @@
             <dependency>
                 <groupId>org.reflections</groupId>
                 <artifactId>reflections</artifactId>
-                <version>${relections.version}</version>
+                <version>${reflections.version}</version>
+            </dependency>
+
+            <!-- ==================== 对象存储 SDK ==================== -->
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>${aliyun.oss.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.qcloud</groupId>
+                <artifactId>cos_api</artifactId>
+                <version>${qcloud.cos.version}</version>
+            </dependency>
+
+            <!-- ==================== MQTT 客户端 ==================== -->
+            <!-- Spring Boot BOM 不托管 Paho，必须在这里锁版本 -->
+            <dependency>
+                <groupId>org.eclipse.paho</groupId>
+                <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+                <version>${paho.version}</version>
+            </dependency>
+
+            <!-- ==================== HTTP 客户端 ==================== -->
+            <!-- 阿里云 OSS SDK 锁 httpclient 4.5.13（连带 commons-logging 1.2，2005 年的版本），
+                 腾讯云 COS SDK 已经升到 4.5.14。两边不一致时 Maven 按「就近优先」会选中更旧的 4.5.13，
+                 所以统一在这里提升到较新版本 -->
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>${commons.logging.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -161,6 +254,15 @@
          传递链断开，9 个模块同时编译失败。
          在父 pom 统一声明一次：所有模块编译期可见，且不传递给下游 -->
     <dependencies>
+        <!-- Lombok：10 个模块里有 7 个在用 @Data / @Slf4j，但只有 3 个模块自己声明过，
+             其余全靠 airpower-exception 的传递依赖白嫖。统一提到父 pom 后，
+             各模块不必再各自声明版本，注解处理器也不会随传递链流向下游应用 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <!-- @NotNull / @Nullable / @Contract 都是 CLASS 保留期，编译期与 IDE 用，运行期不需要 -->
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -222,6 +324,21 @@
                 </executions>
                 <configuration>
                     <doclint>none</doclint>
+                </configuration>
+            </plugin>
+
+            <!-- ==================== 编译插件 ==================== -->
+            <!-- 父 pom 声明一次即可：build 段的插件会被所有子模块继承并执行 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                    <source>17</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
 

@@ -234,7 +234,8 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
      * @param userId  用户 ID
      */
     private void startMqttListener(@NotNull WebSocketSession session, long userId) {
-        try (MqttClient mqttClient = mqttHelper.createClient()) {
+        try {
+            MqttClient mqttClient = mqttHelper.createClient();
             mqttClient.setCallback(new MqttCallback() {
                 @Override
                 public void connectionLost(Throwable throwable) {
@@ -257,7 +258,8 @@ public class WebSocketHandler extends TextWebSocketHandler implements MessageLis
             String[] topics = {CHANNEL_ALL, personalChannel};
             mqttClient.subscribe(topics);
             mqttClientHashMap.put(session.getId(), mqttClient);
-        } catch (MqttException ignored) {
+        } catch (MqttException mqttException) {
+            log.error("MQTT连接失败, {}", mqttException.getMessage(), mqttException);
         }
     }
 

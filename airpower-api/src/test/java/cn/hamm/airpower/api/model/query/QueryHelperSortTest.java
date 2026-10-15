@@ -44,11 +44,11 @@ class QueryHelperSortTest {
     private static QueryHelper newQueryHelper() {
         QueryHelper helper = new QueryHelper();
         try {
-            Field field = QueryHelper.class.getDeclaredField("curdConfig");
+            Field field = QueryHelper.class.getDeclaredField("apiConfig");
             field.setAccessible(true);
             field.set(helper, new ApiConfig());
         } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("注入 curdConfig 字段失败", e);
+            throw new IllegalStateException("注入 apiConfig 字段失败", e);
         }
         return helper;
     }

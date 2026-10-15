@@ -1,6 +1,8 @@
 package cn.hamm.airpower.api.model.query;
 
-import cn.hamm.airpower.api.config.ApiConfig;
+import cn.hamm.airpower.api.base.ApiConfig;
+import cn.hamm.airpower.api.query.QueryHelper;
+import cn.hamm.airpower.api.query.sort.Sort;
 import cn.hamm.airpower.core.common.Constant;
 import cn.hamm.airpower.api.curd.CurdEntity;
 import org.junit.jupiter.api.DisplayName;

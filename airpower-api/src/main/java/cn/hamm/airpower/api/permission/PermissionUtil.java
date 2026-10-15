@@ -4,7 +4,7 @@ import cn.hamm.airpower.api.annotation.Api;
 import cn.hamm.airpower.core.dictionary.DictionaryUtil;
 import cn.hamm.airpower.core.reflect.ReflectUtil;
 import cn.hamm.airpower.api.curd.Curd;
-import cn.hamm.airpower.api.model.Access;
+import cn.hamm.airpower.api.access.Access;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.Contract;

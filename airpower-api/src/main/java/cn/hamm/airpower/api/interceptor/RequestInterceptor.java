@@ -1,12 +1,12 @@
 package cn.hamm.airpower.api.interceptor;
 
 import cn.hamm.airpower.api.base.ApiController;
-import cn.hamm.airpower.api.config.ApiConfig;
+import cn.hamm.airpower.api.base.ApiConfig;
 import cn.hamm.airpower.core.access.AccessTokenUtil;
 import cn.hamm.airpower.core.TraceUtil;
 import cn.hamm.airpower.core.http.HttpConstant;
 import cn.hamm.airpower.core.exception.ServiceException;
-import cn.hamm.airpower.api.model.Access;
+import cn.hamm.airpower.api.access.Access;
 import cn.hamm.airpower.api.permission.PermissionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

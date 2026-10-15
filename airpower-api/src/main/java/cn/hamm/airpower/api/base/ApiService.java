@@ -1,10 +1,10 @@
-package cn.hamm.airpower.api.service;
+package cn.hamm.airpower.api.base;
 
 import cn.hamm.airpower.core.reflect.ReflectUtil;
 import cn.hamm.airpower.core.common.RootModel;
 import cn.hamm.airpower.core.desensitize.Desensitize;
-import cn.hamm.airpower.api.helper.ExportHelper;
-import cn.hamm.airpower.api.model.query.QueryExport;
+import cn.hamm.airpower.api.export.ExportHelper;
+import cn.hamm.airpower.api.export.QueryExport;
 import cn.hamm.airpower.redis.RedisHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -26,7 +26,7 @@ import java.util.Objects;
 @Getter
 @Slf4j
 @EqualsAndHashCode
-public class RootService<E extends RootModel> {
+public class ApiService<E extends RootModel> {
     /**
      * 导出文件帮助类
      */

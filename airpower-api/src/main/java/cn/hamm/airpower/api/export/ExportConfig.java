@@ -1,4 +1,4 @@
-package cn.hamm.airpower.api.config;
+package cn.hamm.airpower.api.export;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

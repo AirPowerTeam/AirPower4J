@@ -1,4 +1,4 @@
-package cn.hamm.airpower.api.model;
+package cn.hamm.airpower.api.access;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

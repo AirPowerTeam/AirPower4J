@@ -1,4 +1,4 @@
-package cn.hamm.airpower.api.model.query;
+package cn.hamm.airpower.api.query.page;
 
 import cn.hamm.airpower.core.reflect.Description;
 import lombok.Data;

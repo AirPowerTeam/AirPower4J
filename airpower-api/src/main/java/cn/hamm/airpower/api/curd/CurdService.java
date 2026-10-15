@@ -1,14 +1,19 @@
 package cn.hamm.airpower.api.curd;
 
+import cn.hamm.airpower.api.query.*;
+import cn.hamm.airpower.api.query.page.Page;
+import cn.hamm.airpower.api.query.page.PageData;
+import cn.hamm.airpower.api.query.page.QueryPageRequest;
+import cn.hamm.airpower.api.query.page.QueryPageResponse;
+import cn.hamm.airpower.api.query.request.QueryListRequest;
+import cn.hamm.airpower.api.query.sort.Sort;
 import cn.hamm.airpower.core.export.ExportUtil;
 import cn.hamm.airpower.core.reflect.ReflectUtil;
 import cn.hamm.airpower.core.TraceUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
-import cn.hamm.airpower.api.annotation.NullEnable;
-import cn.hamm.airpower.api.helper.ExportHelper;
-import cn.hamm.airpower.api.helper.TransactionHelper;
-import cn.hamm.airpower.api.model.query.*;
-import cn.hamm.airpower.api.service.RootService;
+import cn.hamm.airpower.api.export.ExportHelper;
+import cn.hamm.airpower.api.transaction.TransactionHelper;
+import cn.hamm.airpower.api.base.ApiService;
 import jakarta.persistence.Column;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -50,7 +55,7 @@ import static cn.hamm.airpower.exception.Errors.*;
  * @see #repository 还实现不了？<code>repository</code> 给你，你自己来
  */
 @Slf4j
-public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> extends RootService<E> {
+public class CurdService<E extends CurdEntity<E>, R extends ICurdRepository<E>> extends ApiService<E> {
     /**
      * 提交的数据不允许为空
      */

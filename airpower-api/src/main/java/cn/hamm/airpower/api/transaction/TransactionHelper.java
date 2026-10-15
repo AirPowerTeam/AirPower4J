@@ -1,4 +1,4 @@
-package cn.hamm.airpower.api.helper;
+package cn.hamm.airpower.api.transaction;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;

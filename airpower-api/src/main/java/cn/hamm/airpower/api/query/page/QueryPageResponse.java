@@ -1,5 +1,6 @@
-package cn.hamm.airpower.api.model.query;
+package cn.hamm.airpower.api.query.page;
 
+import cn.hamm.airpower.api.query.sort.Sort;
 import cn.hamm.airpower.core.common.RootModel;
 import cn.hamm.airpower.core.reflect.Description;
 import lombok.Data;

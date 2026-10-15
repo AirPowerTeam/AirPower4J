@@ -2,7 +2,7 @@ package cn.hamm.airpower.api.interceptor;
 
 import cn.hamm.airpower.api.base.ApiController;
 import cn.hamm.airpower.api.RequestUtil;
-import cn.hamm.airpower.api.config.ApiConfig;
+import cn.hamm.airpower.api.base.ApiConfig;
 import cn.hamm.airpower.core.*;
 import cn.hamm.airpower.core.common.RootModel;
 import cn.hamm.airpower.core.desensitize.DesensitizeIgnore;
@@ -12,7 +12,7 @@ import cn.hamm.airpower.core.reflect.ReflectUtil;
 import cn.hamm.airpower.api.annotation.DisableRequestLog;
 import cn.hamm.airpower.api.annotation.DisableResponseLog;
 import cn.hamm.airpower.api.curd.CurdController;
-import cn.hamm.airpower.api.model.query.QueryPageResponse;
+import cn.hamm.airpower.api.query.page.QueryPageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;

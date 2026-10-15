@@ -1,6 +1,5 @@
 package cn.hamm.airpower.api.base;
 
-import cn.hamm.airpower.api.config.ApiConfig;
 import cn.hamm.airpower.core.access.AccessTokenUtil;
 import cn.hamm.airpower.core.StringUtil;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,6 +1,6 @@
 package cn.hamm.airpower.websocket;
 
-import cn.hamm.airpower.api.config.ApiConfig;
+import cn.hamm.airpower.api.base.ApiConfig;
 import cn.hamm.airpower.core.access.AccessTokenUtil;
 import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.exception.ServiceException;

@@ -1,4 +1,4 @@
-package cn.hamm.airpower.api.config;
+package cn.hamm.airpower.api.base;
 
 import cn.hamm.airpower.api.RequestUtil;
 import cn.hamm.airpower.api.permission.PermissionUtil;

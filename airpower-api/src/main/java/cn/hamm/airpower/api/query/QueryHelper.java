@@ -1,11 +1,13 @@
-package cn.hamm.airpower.api.model.query;
+package cn.hamm.airpower.api.query;
 
+import cn.hamm.airpower.api.query.page.Page;
+import cn.hamm.airpower.api.query.search.Search;
+import cn.hamm.airpower.api.query.search.SearchEmpty;
+import cn.hamm.airpower.api.query.sort.Sort;
 import cn.hamm.airpower.core.reflect.ReflectUtil;
 import cn.hamm.airpower.core.common.Constant;
-import cn.hamm.airpower.api.annotation.Search;
-import cn.hamm.airpower.api.annotation.SearchEmpty;
 import cn.hamm.airpower.api.curd.CurdEntity;
-import cn.hamm.airpower.api.config.ApiConfig;
+import cn.hamm.airpower.api.base.ApiConfig;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;

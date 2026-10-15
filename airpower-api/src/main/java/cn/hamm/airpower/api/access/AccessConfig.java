@@ -1,4 +1,4 @@
-package cn.hamm.airpower.api.config;
+package cn.hamm.airpower.api.access;
 
 import cn.hamm.airpower.core.datetime.DateTimeUtil;
 import lombok.Data;

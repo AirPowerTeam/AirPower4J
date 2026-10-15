@@ -1,4 +1,4 @@
-package cn.hamm.airpower.api.annotation;
+package cn.hamm.airpower.api.curd;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;

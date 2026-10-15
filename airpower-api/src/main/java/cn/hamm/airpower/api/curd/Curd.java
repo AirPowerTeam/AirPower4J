@@ -2,7 +2,6 @@ package cn.hamm.airpower.api.curd;
 
 import cn.hamm.airpower.core.reflect.ReflectUtil;
 import cn.hamm.airpower.core.dictionary.IDictionary;
-import cn.hamm.airpower.api.annotation.Extends;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

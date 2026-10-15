@@ -1,5 +1,6 @@
 package cn.hamm.airpower.api;
 
+import cn.hamm.airpower.api.base.ApiConfig;
 import cn.hamm.airpower.core.StringUtil;
 import cn.hamm.airpower.core.http.HttpConstant;
 import jakarta.servlet.ServletRequest;
@@ -112,7 +113,7 @@ public class RequestUtil {
      * 配置可信代理头
      *
      * @param header 传入空表示不信任任何代理头，仅使用 TCP 对端地址
-     * @apiNote 只由 {@link cn.hamm.airpower.api.config.ApiConfig} 在启动时调用
+     * @apiNote 只由 {@link ApiConfig} 在启动时调用
      */
     public static void setTrustProxyHeader(@Nullable String header) {
         // 配置文件里写成 `trust-proxy-header:` 会得到 null，这里一并归一

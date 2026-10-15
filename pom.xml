@@ -11,7 +11,7 @@
     <properties>
         <!-- ==================== 项目版本 ==================== -->
         <airpower.version>11.0.1</airpower.version>
-        <airpower-core.version>10.0.0</airpower-core.version>
+        <airpower-core.version>20.0.0</airpower-core.version>
 
         <!-- ==================== 构建配置 ==================== -->
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
@@ -55,7 +55,7 @@
     <modules>
         <module>airpower-api</module>
         <module>airpower-exception</module>
-        <module>airpower-curd</module>
+        <module>airpower-api</module>
         <module>airpower-email</module>
         <module>airpower-cookie</module>
         <module>airpower-mqtt</module>
@@ -89,7 +89,7 @@
             </dependency>
             <dependency>
                 <groupId>cn.hamm</groupId>
-                <artifactId>airpower-curd</artifactId>
+                <artifactId>airpower-api</artifactId>
                 <version>${airpower.version}</version>
             </dependency>
             <dependency>

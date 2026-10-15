@@ -1,11 +1,11 @@
 package cn.hamm.airpower.file;
 
-import cn.hamm.airpower.core.FileUtil;
+import cn.hamm.airpower.core.file.FileUtil;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import static cn.hamm.airpower.core.FileUtil.FILE_SCALE;
+import static cn.hamm.airpower.core.file.FileUtil.FILE_SCALE;
 
 /**
  * <h1>文件模块配置</h1>

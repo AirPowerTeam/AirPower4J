@@ -1,7 +1,7 @@
 package cn.hamm.airpower.api;
 
 import cn.hamm.airpower.core.StringUtil;
-import cn.hamm.airpower.core.constant.HttpConstant;
+import cn.hamm.airpower.core.http.HttpConstant;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import java.net.InetAddress;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static cn.hamm.airpower.core.constant.HttpConstant.ContentType.MULTIPART_FORM_DATA;
+import static cn.hamm.airpower.core.http.HttpConstant.ContentType.MULTIPART_FORM_DATA;
 
 /**
  * <h1>请求工具类</h1>

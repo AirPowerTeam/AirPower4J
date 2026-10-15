@@ -1,8 +1,8 @@
 package cn.hamm.airpower.exception;
 
 import cn.hamm.airpower.core.exception.ServiceException;
-import cn.hamm.airpower.core.interfaces.IDictionary;
-import cn.hamm.airpower.core.interfaces.IException;
+import cn.hamm.airpower.core.dictionary.IDictionary;
+import cn.hamm.airpower.core.exception.IException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;

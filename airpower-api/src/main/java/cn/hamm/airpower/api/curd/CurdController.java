@@ -1,0 +1,368 @@
+package cn.hamm.airpower.api.curd;
+
+import cn.hamm.airpower.api.base.ApiController;
+import cn.hamm.airpower.api.config.ApiConfig;
+import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.reflect.ReflectUtil;
+import cn.hamm.airpower.core.reflect.Description;
+import cn.hamm.airpower.api.annotation.Extends;
+import cn.hamm.airpower.api.model.query.*;
+import cn.hamm.airpower.api.permission.Permission;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.lang.reflect.ParameterizedType;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * <h1>增删改查控制器</h1>
+ *
+ * @param <E> 实体
+ * @param <S> 实体服务
+ * @param <R> 实体数据源
+ * @author Hamm.cn
+ * @apiNote 提供 {@link Extends} 黑白名单来裁剪子控制器暴露的接口，同时提供
+ * 前置/后置钩子供子控制器重写
+ * @apiNote 钩子不推荐重写接口方法本身。接口方法可被 {@link Extends} 继承或排除，
+ * 业务逻辑应放进 {@code beforeXxx} / {@code afterXxx}，这样接口的可用性与业务解耦
+ */
+@Slf4j
+@Permission
+public class CurdController<
+        E extends CurdEntity<E>,
+        S extends CurdService<E, R>,
+        R extends ICurdRepository<E>> extends ApiController implements ICurdAction {
+    @Autowired(required = false)
+    protected S service;
+
+    @Autowired
+    private ApiConfig apiConfig;
+
+    /**
+     * 创建导出任务
+     *
+     * @param queryListRequest 查询请求
+     * @return 导出任务的文件编码
+     */
+    @Description("创建导出任务")
+    @PostMapping("export")
+    public Json export(@RequestBody QueryListRequest<E> queryListRequest) {
+        Curd.Export.checkApiAvailable(this);
+        QueryPageRequest<E> queryPageRequest = new QueryPageRequest<>();
+        queryPageRequest.setFilter(queryListRequest.getFilter());
+        queryPageRequest.setPage(new Page().setPageSize(apiConfig.getMaxPageSize()));
+        queryPageRequest = beforeExportQuery(queryPageRequest);
+        queryPageRequest.setSort(null);
+        return Json.data(service.createExportTask(queryPageRequest), "导出任务创建成功");
+    }
+
+    /**
+     * 导出查询前置方法
+     *
+     * @param queryPageRequest 查询请求
+     * @return 处理后的查询请求
+     */
+    protected QueryPageRequest<E> beforeExportQuery(QueryPageRequest<E> queryPageRequest) {
+        return queryPageRequest;
+    }
+
+    /**
+     * 查询异步导出结果
+     *
+     * @param queryExport 查询导出模型
+     * @return 导出文件的下载地址
+     * @apiNote 需要登录但不校验 RBAC，导出任务的文件编码本身就是访问凭证
+     */
+    @Description("查询异步导出结果")
+    @PostMapping("queryExport")
+    @Permission(authorize = false)
+    public Json queryExport(@RequestBody @Validated QueryExport queryExport) {
+        Curd.QueryExport.checkApiAvailable(this);
+        return Json.data(service.queryExport(queryExport), "请下载导出的文件");
+    }
+
+    /**
+     * 添加一条新数据接口
+     *
+     * @param source 提交的实体
+     * @return 仅含 ID 的新实体
+     * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
+     * @see #beforeAdd(E)
+     */
+    @Description("添加")
+    @PostMapping("add")
+    public Json add(@RequestBody @Validated(WhenAdd.class) E source) {
+        Curd.Add.checkApiAvailable(this);
+        source = beforeAdd(source);
+        source.excludeReadOnly();
+        long id = service.add(source);
+        return Json.data(service.getEntityInstance(id), "添加成功");
+    }
+
+    /**
+     * 修改一条已存在的数据接口
+     *
+     * @param source 提交的实体，仅校验 {@link WhenUpdate} 分组
+     * @return 仅含 ID 的实体
+     * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
+     * @see #beforeUpdate(E)
+     */
+    @Description("修改")
+    @PostMapping("update")
+    public Json update(@RequestBody @Validated(WhenUpdate.class) @NotNull E source) {
+        Curd.Update.checkApiAvailable(this);
+        source = beforeUpdate(source);
+        source.excludeReadOnly();
+        service.update(source);
+        return Json.data(service.getEntityInstance(source.getId()), "修改成功");
+    }
+
+    /**
+     * 删除一条已存在的数据接口
+     *
+     * @param source 提交的实体，仅校验 {@link WhenIdRequired} 分组
+     * @return 仅含 ID 的实体
+     * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
+     * @see #beforeDelete(E)
+     */
+    @Description("删除")
+    @PostMapping("delete")
+    public Json delete(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
+        Curd.Delete.checkApiAvailable(this);
+        E entity = service.get(source.getId());
+        beforeDelete(entity);
+        service.delete(entity.getId());
+        return Json.data(service.getEntityInstance(entity.getId()), "删除成功");
+    }
+
+    /**
+     * 查询一条详情数据
+     *
+     * @param source 提交的实体，仅校验 {@link WhenIdRequired} 分组
+     * @return 查到的实体
+     * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
+     * @see #afterGetDetail(E)
+     */
+    @Description("查询详情")
+    @PostMapping("getDetail")
+    public Json getDetail(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
+        Curd.GetDetail.checkApiAvailable(this);
+        return Json.data(afterGetDetail(service.get(source.getId())));
+    }
+
+    /**
+     * 禁用一条已存在的数据
+     *
+     * @param source 提交的实体，仅校验 {@link WhenIdRequired} 分组
+     * @return 仅含 ID 的实体
+     * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
+     * @see #beforeDisable(E)
+     */
+    @Description("禁用")
+    @PostMapping("disable")
+    public Json disable(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
+        Curd.Disable.checkApiAvailable(this);
+        long id = source.getId();
+        E entity = service.get(id);
+        beforeDisable(entity);
+        service.disable(entity.getId());
+        return Json.data(service.getEntityInstance(id), "禁用成功");
+    }
+
+    /**
+     * 启用一条已存在的数据
+     *
+     * @param source 提交的实体，仅校验 {@link WhenIdRequired} 分组
+     * @return 仅含 ID 的实体
+     * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
+     * @see #beforeEnable(E)
+     */
+    @Description("启用")
+    @PostMapping("enable")
+    public Json enable(@RequestBody @Validated(WhenIdRequired.class) @NotNull E source) {
+        Curd.Enable.checkApiAvailable(this);
+        long id = source.getId();
+        E entity = service.get(id);
+        beforeEnable(entity);
+        service.enable(id);
+        return Json.data(service.getEntityInstance(id), "启用成功");
+    }
+
+    /**
+     * 不分页查询
+     *
+     * @param queryListRequest 查询请求
+     * @return 数据列表
+     * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
+     * @see #beforeGetList(QueryListRequest)
+     * @see #afterGetList(List)
+     */
+    @Description("不分页查询")
+    @PostMapping("getList")
+    public Json getList(@RequestBody QueryListRequest<E> queryListRequest) {
+        Curd.GetList.checkApiAvailable(this);
+        queryListRequest = requireQueryAndFilterNonNullElse(queryListRequest, new QueryListRequest<>());
+        queryListRequest = beforeGetList(queryListRequest);
+        return Json.data(afterGetList(service.getList(queryListRequest)));
+    }
+
+    /**
+     * 分页查询
+     *
+     * @param queryPageRequest 查询请求
+     * @return 分页数据
+     * @apiNote 可被子控制器类注解 {@link Extends} 继承或忽略，不建议重写，可使用前后置方法来处理业务逻辑。
+     * @see #beforeGetPage(QueryPageRequest)
+     * @see #afterGetPage(QueryPageResponse)
+     */
+    @Description("分页查询")
+    @PostMapping("getPage")
+    public Json getPage(@RequestBody QueryPageRequest<E> queryPageRequest) {
+        Curd.GetPage.checkApiAvailable(this);
+        queryPageRequest = requireQueryAndFilterNonNullElse(queryPageRequest, new QueryPageRequest<>());
+        queryPageRequest = beforeGetPage(queryPageRequest);
+        return Json.data(afterGetPage(service.getPage(queryPageRequest)));
+    }
+
+    /**
+     * 查询分页后置方法
+     *
+     * @param queryPageResponse 查询到的分页数据
+     * @return 处理后的分页数据
+     * @see #getPage(QueryPageRequest)
+     */
+    protected QueryPageResponse<E> afterGetPage(QueryPageResponse<E> queryPageResponse) {
+        return queryPageResponse;
+    }
+
+    /**
+     * 查询分页前置方法
+     *
+     * @param queryPageRequest 查询请求
+     * @return 处理后的查询请求
+     * @apiNote 可重写后重新设置查询条件
+     * @see #getPage(QueryPageRequest)
+     */
+    protected QueryPageRequest<E> beforeGetPage(QueryPageRequest<E> queryPageRequest) {
+        return queryPageRequest;
+    }
+
+    /**
+     * 查询不分页前置方法
+     *
+     * @param queryListRequest 查询请求
+     * @return 处理后的查询请求
+     * @apiNote 可重写后重新设置查询条件
+     */
+    protected QueryListRequest<E> beforeGetList(QueryListRequest<E> queryListRequest) {
+        return queryListRequest;
+    }
+
+    /**
+     * 查询不分页后置方法
+     *
+     * @param list 查询到的数据
+     * @return 处理后的数据
+     * @apiNote 可重写后执行装载更多数据的业务
+     */
+    protected List<E> afterGetList(List<E> list) {
+        return list;
+    }
+
+    /**
+     * 查询详情后置方法
+     *
+     * @param entity 查到的数据
+     * @return 处理后的数据
+     * @apiNote 可重写后执行装载更多数据的业务
+     */
+    protected E afterGetDetail(@NotNull E entity) {
+        return entity;
+    }
+
+    /**
+     * 新增前置方法
+     *
+     * @param entity 提交的实体
+     * @return 处理后的实体
+     * @apiNote 可重写后执行新增前的数据处理
+     */
+    protected E beforeAdd(@NotNull E entity) {
+        return entity;
+    }
+
+    /**
+     * 修改前置方法
+     *
+     * @param entity 请求提交的实体数据，可能会缺失很多数据
+     * @return 实体
+     * @apiNote 可重写后执行修改前的其他业务或拦截
+     */
+    protected E beforeUpdate(@NotNull E entity) {
+        return entity;
+    }
+
+    /**
+     * 删除前置方法
+     *
+     * @param entity 删除前的实体
+     * @apiNote 可重写后执行删除之前的业务处理或拦截
+     */
+    @SuppressWarnings({"unused", "EmptyMethod"})
+    protected void beforeDelete(@NotNull E entity) {
+    }
+
+    /**
+     * 禁用前置方法
+     *
+     * @param entity 禁用前的实体
+     * @apiNote 可重写后执行禁用之前的业务处理或拦截
+     */
+    @SuppressWarnings({"unused", "EmptyMethod"})
+    protected void beforeDisable(@NotNull E entity) {
+    }
+
+    /**
+     * 启用前置方法
+     *
+     * @param entity 启用前的实体
+     * @apiNote 可重写后执行启用之前的业务处理或拦截
+     */
+    @SuppressWarnings({"unused", "EmptyMethod"})
+    protected void beforeEnable(@NotNull E entity) {
+    }
+
+    /**
+     * 验证非空查询请求且非空过滤器请求
+     *
+     * @param queryListRequest 传入的查询请求
+     * @param newInstance      新实例
+     * @param <Q>              QueryRequest 子类
+     * @return 处理后的查询请求
+     */
+    private <Q extends QueryListRequest<E>> @NotNull Q requireQueryAndFilterNonNullElse(
+            Q queryListRequest, Q newInstance) {
+        queryListRequest = Objects.requireNonNullElse(queryListRequest, newInstance);
+        queryListRequest.setFilter(Objects.requireNonNullElse(queryListRequest.getFilter(), ReflectUtil.newInstance(getEntityClass())));
+        return queryListRequest;
+    }
+
+    /**
+     * 获取实体类
+     *
+     * @return 类
+     * @apiNote 通过直接父类的第一个泛型实参推导，子控制器必须把实体类型写在
+     * {@code extends CurdController} 的第一段泛型里；中间插入其他父类会解析失败
+     */
+    @SuppressWarnings("unchecked")
+    public final Class<E> getEntityClass() {
+        return (Class<E>) ((ParameterizedType) getClass()
+                .getGenericSuperclass())
+                .getActualTypeArguments()[0];
+    }
+}

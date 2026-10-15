@@ -1,6 +1,6 @@
 package cn.hamm.airpower.file.platform.local;
 
-import cn.hamm.airpower.core.FileUtil;
+import cn.hamm.airpower.core.file.FileUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.file.AbstractFilePlatformFactory;
 import cn.hamm.airpower.file.FilePlatform;

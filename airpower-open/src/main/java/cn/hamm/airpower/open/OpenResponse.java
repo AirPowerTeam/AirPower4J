@@ -1,9 +1,9 @@
 package cn.hamm.airpower.open;
 
-import cn.hamm.airpower.core.AesUtil;
-import cn.hamm.airpower.core.DictionaryUtil;
+import cn.hamm.airpower.core.crypto.AesUtil;
+import cn.hamm.airpower.core.dictionary.DictionaryUtil;
 import cn.hamm.airpower.core.Json;
-import cn.hamm.airpower.core.RsaUtil;
+import cn.hamm.airpower.core.crypto.RsaUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import org.jetbrains.annotations.Nullable;
 

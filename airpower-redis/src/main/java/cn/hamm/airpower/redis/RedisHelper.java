@@ -1,9 +1,9 @@
 package cn.hamm.airpower.redis;
 
 import cn.hamm.airpower.core.Json;
-import cn.hamm.airpower.core.RootModel;
+import cn.hamm.airpower.core.common.RootModel;
 import cn.hamm.airpower.core.exception.ServiceException;
-import cn.hamm.airpower.core.interfaces.IEntity;
+import cn.hamm.airpower.core.common.IEntity;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
@@ -252,7 +252,7 @@ public class RedisHelper {
      * @param entity 实体
      * @return 锁的 key
      */
-    public final @NotNull <E extends RootModel<E> & IEntity<E>> Lock lockEntity(@NotNull E entity) {
+    public final @NotNull <E extends RootModel & IEntity<E>> Lock lockEntity(@NotNull E entity) {
         REDIS_ERROR.whenNull(entity, "获取锁失败，传入的实体为空");
         REDIS_ERROR.whenNull(entity.getId(), "获取锁失败，传入的实体的ID为空");
         return lock(getEntityCacheKey(entity));
@@ -266,7 +266,7 @@ public class RedisHelper {
      * @return 锁的 key
      * @apiNote 租约时长与等待时间均为 timeout
      */
-    public final @NotNull <E extends RootModel<E> & IEntity<E>> Lock lockEntity(@NotNull E entity, Integer timeout) {
+    public final @NotNull <E extends RootModel & IEntity<E>> Lock lockEntity(@NotNull E entity, Integer timeout) {
         REDIS_ERROR.whenNull(entity, "获取锁失败，传入的实体为空");
         REDIS_ERROR.whenNull(entity.getId(), "获取锁失败，传入的实体的ID为空");
         @SuppressWarnings("unchecked")
@@ -357,7 +357,7 @@ public class RedisHelper {
      * @return 缓存实体
      * @apiNote 默认使用内置的 key 规则
      */
-    public final @Nullable <E extends RootModel<E> & IEntity<E>> E getEntity(Class<E> entityClass, Long id) {
+    public final @Nullable <E extends RootModel & IEntity<E>> E getEntity(Class<E> entityClass, Long id) {
         return getEntity(getCacheKey(entityClass, id), entityClass);
     }
 
@@ -385,7 +385,7 @@ public class RedisHelper {
      *
      * @param entity 实体
      */
-    public final <E extends RootModel<E> & IEntity<E>> void deleteEntity(@NotNull E entity) {
+    public final <E extends RootModel & IEntity<E>> void deleteEntity(@NotNull E entity) {
         delete(getEntityCacheKey(entity));
     }
 
@@ -394,7 +394,7 @@ public class RedisHelper {
      *
      * @param entity 实体
      */
-    public final <E extends RootModel<E> & IEntity<E>> void saveEntity(E entity) {
+    public final <E extends RootModel & IEntity<E>> void saveEntity(E entity) {
         saveEntity(entity, redisConfig.getCacheExpireSecond());
     }
 
@@ -404,7 +404,7 @@ public class RedisHelper {
      * @param entity 实体
      * @param second 缓存时间(秒)
      */
-    public final <E extends RootModel<E> & IEntity<E>> void saveEntity(@NotNull E entity, long second) {
+    public final <E extends RootModel & IEntity<E>> void saveEntity(@NotNull E entity, long second) {
         String cacheKey = getEntityCacheKey(entity);
         set(cacheKey, Json.toString(entity), second);
     }
@@ -591,7 +591,7 @@ public class RedisHelper {
      * @param id    ID
      * @return key
      */
-    private @NotNull <T extends RootModel<T>> String getCacheKey(@NotNull Class<T> clazz, Long id) {
+    private @NotNull <T extends RootModel> String getCacheKey(@NotNull Class<T> clazz, Long id) {
         REDIS_ERROR.whenNull(id, "ID 不能为空");
         return getTypeName(clazz) + "_" + id;
     }
@@ -602,8 +602,7 @@ public class RedisHelper {
      * @param entity 实体
      * @return key
      */
-    private <E extends RootModel<E> & IEntity<E>> @NotNull String getEntityCacheKey(@NotNull E entity) {
-        //noinspection unchecked
+    private <E extends RootModel & IEntity<E>> @NotNull String getEntityCacheKey(@NotNull E entity) {
         return getCacheKey(entity.getClass(), entity.getId());
     }
 

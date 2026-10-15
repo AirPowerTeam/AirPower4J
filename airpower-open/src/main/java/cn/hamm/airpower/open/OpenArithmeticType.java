@@ -1,7 +1,7 @@
 package cn.hamm.airpower.open;
 
-import cn.hamm.airpower.core.annotation.Description;
-import cn.hamm.airpower.core.interfaces.IDictionary;
+import cn.hamm.airpower.core.reflect.Description;
+import cn.hamm.airpower.core.dictionary.IDictionary;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

@@ -1,6 +1,6 @@
 package cn.hamm.airpower.file;
 
-import cn.hamm.airpower.core.FileUtil;
+import cn.hamm.airpower.core.file.FileUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import io.micrometer.common.lang.Nullable;
 import jakarta.validation.constraints.NotNull;

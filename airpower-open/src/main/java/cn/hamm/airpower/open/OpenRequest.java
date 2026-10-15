@@ -1,7 +1,12 @@
 package cn.hamm.airpower.open;
 
 import cn.hamm.airpower.core.*;
+import cn.hamm.airpower.core.common.RootModel;
+import cn.hamm.airpower.core.crypto.AesUtil;
+import cn.hamm.airpower.core.crypto.RsaUtil;
+import cn.hamm.airpower.core.dictionary.DictionaryUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
+import cn.hamm.airpower.core.validate.ValidateUtil;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -70,7 +75,7 @@ public class OpenRequest {
      *
      * @param clazz 业务数据对象类型
      */
-    public final <T extends RootModel<T>> T parse(Class<T> clazz) {
+    public final <T extends RootModel> T parse(Class<T> clazz) {
         String json = decodeContent();
         T model;
         try {

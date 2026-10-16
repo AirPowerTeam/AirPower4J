@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  * @author Hamm.cn
  * @apiNote {@code fileCode} 是创建导出任务时返回的随机编码，是取回导出结果的唯一凭证
  */
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Data
 public class QueryExport extends RootModel {
     @NotBlank(message = "文件 Code 不能为空")

@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
  * @apiNote {@code field} 取实体属性名，最终拼进 {@code ORDER BY}；
  * 只认 {@link #ASC}，其他取值一律按 {@link #DESC} 处理
  */
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Accessors(chain = true)
 @Description("查询排序对象")

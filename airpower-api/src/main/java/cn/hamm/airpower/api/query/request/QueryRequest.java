@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
  * @author Hamm.cn
  * @apiNote {@code filter} 为空时会自动 new 一个空实体，等价于「不筛选」
  */
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Accessors(chain = true)
 @Description("查询请求")

@@ -17,7 +17,7 @@ import java.util.List;
  * @author Hamm.cn
  * @apiNote 对外页码从 1 开始，与请求参数保持一致
  */
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Accessors(chain = true)
 public class PageData<M extends RootModel> extends RootModel {

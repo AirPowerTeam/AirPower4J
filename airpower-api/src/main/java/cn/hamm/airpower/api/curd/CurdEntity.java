@@ -1,11 +1,11 @@
 package cn.hamm.airpower.api.curd;
 
-import cn.hamm.airpower.core.common.RootModel;
-import cn.hamm.airpower.core.reflect.Description;
+import cn.hamm.airpower.core.common.IEntity;
 import cn.hamm.airpower.core.common.Meta;
 import cn.hamm.airpower.core.common.ReadOnly;
+import cn.hamm.airpower.core.common.RootModel;
 import cn.hamm.airpower.core.exception.ServiceException;
-import cn.hamm.airpower.core.common.IEntity;
+import cn.hamm.airpower.core.reflect.Description;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.Column;
@@ -34,7 +34,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
  * @apiNote 提供主键、创建时间、修改时间、禁用标记四个公共字段，子类无需重复声明
  * @apiNote {@code createTime} / {@code updateTime} 均为毫秒时间戳
  */
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @MappedSuperclass
 @Getter

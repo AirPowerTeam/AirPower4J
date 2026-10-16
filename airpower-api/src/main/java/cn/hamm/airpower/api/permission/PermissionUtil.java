@@ -140,8 +140,10 @@ public class PermissionUtil {
      * @param permissionClass 权限类
      * @param <P>             权限类型
      * @return 权限列表
-     * @apiNote 以入口类所在包为起点扫描 {@code *Controller.class}，并以异常被吞掉的方式
-     * 返回已有结果，因此权限数量对不上时先查「扫描权限出错」日志
+     * @apiNote 以入口类所在包为扫描起点，只处理带 {@link cn.hamm.airpower.api.curd.Extends}
+     * 声明的接口：未在 {@code @Extends} 里声明的控制器与方法都不会出现在结果中，
+     * 与运行期 {@code checkApiAvailable} 的判定保持一致
+     * @apiNote 扫描异常被吞掉并只记一行日志，因此权限数量对不上时先查「扫描权限出错」日志
      */
     public static <P extends IPermission<P>> @NotNull List<P> scanPermission(
             @NotNull Class<?> clazz, Class<P> permissionClass
@@ -195,12 +197,10 @@ public class PermissionUtil {
                 // 取出控制器类上的Extends注解 如自己没标 则使用父类的
                 List<Curd> curdList = Curd.getCurdList(clazz);
                 for (Method method : methods) {
-                    try {
-                        Curd current = DictionaryUtil.getDictionary(Curd.class, Curd::getMethodName, method.getName());
-                        if (!curdList.contains(current)) {
-                            continue;
-                        }
-                    } catch (Exception ignored) {
+                    Curd current = dictionaryOf(method.getName());
+                    // 「没有声明过就不开放」，不能因为一次查表失败就把它放进来
+                    if (Objects.isNull(current) || !curdList.contains(current)) {
+                        continue;
                     }
                     String subIdentity = getMethodPermissionIdentity(method);
                     if (Objects.isNull(subIdentity)) {
@@ -221,12 +221,31 @@ public class PermissionUtil {
                     subPermission.setIdentity(subIdentity).setName(customClassName + "-" + customMethodName);
                     permission.getChildren().add(subPermission);
                 }
-                permissions.add(permission);
+                // 一个子权限都没有的控制器不入表：
+                // 未声明 @Extends 的、以及整体免登录 / 免授权的，运行时本来就不该被授权，
+                // 入表只会变成权限树里一个永远点不动的空分组
+                if (!permission.getChildren().isEmpty()) {
+                    permissions.add(permission);
+                }
             }
         } catch (Exception exception) {
             log.error("扫描权限出错", exception);
         }
         return permissions;
+    }
+
+    /**
+     * 按方法名查找对应的增删改查接口枚举
+     *
+     * @param methodName 方法名
+     * @return 接口枚举，方法名不在枚举内时返回 {@code null}
+     */
+    private static @Nullable Curd dictionaryOf(@NotNull String methodName) {
+        try {
+            return DictionaryUtil.getDictionary(Curd.class, Curd::getMethodName, methodName);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     /**

@@ -1,5 +1,6 @@
 package cn.hamm.airpower.api.curd;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -7,27 +8,20 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>继承的接口 {@code 白名单优先}</h1>
- *
- * <li>如不标记此注解,则默认将所有基类接口继承</li>
- * <li>如标记白名单,则需写全需要继承的接口</li>
- * <li>如标记黑名单,则只需要写不继承的接口</li>
+ * <h1>显式声明本控制器开放哪些接口</h1>
  *
  * @author Hamm.cn
- * @apiNote {@code value} 与 {@code exclude} 同时列出同一个接口属于配置错误，启动时直接抛异常；
- * 继承链上子类的 {@code exclude} 会屏蔽掉父类的 {@code value}
  * @see Curd
  */
 @Target(TYPE)
 @Retention(RUNTIME)
+@Documented
 public @interface Extends {
-    /**
-     * 排除父类接口但需要继承这些接口
-     */
-    Curd[] value() default {};
 
     /**
-     * 继承父类接口但排除这些接口
+     * 本控制器开放哪些接口
+     *
+     * @apiNote 必须写全。留空等价于「不开放任何接口」
      */
-    Curd[] exclude() default {};
+    Curd[] value() default {};
 }

@@ -24,7 +24,7 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 @WebFilter
 @Slf4j
 @Component
-public class RequestFilter implements Filter {
+public class RequestCacheFilter implements Filter {
     @Autowired
     private ApiConfig apiConfig;
 

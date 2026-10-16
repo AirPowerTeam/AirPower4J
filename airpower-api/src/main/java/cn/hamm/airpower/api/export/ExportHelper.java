@@ -201,7 +201,7 @@ public class ExportHelper {
          * @return 绝对目录
          */
         public String getAbsoluteDirectory() {
-            return exportRootDirectory + relativeDirectory;
+            return Paths.get(exportRootDirectory, relativeDirectory).toString();
         }
 
         /**
@@ -218,7 +218,6 @@ public class ExportHelper {
          * 获取相对文件地址
          *
          * @return 相对文件地址
-         * @apiNote 存 Redis 的是这个相对路径，不含根目录，换部署目录不影响已生成的地址
          */
         public String getRelativeFile() {
             return relativeDirectory + fileName;

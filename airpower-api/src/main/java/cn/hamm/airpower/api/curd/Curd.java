@@ -14,7 +14,8 @@ import static cn.hamm.airpower.exception.Errors.API_SERVICE_UNSUPPORTED;
  * <h1>增删改查接口枚举</h1>
  *
  * @author Hamm.cn
- * @apiNote 可通过 {@link Extends} 注解为子控制器的类标记需要继承或过滤父类控制器提供的这些方法
+ * @apiNote 可通过 {@link Extends} 注解显式声明控制器开放哪些接口；
+ * 未标注即全部拒绝，详见 {@link Extends}
  */
 @Getter
 @AllArgsConstructor
@@ -81,44 +82,23 @@ public enum Curd implements IDictionary {
      * 获取控制器的可用 API 列表
      *
      * @param clazz 类
-     * @return 可用 API 列表
-     * @apiNote 沿类继承链自下而上合并：子类的黑名单优先级高于父类的白名单，
-     * 越靠近 {@code Object} 的标记越晚生效
+     * @return 可用 API 列表，未标注 {@link Extends} 时返回空列表
+     * @apiNote 沿继承链自下而上查找，<b>第一个</b>带 {@link Extends} 的类说了算，
+     * 其更上层是否标注一律不再影响结果。整条链都没有标注时返回空列表——
+     * 「漏标注」的后果是接口不可用（开发期即暴露），而不是误开放（上线后才发现）
      */
     public static @NotNull List<Curd> getCurdList(@NotNull Class<?> clazz) {
-        List<Curd> whiteList = new ArrayList<>();
-        List<Curd> blackList = new ArrayList<>();
-        return getCurdList(clazz, whiteList, blackList);
-    }
-
-    /**
-     * 获取控制器的可用 API 列表
-     *
-     * @param clazz     类
-     * @param whiteList 已经可用的列表
-     * @param blackList 已经排除的列表
-     * @return 可用 API 列表
-     */
-    private static @NotNull List<Curd> getCurdList(@NotNull Class<?> clazz, List<Curd> whiteList, List<Curd> blackList) {
-        if (ReflectUtil.isTheRootClass(clazz)) {
-            whiteList.addAll(Arrays.stream(Curd.values()).filter(curd -> !blackList.contains(curd)).toList());
-            return whiteList;
-        }
-        Extends extend = clazz.getAnnotation(Extends.class);
-        if (Objects.nonNull(extend)) {
-            List<Curd> own = Arrays.asList(extend.value());
-            List<Curd> ownExcluded = Arrays.asList(extend.exclude());
-            Set<Curd> conflict = new HashSet<>(own);
-            conflict.retainAll(ownExcluded);
-            if (!conflict.isEmpty()) {
-                throw new IllegalStateException(clazz.getName() + " 的 @Extends 同时包含和排除了: " + conflict);
+        Class<?> current = clazz;
+        // 不含 Object：没有任何业务控制器直接继承它，且 Object 上不可能有 @Extends
+        while (Objects.nonNull(current) && !ReflectUtil.isTheRootClass(current)) {
+            Extends extend = current.getAnnotation(Extends.class);
+            if (Objects.nonNull(extend)) {
+                // 找到即返回：子类的声明完整替换父类的，不做合并
+                return Arrays.stream(extend.value()).distinct().toList();
             }
-            whiteList.addAll(own.stream()
-                    .filter(c -> !blackList.contains(c) && !ownExcluded.contains(c))
-                    .toList());
-            blackList.addAll(ownExcluded);
+            current = current.getSuperclass();
         }
-        return getCurdList(clazz.getSuperclass(), whiteList, blackList);
+        return List.of();
     }
 
     /**
@@ -126,7 +106,7 @@ public enum Curd implements IDictionary {
      *
      * @param controller 控制器类
      * @param <T>        泛型
-     * @apiNote 不被 {@link Extends} 继承的接口在运行期调用会被拒绝
+     * @apiNote 未在 {@link Extends} 中声明的接口在运行期调用会被拒绝
      */
     public <T extends CurdController<?, ?, ?>> void checkApiAvailable(@NotNull T controller) {
         List<Curd> curdList = getCurdList(controller.getClass());

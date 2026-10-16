@@ -274,7 +274,7 @@ public class PermissionUtil {
      * @return {@code sha1} 散列摘要
      * @apiNote 对「密码+盐」和「盐+密码」分别摘要后再拼起来摘要，消除密码与盐交换位置的歧义
      */
-    public static @NotNull String encodePassword(@NotNull String password, @NotNull String salt) {
+    public static @NotNull String encodePassword(String password, String salt) {
         PARAM_MISSING.whenEmpty(password, "密码不能为空");
         PARAM_MISSING.whenEmpty(salt, "盐不能为空");
         return DigestUtils.sha1Hex(

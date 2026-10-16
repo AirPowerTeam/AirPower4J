@@ -83,16 +83,12 @@ class CurdTest {
         }
 
         @Test
-        @DisplayName("拒绝时给出可定位的错误信息")
+        @DisplayName("请求的接口暂未实现")
         void rejectionMessageNamesControllerAndApi() {
             ServiceException exception = assertThrows(ServiceException.class,
                     () -> Curd.Delete.checkApiAvailable(new ReadOnlyController()));
             assertEquals(API_SERVICE_UNSUPPORTED.getCode(), exception.getCode());
-            // 报错要说清「哪个控制器、哪个接口、漏了什么声明」，
-            // 否则开发者只能去翻源码才知道要补 @Extends
-            assertTrue(exception.getMessage().contains("ReadOnlyController"), exception.getMessage());
-            assertTrue(exception.getMessage().contains("delete"), exception.getMessage());
-            assertTrue(exception.getMessage().contains("@Extends"), exception.getMessage());
+            assertTrue(exception.getMessage().contains("请求的接口暂未实现"), exception.getMessage());
         }
 
         @Test

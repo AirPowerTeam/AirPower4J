@@ -1,5 +1,6 @@
 package cn.hamm.airpower.api;
 
+import cn.hamm.airpower.core.exception.ServiceException;
 import jakarta.servlet.ServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -473,9 +474,9 @@ class RequestUtilTest {
         }
 
         @Test
-        @DisplayName("参数为 null 时抛 NPE")
+        @DisplayName("参数为 null 时抛ServiceException")
         void buildQueryUrlWithNullMap() {
-            assertThrows(NullPointerException.class, () -> RequestUtil.buildQueryUrl("http://x/y", null));
+            assertThrows(ServiceException.class, () -> RequestUtil.buildQueryUrl("http://x/y", null));
         }
     }
 }

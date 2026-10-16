@@ -2,6 +2,7 @@ package cn.hamm.airpower.api;
 
 import cn.hamm.airpower.api.base.ApiConfig;
 import cn.hamm.airpower.core.StringUtil;
+import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.core.http.HttpConstant;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.hamm.airpower.core.http.HttpConstant.ContentType.MULTIPART_FORM_DATA;
@@ -357,6 +359,9 @@ public class RequestUtil {
      * @return 完整的 URL
      */
     public static @NotNull String buildQueryUrl(@NotNull String url, Map<String, Object> map) {
+        if (Objects.isNull(map)){
+            throw new ServiceException("Map cannot be null");
+        }
         return url + "?" + mapToQueryString(map);
     }
 }

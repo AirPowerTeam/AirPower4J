@@ -64,7 +64,6 @@
         <module>airpower-mqtt</module>
         <module>airpower-open</module>
         <module>airpower-redis</module>
-        <module>airpower-websocket</module>
         <module>airpower-file</module>
     </modules>
     <dependencyManagement>
@@ -113,11 +112,6 @@
             <dependency>
                 <groupId>cn.hamm</groupId>
                 <artifactId>airpower-redis</artifactId>
-                <version>${airpower.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>cn.hamm</groupId>
-                <artifactId>airpower-websocket</artifactId>
                 <version>${airpower.version}</version>
             </dependency>
 

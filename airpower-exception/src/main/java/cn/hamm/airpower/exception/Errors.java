@@ -1,8 +1,8 @@
 package cn.hamm.airpower.exception;
 
-import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.core.dictionary.IDictionary;
 import cn.hamm.airpower.core.exception.IException;
+import cn.hamm.airpower.core.exception.ServiceException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
@@ -76,12 +76,6 @@ public enum Errors implements IException<ServiceException>, IDictionary {
 
     // 5023 邮件相关代码
     EMAIL_ERROR(5023, "发送邮件异常"),
-
-    // 5024 websocket相关代码
-    WEBSOCKET_ERROR(5024, "WebSocket服务发生错误，请稍后再试"),
-
-    // 5025 AI相关代码
-    AI_ERROR(5025, "AI 服务异常"),
     ;
 
     private final int code;

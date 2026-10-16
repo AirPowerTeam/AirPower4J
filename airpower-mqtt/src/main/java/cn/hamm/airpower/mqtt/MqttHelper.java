@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.UUID;
 
 /**
- * <h1>MQTT 助手类</h1>
+ * <h2>MQTT 助手类</h2>
  *
  * @author Hamm.cn
  */

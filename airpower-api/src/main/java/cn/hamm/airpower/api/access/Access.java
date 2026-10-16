@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * <h1>权限控制配置类</h1>
+ * <h2>权限控制配置类</h2>
  *
  * @author Hamm.cn
  * @apiNote {@code login} 为 {@code false} 时 {@code authorize} 一定不生效，

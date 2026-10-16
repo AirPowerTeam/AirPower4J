@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import static cn.hamm.airpower.core.http.HttpConstant.ContentType.MULTIPART_FORM_DATA;
 
 /**
- * <h1>请求工具类</h1>
+ * <h2>请求工具类</h2>
  *
  * @author Hamm.cn
  */

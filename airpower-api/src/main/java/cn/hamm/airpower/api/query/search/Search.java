@@ -9,7 +9,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>标记为模糊搜索字段</h1>
+ * <h2>标记为模糊搜索字段</h2>
  *
  * @author Hamm.cn
  * @apiNote 如不标记，则默认按内置规则进行全匹配或者 Join 匹配。

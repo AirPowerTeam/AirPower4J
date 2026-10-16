@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>查询帮助类单元测试</h1>
+ * <h2>查询帮助类单元测试</h2>
  *
  * <p>三个关注点：</p>
  * <ul>

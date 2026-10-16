@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>权限工具类单元测试</h1>
+ * <h2>权限工具类单元测试</h2>
  *
  * <p>这里有两条容易写反的规则，都直接影响鉴权结果：</p>
  * <ul>

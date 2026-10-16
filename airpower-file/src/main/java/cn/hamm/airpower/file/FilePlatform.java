@@ -11,7 +11,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>文件存储平台注解</h1>
+ * <h2>文件存储平台注解</h2>
  * 标记一个类为文件存储平台，被标记的实例会被自动注册到 {@link FileHelper} 中。
  *
  * @author Hamm.cn

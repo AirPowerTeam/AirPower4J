@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 /**
- * <h1>API 控制器基类</h1>
+ * <h2>API 控制器基类</h2>
  * 供控制器继承，提供当前登录用户的身份获取能力。
  *
  * @author Hamm.cn

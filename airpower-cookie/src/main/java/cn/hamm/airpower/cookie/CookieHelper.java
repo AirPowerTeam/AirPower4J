@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * <h1> Cookie 助手</h1>
+ * <h2> Cookie 助手</h2>
  *
  * @author Hamm.cn
  */

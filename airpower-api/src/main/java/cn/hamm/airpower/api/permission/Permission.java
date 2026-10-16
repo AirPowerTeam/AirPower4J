@@ -9,7 +9,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>是否需要登录和授权</h1>
+ * <h2>是否需要登录和授权</h2>
  *
  * @author Hamm.cn
  * @apiNote 类上的标记作为默认值，被方法上的标记整体覆盖（不是逐属性覆盖）。

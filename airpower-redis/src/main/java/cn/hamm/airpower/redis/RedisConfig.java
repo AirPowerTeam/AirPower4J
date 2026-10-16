@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * <h1>Redis 配置文件</h1>
+ * <h2>Redis 配置文件</h2>
  *
  * @author Hamm.cn
  */

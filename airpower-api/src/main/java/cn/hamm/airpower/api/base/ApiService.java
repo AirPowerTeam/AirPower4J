@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * <h1>服务基类</h1>
+ * <h2>服务基类</h2>
  *
  * @param <E> 模型
  * @author Hamm.cn

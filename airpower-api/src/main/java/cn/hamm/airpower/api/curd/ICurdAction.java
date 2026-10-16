@@ -1,7 +1,7 @@
 package cn.hamm.airpower.api.curd;
 
 /**
- * <h1>实体校验分组接口</h1>
+ * <h2>实体校验分组接口</h2>
  *
  * @author Hamm.cn
  * @apiNote 内部分组接口用于 {@code @Validated} 的校验分组：同一个实体在新增、修改、

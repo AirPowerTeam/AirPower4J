@@ -16,7 +16,7 @@ import java.nio.file.Path;
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>本地存储平台</h1>
+ * <h2>本地存储平台</h2>
  * 文件落在本机磁盘，目录由 {@link LocalFileConfig#getLocalAbsoluteDirectory()} 指定。
  *
  * @author Hamm.cn

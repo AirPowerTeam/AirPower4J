@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import static cn.hamm.airpower.exception.Errors.EMAIL_ERROR;
 
 /**
- * <h1>邮件助手类</h1>
+ * <h2>邮件助手类</h2>
  *
  * @author Hamm.cn
  */

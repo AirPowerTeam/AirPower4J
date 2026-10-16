@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * <h1>阿里云 OSS 存储配置</h1>
+ * <h2>阿里云 OSS 存储配置</h2>
  *
  * @author Hamm.cn
  */

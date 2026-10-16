@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>文件平台注册与获取单元测试</h1>
+ * <h2>文件平台注册与获取单元测试</h2>
  *
  * <p>{@link FileHelper} 干两件事：启动时把容器里的平台按标识收进 Map，
  * 业务侧按标识取用。真正容易出事的是<b>启动期</b>：标识写重、漏标注、

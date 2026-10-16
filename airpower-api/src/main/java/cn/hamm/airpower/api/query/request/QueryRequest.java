@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * <h1>查询请求</h1>
+ * <h2>查询请求</h2>
  *
  * @param <M> 数据模型
  * @author Hamm.cn

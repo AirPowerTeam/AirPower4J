@@ -2,6 +2,7 @@ package cn.hamm.airpower.open;
 
 import cn.hamm.airpower.api.RequestUtil;
 import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.crypto.RsaUtil;
 import cn.hamm.airpower.core.datetime.DateTimeUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.redis.RedisHelper;
@@ -20,11 +21,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import static cn.hamm.airpower.exception.Errors.*;
+import static cn.hamm.airpower.open.OpenApiError.*;
 
 /**
- * <h1>Open API 切面</h1>
+ * <h2>Open API 切面</h2>
  *
  * @author Hamm.cn
  */
@@ -76,13 +79,26 @@ public class OpenApiAspect<S extends IOpenAppService> {
         validOpenApi(proceedingJoinPoint);
         OpenRequest openRequest = getOpenRequest(proceedingJoinPoint);
         IOpenApp openApp = getOpenApp(openRequest);
+        openRequest.setOpenApp(openApp);
+
+        // 校验白名单
         checkIpWhiteList(openApp, openRequest.getAppKey());
-        openRequest.checkSignature(openApp);
-        checkNonce(openRequest.getAppKey(), openRequest.getNonce());
+
+        // 应用公钥验签
+        checkSignature(openApp.getPublicKey(), openRequest.getSignature(), openRequest.getPayload());
+
+        // 获取有效负载
+        OpenPayload openPayload = openRequest.getOpenPayload();
+
+        // 校验时间戳
+        checkTimestamp(openPayload.getTimestamp());
+
+        // 校验随机串
+        checkNonce(openRequest.getAppKey(), openPayload.getNonce());
         Object object = proceedingJoinPoint.proceed();
         if (object instanceof Json json) {
             // 如果是Json 需要将 Json.data 对输出的数据进行加密
-            json.setData(OpenResponse.encodeResponse(openRequest.getOpenApp(), json.getData()));
+            json.setData(OpenResponse.create(openRequest.getOpenApp(), json.getData()));
         }
         return object;
     }
@@ -97,7 +113,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
         MethodSignature methodSignature = (MethodSignature) signature;
         Method method = methodSignature.getMethod();
         OpenApi openApi = method.getAnnotation(OpenApi.class);
-        API_SERVICE_UNSUPPORTED.whenNull(openApi);
+        OPEN_API_UNSUPPORTED.whenNull(openApi);
     }
 
     /**
@@ -112,8 +128,6 @@ public class OpenApiAspect<S extends IOpenAppService> {
         if (!(args[0] instanceof OpenRequest openRequest)) {
             throw new ServiceException("OpenApi 必须接收一个 OpenRequest参数");
         }
-        checkTimestamp(openRequest.getTimestamp());
-        checkNonceShape(openRequest.getNonce());
         return openRequest;
     }
 
@@ -122,7 +136,8 @@ public class OpenApiAspect<S extends IOpenAppService> {
      *
      * @param timestamp 时间戳
      */
-    private void checkTimestamp(long timestamp) {
+    private void checkTimestamp(Long timestamp) {
+        TIMESTAMP_REQUIRED.whenEmpty(timestamp);
         long currentTimeMillis = System.currentTimeMillis();
         int nonceExpireMillisecond = NONCE_SECOND * DateTimeUtil.MILLISECONDS_PER_SECOND;
         TIMESTAMP_INVALID.when(
@@ -138,11 +153,12 @@ public class OpenApiAspect<S extends IOpenAppService> {
      * @return {@code OpenApp}
      */
     private @NotNull IOpenApp getOpenApp(@NotNull OpenRequest openRequest) {
-        INVALID_APP_KEY.when(!StringUtils.hasText(openRequest.getAppKey()));
+        APP_KEY_REQUIRED.whenEmpty(openRequest.getAppKey());
         SERVICE_ERROR.whenNull(openAppService, "注入 OpenAppService 失败");
         IOpenApp openApp = openAppService.getByAppKey(openRequest.getAppKey());
-        INVALID_APP_KEY.whenNull(openApp);
-        FORBIDDEN_OPEN_APP_DISABLED.when(openApp.getIsDisabled());
+        APP_KEY_INVALID.whenNull(openApp);
+        OPEN_APP_STATUS_ERROR.whenNull(openApp.getIsDisabled(), "应用状态异常");
+        OPEN_APP_DISABLED.when(openApp.getIsDisabled());
         return openApp;
     }
 
@@ -154,7 +170,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
      * @apiNote 白名单未配置时放行：它是可选的第二道防线，不是必选项
      */
     void checkIpWhiteList(@NotNull IOpenApp openApp, @NotNull String appKey) {
-        String ipStr = openApp.getIpWhiteList();
+        String ipStr = Objects.requireNonNullElse(openApp.getIpWhiteList(), "");
         ipStr = ipStr
                 // 避免输入换行、全角空格、半角逗号和分号
                 .replace("\n", " ")
@@ -192,6 +208,11 @@ public class OpenApiAspect<S extends IOpenAppService> {
      * @param nonce  随机字符串
      */
     void checkNonce(String appKey, String nonce) {
+        APP_KEY_REQUIRED.whenEmpty(appKey);
+        NONCE_REQUIRED.whenEmpty(nonce);
+        if (nonce.length() < MIN_NONCE_LENGTH || nonce.length() > MAX_NONCE_LENGTH) {
+            PARAM_INVALID.show("nonce 长度必须在 " + MIN_NONCE_LENGTH + "~" + MAX_NONCE_LENGTH + " 之间");
+        }
         String cacheKey = REDIS_PREFIX + appKey + ":nonce:" + DigestUtils.sha256Hex(nonce);
         if (!redisHelper.setIfAbsent(cacheKey, 1, NONCE_SECOND)) {
             REPEAT_REQUEST.show();
@@ -199,14 +220,17 @@ public class OpenApiAspect<S extends IOpenAppService> {
     }
 
     /**
-     * 校验 nonce 的形状
+     * 验签
      *
-     * @param nonce 随机串
-     * @apiNote 纯计算、无副作用，因此可以在签名前调用。
+     * @param publicKey 公钥
+     * @param signature 签名
+     * @param payload   被签名负载
      */
-    void checkNonceShape(@NotNull String nonce) {
-        if (nonce.length() < MIN_NONCE_LENGTH || nonce.length() > MAX_NONCE_LENGTH) {
-            PARAM_INVALID.show("nonce 长度必须在 " + MIN_NONCE_LENGTH + "~" + MAX_NONCE_LENGTH + " 之间");
-        }
+    void checkSignature(String publicKey, String signature, String payload) {
+        OPEN_APP_PUBLIC_KEY_REQUIRED.whenEmpty(publicKey);
+        SIGNATURE_REQUIRED.whenEmpty(signature);
+        // 公钥验签
+        boolean success = RsaUtil.create().setPublicKey(publicKey).publicKeyVerifySignature(payload, signature);
+        SIGNATURE_INVALID.when(!success);
     }
 }

@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>请求工具类单元测试</h1>
+ * <h2>请求工具类单元测试</h2>
  *
  * <p>本类守的是一条<b>安全不变量</b>：来源 IP 只能取自「由服务端一侧写入」的位置。</p>
  *

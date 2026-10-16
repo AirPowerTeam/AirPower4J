@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * <h1>查询导出结果模型</h1>
+ * <h2>查询导出结果模型</h2>
  *
  * @author Hamm.cn
  * @apiNote {@code fileCode} 是创建导出任务时返回的随机编码，是取回导出结果的唯一凭证

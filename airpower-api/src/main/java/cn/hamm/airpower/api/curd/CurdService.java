@@ -41,7 +41,7 @@ import java.util.function.Function;
 import static cn.hamm.airpower.exception.Errors.*;
 
 /**
- * <h1>实体根服务</h1>
+ * <h2>实体根服务</h2>
  *
  * @param <E> 实体
  * @param <R> 数据源

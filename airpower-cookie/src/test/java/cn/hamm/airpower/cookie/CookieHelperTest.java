@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>Cookie 助手单元测试</h1>
+ * <h2>Cookie 助手单元测试</h2>
  *
  * <p>{@link CookieHelper} 只做一件事：把 {@link CookieConfig} 摊到一个
  * {@link jakarta.servlet.http.Cookie} 上。它自己没有一行校验，

@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * <h1>查询排序</h1>
+ * <h2>查询排序</h2>
  *
  * @author Hamm.cn
  * @apiNote {@code field} 取实体属性名，最终拼进 {@code ORDER BY}；

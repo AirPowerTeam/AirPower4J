@@ -29,7 +29,7 @@ import java.util.UUID;
 import static cn.hamm.airpower.exception.Errors.UNAUTHORIZED;
 
 /**
- * <h1>请求权限拦截器</h1>
+ * <h2>请求权限拦截器</h2>
  *
  * @author Hamm.cn
  * @apiNote 校验顺序：先落 {@code traceId} 与共享数据，再判断是否需要登录，最后才是 RBAC。

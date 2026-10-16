@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
 /**
- * <h1>缓存请求体的过滤器</h1>
+ * <h2>缓存请求体的过滤器</h2>
  *
  * @author Hamm.cn
  * @apiNote 请求体被 {@code ContentCachingRequestWrapper} 缓存，供响应拦截器打印请求日志。

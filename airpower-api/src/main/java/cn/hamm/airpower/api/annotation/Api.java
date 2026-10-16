@@ -13,7 +13,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>API 控制器注解</h1>
+ * <h2>API 控制器注解</h2>
  * 组合了 {@link RestController} 与 {@link RequestMapping}，标注即成为一个 REST 控制器。
  *
  * @author Hamm.cn

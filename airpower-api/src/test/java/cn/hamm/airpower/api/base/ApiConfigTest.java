@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>全局配置单元测试</h1>
+ * <h2>全局配置单元测试</h2>
  *
  * <p>{@link ApiConfig#apply()} 在 {@code @PostConstruct} 阶段把配置同步到两个静态工具类。
  * 这条推送链一旦断掉，配置就<b>看起来生效了、实际没生效</b>——

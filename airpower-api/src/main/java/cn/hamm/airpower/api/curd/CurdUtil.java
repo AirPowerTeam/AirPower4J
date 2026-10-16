@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * <h1>实体元数据扫描工具类</h1>
+ * <h2>实体元数据扫描工具类</h2>
  *
  * @author Hamm.cn
  */

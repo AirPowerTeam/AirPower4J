@@ -4,7 +4,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
- * <h1>邮件模块自动装配</h1>
+ * <h2>邮件模块自动装配</h2>
  *
  * @author Hamm.cn
  * @apiNote 由 {@code META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports}

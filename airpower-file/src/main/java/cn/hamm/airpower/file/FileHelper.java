@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * <h1>文件存储平台注册与获取</h1>
+ * <h2>文件存储平台注册与获取</h2>
  * 启动时收集容器中所有 {@link FilePlatform} 实现，按平台标识建索引，供业务侧按标识取用。
  *
  * @author Hamm.cn

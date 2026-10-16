@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.function.Supplier;
 
 /**
- * <h1>事务助手类</h1>
+ * <h2>事务助手类</h2>
  *
  * @author Hamm.cn
  * @apiNote 所有增删改查都通过本类开事务，隔离级别统一为 {@code REPEATABLE_READ}，

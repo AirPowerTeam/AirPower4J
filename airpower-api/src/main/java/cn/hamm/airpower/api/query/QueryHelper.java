@@ -31,7 +31,7 @@ import static org.springframework.data.domain.Sort.Order.desc;
 import static org.springframework.data.domain.Sort.by;
 
 /**
- * <h1>查询帮助类</h1>
+ * <h2>查询帮助类</h2>
  *
  * @author Hamm.cn
  */

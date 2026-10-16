@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * <h1>系统错误代码字典</h1>
+ * <h2>系统错误代码字典</h2>
  *
  * @author Hamm.cn
  * @apiNote 如需自定义业务异常，可自行创建一个新业务异常枚举类并实现 {@link IException} 接口即可。
@@ -26,12 +26,6 @@ public enum Errors implements IException<ServiceException>, IDictionary {
     // 400 请求参数代码
     PARAM_MISSING(4001, "缺少必要的请求参数"),
     PARAM_INVALID(4002, "请求的参数验证失败"),
-    INVALID_APP_KEY(4003, "传入的 AppKey 无效"),
-    SIGNATURE_INVALID(4004, "签名无效，请确认使用了正确的签名方式"),
-    REPEAT_REQUEST(4005, "重复的请求，请确认传入的 nonce 是否重复"),
-    TIMESTAMP_INVALID(4006, "请求时间不在允许范围内(±5分钟)"),
-    MISSING_REQUEST_ADDRESS(4007, "请求来源地址异常"),
-    INVALID_REQUEST_ADDRESS(4008, "请求来源不在应用配置的白名单内"),
 
     // 401 需要登录代码
     UNAUTHORIZED(401, "获取你的身份信息失败，请重新登录后再试"),
@@ -44,7 +38,6 @@ public enum Errors implements IException<ServiceException>, IDictionary {
     FORBIDDEN_DELETE_USED(4034, "删除失败，数据正在使用中"),
     FORBIDDEN_UPLOAD_MAX_SIZE(4035, "上传的文件大小超过最大限制"),
     FORBIDDEN_DISABLED(4036, "ID %s 的 %s 已被禁用"),
-    FORBIDDEN_OPEN_APP_DISABLED(4037, "当前应用已被禁用"),
     FORBIDDEN_DISABLED_NOT_ALLOWED(4038, "不允许禁用"),
     DATABASE_CONCURRENT_ERROR(4039, "系统繁忙，请稍后重试！"),
 
@@ -57,9 +50,6 @@ public enum Errors implements IException<ServiceException>, IDictionary {
 
     // 500 服务基础代码
     SERVICE_ERROR(500, "服务出了一点点异常，请稍后再试或联系技术支持"),
-    DECRYPT_DATA_FAIL(5001, "数据解密失败，请确认AppKey/AppSecret/加密方式是否正确"),
-    ENCRYPT_DATA_FAIL(5002, "数据加密失败"),
-    JSON_DECODE_FAIL(5003, "JSON解码失败，请确认有效的JSON数据格式"),
 
     // 501 API 服务暂不支持
     API_SERVICE_UNSUPPORTED(501, "请求的接口暂未实现"),

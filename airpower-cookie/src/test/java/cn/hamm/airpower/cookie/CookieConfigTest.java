@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>Cookie 配置单元测试</h1>
+ * <h2>Cookie 配置单元测试</h2>
  *
  * <p>本类守的是 {@link CookieConfig} 的<b>默认值</b>与<b>无校验事实</b>。</p>
  *

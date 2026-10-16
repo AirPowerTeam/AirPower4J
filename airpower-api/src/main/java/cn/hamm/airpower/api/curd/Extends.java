@@ -8,7 +8,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>显式声明本控制器开放哪些接口</h1>
+ * <h2>显式声明本控制器开放哪些接口</h2>
  *
  * @author Hamm.cn
  * @see Curd

@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>自动装配单元测试</h1>
+ * <h2>自动装配单元测试</h2>
  *
  * <p>这个模块对外「自动可用」全靠两样东西：类上的 {@code @AutoConfiguration}
  * 与 {@code META-INF/spring/...imports} 里的登记。少任何一样，

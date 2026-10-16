@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>请求体缓存过滤器单元测试</h1>
+ * <h2>请求体缓存过滤器单元测试</h2>
  *
  * <p>本过滤器决定「请求包体日志」能不能用。它的取舍写在代码注释里：
  * 只包装 POST、且排除文件上传——因为包装意味着整个包体在内存里留一份，

@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * <h1>不分页查询请求</h1>
+ * <h2>不分页查询请求</h2>
  *
  * @param <M> 数据模型
  * @author Hamm.cn

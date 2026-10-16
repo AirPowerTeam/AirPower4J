@@ -11,7 +11,7 @@ import org.springframework.http.HttpHeaders;
 import static cn.hamm.airpower.api.curd.CurdEntity.STRING_ID;
 
 /**
- * <h1>全局默认配置文件</h1>
+ * <h2>全局默认配置文件</h2>
  *
  * @author Hamm.cn
  */

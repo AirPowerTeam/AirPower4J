@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>全局异常处理单元测试</h1>
+ * <h2>全局异常处理单元测试</h2>
  *
  * <p>本类守的是两条对外契约：</p>
  * <ul>

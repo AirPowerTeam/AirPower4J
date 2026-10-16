@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>请求权限拦截器单元测试</h1>
+ * <h2>请求权限拦截器单元测试</h2>
  *
  * <p>盯的是鉴权链路上最容易出事的一段——<b>令牌从哪来</b>。</p>
  *

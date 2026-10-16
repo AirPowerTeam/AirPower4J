@@ -3,7 +3,7 @@ package cn.hamm.airpower.api.permission;
 import cn.hamm.airpower.core.tree.ITree;
 
 /**
- * <h1>权限实体接口</h1>
+ * <h2>权限实体接口</h2>
  *
  * @param <E> 权限实体类型
  * @author Hamm

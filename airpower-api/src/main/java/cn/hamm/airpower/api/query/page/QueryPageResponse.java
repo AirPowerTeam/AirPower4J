@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * <h1>分页查询响应</h1>
+ * <h2>分页查询响应</h2>
  *
  * @param <M> 数据模型
  * @author Hamm.cn

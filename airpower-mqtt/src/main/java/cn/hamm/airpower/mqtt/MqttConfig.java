@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import static cn.hamm.airpower.core.http.HttpConstant.LOCAL_IP_ADDRESS;
 
 /**
- * <h1>MQTT 配置类</h1>
+ * <h2>MQTT 配置类</h2>
  *
  * @author Hamm.cn
  */

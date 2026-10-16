@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>本地存储配置</h1>
+ * <h2>本地存储配置</h2>
  *
  * @author Hamm.cn
  */

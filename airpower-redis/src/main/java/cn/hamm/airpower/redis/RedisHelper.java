@@ -30,7 +30,7 @@ import static cn.hamm.airpower.exception.Errors.DATABASE_CONCURRENT_ERROR;
 import static cn.hamm.airpower.exception.Errors.REDIS_ERROR;
 
 /**
- * <h1>Redis 封装类</h1>
+ * <h2>Redis 封装类</h2>
  *
  * @author Hamm.cn
  */

@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>Cookie 模块自动装配单元测试</h1>
+ * <h2>Cookie 模块自动装配单元测试</h2>
  *
  * <p>本类用 {@link ApplicationContextRunner} 起一个最小容器，
  * 盯的是三件「单测最容易漏、上线才发现」的事：</p>

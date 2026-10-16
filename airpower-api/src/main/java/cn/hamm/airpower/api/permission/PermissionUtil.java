@@ -31,7 +31,7 @@ import static cn.hamm.airpower.exception.Errors.PARAM_MISSING;
 import static org.springframework.core.io.support.ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX;
 
 /**
- * <h1>权限处理工具类</h1>
+ * <h2>权限处理工具类</h2>
  *
  * @author Hamm.cn
  * @apiNote 权限标识由类的全限定名派生，是「类」与「方法」的全局唯一真源：

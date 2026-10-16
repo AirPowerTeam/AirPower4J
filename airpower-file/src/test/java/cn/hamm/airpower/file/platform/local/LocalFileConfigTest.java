@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * <h1>本地存储配置单元测试</h1>
+ * <h2>本地存储配置单元测试</h2>
  *
  * <p>该值会被 {@code LocalFileHelper} 直接拼在待保存路径前面，
  * 并作为 {@code delete} 的越权校验基准，末尾斜杠缺失会让「根目录」判定整体偏移。</p>

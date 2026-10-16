@@ -39,7 +39,7 @@ import java.util.Set;
 import static cn.hamm.airpower.exception.Errors.*;
 
 /**
- * <h1>全局异常处理拦截器</h1>
+ * <h2>全局异常处理拦截器</h2>
  *
  * @author Hamm.cn
  * @apiNote 统一把异常转成 {@link Json} 错误响应，HTTP 状态码一律 {@code 200}，

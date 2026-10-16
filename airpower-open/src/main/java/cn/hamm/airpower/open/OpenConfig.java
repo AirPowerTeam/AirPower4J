@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * <h1>全局默认配置文件</h1>
+ * <h2>全局默认配置文件</h2>
  *
  * @author Hamm.cn
  */
@@ -15,14 +15,29 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("airpower.open")
 public class OpenConfig {
     /**
-     * 私钥
+     * Redis 前缀
      */
-    public static String PRIVATE_KEY = "";
+    private static final String REDIS_PREFIX = "open:";
 
     /**
-     * <h1>私钥</h1>
+     * 开放接口基础错误码
+     */
+    public static int OPEN_BASE_CODE;
+
+    /**
+     * 私钥
+     */
+    public static String PRIVATE_KEY;
+
+    /**
+     * <h2>私钥</h2>
      */
     private String privateKey = "";
+
+    /**
+     * <h2>开放接口基础错误码</h2>
+     */
+    private Integer openBaseCode = 100000;
 
     /**
      * 同步配置
@@ -30,5 +45,6 @@ public class OpenConfig {
     @PostConstruct
     public void apply() {
         PRIVATE_KEY = privateKey;
+        OPEN_BASE_CODE = openBaseCode;
     }
 }

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * <h1>通用数据源</h1>
+ * <h2>通用数据源</h2>
  *
  * @param <E> 实体
  * @author Hamm.cn

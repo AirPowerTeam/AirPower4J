@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>增删改查接口可见性单元测试</h1>
+ * <h2>增删改查接口可见性单元测试</h2>
  *
  * <p>{@code @Extends} 的规则是<b>默认拒绝 + 就近声明</b>：</p>
  * <ul>

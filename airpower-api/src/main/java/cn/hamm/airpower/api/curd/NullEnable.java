@@ -9,7 +9,7 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * <h1>为 {@code null} 时依然存储</h1>
+ * <h2>为 {@code null} 时依然存储</h2>
  *
  * @author Hamm.cn
  * @apiNote 即使字段为 {@code null} ，依然保持更新到数据库。

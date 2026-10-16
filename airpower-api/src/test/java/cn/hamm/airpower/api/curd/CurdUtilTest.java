@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>实体元数据扫描单元测试</h1>
+ * <h2>实体元数据扫描单元测试</h2>
  *
  * <p>扫描结果直接驱动前端表单与 DDL 迁移，字段漏扫或多扫都会变成
  * 「界面少一个字段」或「建表少一列」这种难查的问题。</p>

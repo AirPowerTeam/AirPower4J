@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>文件存储平台基类</h1>
+ * <h2>文件存储平台基类</h2>
  * 各存储平台（本地、阿里云 OSS、腾讯云 COS…）的实现基类，统一了文件命名、哈希、上传入口，
  * 只需实现 {@link #save} 与平台特有的 {@link #getUrl}、{@link #delete}、{@link #download}。
  *

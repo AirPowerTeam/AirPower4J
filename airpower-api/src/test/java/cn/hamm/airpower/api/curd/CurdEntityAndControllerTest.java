@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * <h1>实体基类与控制器基类单元测试</h1>
+ * <h2>实体基类与控制器基类单元测试</h2>
  *
  * <p>两者都靠反射工作，失败方式统一是「运行期才炸」，所以要把边界钉在开发期：</p>
  * <ul>

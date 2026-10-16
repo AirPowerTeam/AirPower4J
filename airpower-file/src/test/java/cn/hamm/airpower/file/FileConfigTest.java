@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
- * <h1>文件模块配置单元测试</h1>
+ * <h2>文件模块配置单元测试</h2>
  *
  * <p>{@link FileConfig} 的每个字段都会被 {@code AbstractFilePlatformFactory} 直接拼进
  * 上传路径，所以这里的「边界」不是数值大小，而是<b>目录字符串的形状</b>：

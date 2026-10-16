@@ -27,7 +27,7 @@ import java.io.Serializable;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 /**
- * <h1>实体基类</h1>
+ * <h2>实体基类</h2>
  *
  * @param <E> 实体类型
  * @author Hamm.cn

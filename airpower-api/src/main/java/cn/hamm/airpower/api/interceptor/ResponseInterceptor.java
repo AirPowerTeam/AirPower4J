@@ -40,7 +40,7 @@ import static cn.hamm.airpower.api.interceptor.RequestInterceptor.REQUEST_CONTRO
 import static cn.hamm.airpower.api.interceptor.RequestInterceptor.REQUEST_METHOD_KEY;
 
 /**
- * <h1>全局响应拦截器</h1>
+ * <h2>全局响应拦截器</h2>
  *
  * @author Hamm.cn
  * @apiNote 统一处理三件事：按 {@code @Meta}/{@code @Desensitize} 裁剪出参、

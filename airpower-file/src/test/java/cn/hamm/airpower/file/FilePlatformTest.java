@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
- * <h1>文件存储平台注解单元测试</h1>
+ * <h2>文件存储平台注解单元测试</h2>
  *
  * <p>这个注解是「容器里到底有哪些平台」的唯一依据，
  * {@code FileHelper} 与 {@code AbstractFilePlatformFactory#getKey()} 都用

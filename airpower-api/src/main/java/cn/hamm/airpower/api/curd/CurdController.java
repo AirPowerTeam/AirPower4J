@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * <h1>增删改查控制器</h1>
+ * <h2>增删改查控制器</h2>
  *
  * @param <E> 实体
  * @param <S> 实体服务

@@ -1,7 +1,7 @@
 package cn.hamm.airpower.open;
 
 /**
- * <h1>开放应用的服务接口</h1>
+ * <h2>开放应用的服务接口</h2>
  * 由业务侧提供 {@link IOpenApp} 的查询实现，切面在每次调用 Open API 时通过它取调用方身份。
  *
  * @author Hamm.cn

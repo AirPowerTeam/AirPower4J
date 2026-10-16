@@ -1,25 +1,45 @@
 package cn.hamm.airpower.open;
 
 /**
- * <h1>开放应用实体接口</h1>
+ * <h2>开放应用实体接口</h2>
  *
  * @author Hamm.cn
  * @apiNote 请确保你的应用实体类实现了此接口
  */
 public interface IOpenApp {
     /**
+     * 获取应用的 AppKey
+     *
+     * @return AppKey
+     */
+    String getAppKey();
+
+    /**
+     * 是否加密应用
+     *
+     * @return {@code true} 加密
+     */
+    default Boolean getIsEncrypted() {
+        return false;
+    }
+
+    /**
      * 获取应用的 AppSecret
      *
      * @return AppSecret
      */
-    String getAppSecret();
+    default String getAppSecret() {
+        return "";
+    }
 
     /**
      * 获取应用的公钥
      *
      * @return 公钥
      */
-    String getPublicKey();
+    default String getPublicKey() {
+        return "";
+    }
 
     /**
      * 获取 IP 白名单列表

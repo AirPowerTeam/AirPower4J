@@ -9,7 +9,7 @@ import static cn.hamm.airpower.core.file.FileUtil.FILE_SCALE;
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 
 /**
- * <h1>文件模块配置</h1>
+ * <h2>文件模块配置</h2>
  *
  * @author Hamm.cn
  */

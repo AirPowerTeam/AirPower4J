@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * <h1>Redis 配置</h1>
+ * <h2>Redis 配置</h2>
  *
  * @author Hamm.cn
  */

@@ -11,7 +11,7 @@ import java.util.*;
 import static cn.hamm.airpower.exception.Errors.API_SERVICE_UNSUPPORTED;
 
 /**
- * <h1>增删改查接口枚举</h1>
+ * <h2>增删改查接口枚举</h2>
  *
  * @author Hamm.cn
  * @apiNote 可通过 {@link Extends} 注解显式声明控制器开放哪些接口；

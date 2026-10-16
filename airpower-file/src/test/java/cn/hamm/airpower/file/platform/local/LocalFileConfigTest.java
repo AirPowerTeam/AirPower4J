@@ -1,11 +1,14 @@
 package cn.hamm.airpower.file.platform.local;
 
+import cn.hamm.airpower.core.exception.ServiceException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
+import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * <h1>本地存储配置单元测试</h1>
@@ -43,13 +46,18 @@ class LocalFileConfigTest {
     }
 
     @Test
-    @DisplayName("配置成空串会退化成文件系统根目录")
-    void emptyStringBecomesRoot() {
-        LocalFileConfig config = new LocalFileConfig();
-        config.setLocalAbsoluteDirectory("");
-        assertEquals(File.separator, config.getLocalAbsoluteDirectory(),
-                "⚠️ 已记录缺陷：空串让存储根目录变成 " + File.separator
-                        + "，delete 的越权校验会以系统根目录为基准，形同虚设");
+    @DisplayName("配置为空时报「请配置本地文件存储目录」")
+    void blankDirectoryRejected() {
+        for (String directory : new String[]{null, "", "   "}) {
+            LocalFileConfig config = new LocalFileConfig();
+            config.setLocalAbsoluteDirectory(directory);
+            ServiceException exception =
+                    assertThrows(ServiceException.class, config::getLocalAbsoluteDirectory);
+            assertEquals(PARAM_INVALID.getCode(), exception.getCode());
+            assertEquals("请配置本地文件存储目录", exception.getMessage(),
+                    "空存储目录若放行，formatDirectory 会把它变成文件系统根目录 " + File.separator
+                            + "，delete 的越权校验也会以系统根为基准，形同虚设");
+        }
     }
 
     @Test

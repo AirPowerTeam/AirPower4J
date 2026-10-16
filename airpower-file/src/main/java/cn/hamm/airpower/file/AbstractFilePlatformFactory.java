@@ -160,6 +160,15 @@ public abstract class AbstractFilePlatformFactory {
             return relativeDirectory + fileName;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            // 业务异常（如大小超限、文件名非法）自带错误码，重新包装时必须沿用，
+            // 否则前端拿到的会是通用服务错误，把排查方向带偏
+            if (e instanceof ServiceException serviceException) {
+                ServiceException wrapped = new ServiceException(serviceException,
+                        "上传文件失败，" + serviceException.getMessage());
+                // 该构造器只复用错误码、不接 cause，这里补上，否则调用方拿到的异常是一截断链
+                wrapped.initCause(serviceException);
+                throw wrapped;
+            }
             throw new ServiceException("上传文件失败，" + e.getMessage());
         }
     }
@@ -194,6 +203,7 @@ public abstract class AbstractFilePlatformFactory {
      *
      * @param category 文件类别
      * @return 上传目录
+     * @apiNote 一定以分隔符结尾，可直接与文件名拼接
      */
     public String getUploadDirectory(String category) {
         return getUploadDirectory(category, false);
@@ -205,10 +215,13 @@ public abstract class AbstractFilePlatformFactory {
      * @param category 文件类别
      * @param isToday  是否追加当天日期目录
      * @return 上传目录
+     * @apiNote 类别与日期目录之间必须有分隔符，否则会拼成 {@code avatar20261017/} 这种目录
      */
     public String getUploadDirectory(String category, boolean isToday) {
         PARAM_INVALID.whenEmpty(category, "文件类别不能为空");
-        return fileConfig.getUploadDirectory() + category + (isToday ? FileUtil.getTodayDirectory() : "");
+        return fileConfig.getUploadDirectory()
+                + FileUtil.formatDirectory(category)
+                + (isToday ? FileUtil.getTodayDirectory() : "");
     }
 
 

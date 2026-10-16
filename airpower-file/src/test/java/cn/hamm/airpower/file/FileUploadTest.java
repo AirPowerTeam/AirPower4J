@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -154,14 +153,14 @@ class FileUploadTest {
         }
 
         @Test
-        @DisplayName("大小错误码被降级为通用服务错误")
-        void oversizedLosesErrorCode() {
+        @DisplayName("大小超限后仍保留参数非法的错误码")
+        void oversizedKeepsErrorCode() {
             fileConfig.setUploadMaxSize(2);
             ServiceException exception =
                     assertThrows(ServiceException.class, () -> platform.upload(abcStream(), "upload/avatar/", "a.txt"));
-            assertNotEquals(PARAM_INVALID.getCode(), exception.getCode(),
-                    "⚠️ 已记录缺陷：PARAM_INVALID 抛出的异常被 catch(Exception) 重新包装成 ServiceException，"
-                            + "前端拿到的错误码从「参数非法」变成了通用服务错误");
+            assertTrue(exception.getMessage().contains("文件大小超出限制"), exception.getMessage());
+            assertEquals(PARAM_INVALID.getCode(), exception.getCode(),
+                    "错误码必须一路透传到前端：降级成通用服务错误会把排查方向带偏");
         }
 
         @Test
@@ -223,15 +222,16 @@ class FileUploadTest {
         }
 
         @Test
-        @DisplayName("回调抛业务异常时错误码同样会丢")
-        void callbackErrorCodeLost() {
+        @DisplayName("回调抛出的业务异常保留错误码与提示")
+        void callbackErrorCodeKept() {
             ServiceException exception = assertThrows(ServiceException.class,
                     () -> platform.upload(abcStream(), "upload/avatar/", "a.txt",
                             size -> {
                                 throw new ServiceException(PARAM_INVALID.getCode(), "自定义提示");
                             }));
-            assertNotEquals(PARAM_INVALID.getCode(), exception.getCode(),
-                    "⚠️ 已记录缺陷：回调里抛出的带码异常同样被重新包装，错误码丢失");
+            assertEquals(PARAM_INVALID.getCode(), exception.getCode(),
+                    "业务侧自己写的大小校验抛出的带码异常，包装后错误码不能丢");
+            assertTrue(exception.getMessage().contains("自定义提示"), exception.getMessage());
         }
 
         @Test
@@ -242,6 +242,19 @@ class FileUploadTest {
                     () -> platform.upload(abcStream(), "upload/avatar/", "a.txt"));
             assertTrue(exception.getMessage().startsWith("上传文件失败，"), exception.getMessage());
             assertTrue(exception.getMessage().contains("磁盘只读"), "平台失败的原因必须透传");
+        }
+
+        @Test
+        @DisplayName("平台抛出的业务异常保留错误码")
+        void saveFailureKeepsErrorCode() {
+            platform.saveException = new ServiceException(PARAM_INVALID.getCode(), "文件名非法");
+            ServiceException exception = assertThrows(ServiceException.class,
+                    () -> platform.upload(abcStream(), "upload/avatar/", "a.txt"));
+            assertEquals(PARAM_INVALID.getCode(), exception.getCode(),
+                    "本地平台因文件名非法抛出的 PARAM_INVALID，包装后错误码不能丢");
+            assertTrue(exception.getMessage().contains("文件名非法"), exception.getMessage());
+            assertEquals("文件名非法", exception.getCause().getMessage(),
+                    "原始异常要留在 cause 上，否则异常拦截器打印出来的只有一句包装后的提示");
         }
 
         @Test

@@ -51,7 +51,7 @@ public class LocalFileHelper extends AbstractFilePlatformFactory {
      * 删除文件
      *
      * @param path 文件路径
-     * @apiNote 规范化后必须仍在根目录内，且拒绝符号链接，避免越权删除或被链接绕过
+     * @apiNote 规范化后必须仍在根目录内、不能等于根目录，且从根到目标的<b>每一级</b>都不能是符号链接
      */
     @Override
     public void delete(String path) {
@@ -61,14 +61,34 @@ public class LocalFileHelper extends AbstractFilePlatformFactory {
         if (!target.startsWith(root)) {
             throw new ServiceException("非法的文件路径");
         }
-        if (Files.isSymbolicLink(target)) {
-            throw new ServiceException("不允许操作符号链接");
+        // startsWith 对「根目录自身」同样成立，不单独拦一次的话 delete(".") 会把整个存储目录删掉
+        if (target.equals(root)) {
+            throw new ServiceException("不允许删除存储根目录");
         }
+        rejectSymbolicLink(root, target);
         try {
             Files.deleteIfExists(target);
         } catch (IOException e) {
             log.error("删除文件失败 path={}", path, e);
             throw new ServiceException("删除文件失败");
+        }
+    }
+
+    /**
+     * 拒绝从根目录到目标路径之间的任一级符号链接
+     *
+     * @param root   存储根目录
+     * @param target 目标路径
+     * @apiNote 只检查目标<b>本身</b>是不够的：父目录是链接时，
+     * 目标自身并不是链接，照样能顺着链接删到根目录之外
+     */
+    private void rejectSymbolicLink(Path root, Path target) {
+        Path current = root;
+        for (Path name : root.relativize(target)) {
+            current = current.resolve(name);
+            if (Files.isSymbolicLink(current)) {
+                throw new ServiceException("不允许操作符号链接");
+            }
         }
     }
 }

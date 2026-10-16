@@ -358,27 +358,32 @@ class AbstractFilePlatformFactoryTest {
     class UploadDirectory {
 
         @Test
-        @DisplayName("根目录 + 类别，末尾<b>没有</b>分隔符")
+        @DisplayName("根目录 + 类别，且以分隔符结尾")
         void joinsRootAndCategory() {
-            assertEquals("upload/avatar", platform.getUploadDirectory("avatar"),
-                    "⚠️ 已记录行为：目录只在根目录处补过斜杠，类别后面没有；"
-                            + "upload() 里还有一次 formatDirectory 才拼得上文件名，直接用这个返回值拼路径会得到 upload/avatara.txt");
+            assertEquals("upload/avatar/", platform.getUploadDirectory("avatar"),
+                    "返回值必须能直接与文件名拼接，否则调用方自己拼会得到 upload/avatara.txt");
         }
 
         @Test
-        @DisplayName("追加当天日期目录时日期会粘在类别后面")
+        @DisplayName("追加当天日期目录，日期自成一级")
         void appendsTodayDirectory() {
             String directory = platform.getUploadDirectory("avatar", true);
-            assertTrue(directory.matches("upload/avatar\\d{8}/"),
-                    "⚠️ 已记录缺陷：类别末尾没有分隔符，日期目录被拼成 upload/avatar20261017/，"
-                            + "本该是 upload/avatar/20261017/；与已修复的导出路径问题是同一类，实际为 " + directory);
+            assertTrue(directory.matches("upload/avatar/\\d{8}/"),
+                    "日期必须自成一级目录（upload/avatar/20261017/），不能粘在类别名后面，实际为 " + directory);
         }
 
         @Test
         @DisplayName("不追加日期时目录里不含日期")
         void noDateDirectory() {
-            assertEquals("upload/avatar", platform.getUploadDirectory("avatar", false),
+            assertEquals("upload/avatar/", platform.getUploadDirectory("avatar", false),
                     "isToday=false 时不应混入日期目录");
+        }
+
+        @Test
+        @DisplayName("子目录形式的类别不会产生双斜杠")
+        void nestedCategory() {
+            assertEquals("upload/avatar/2026/", platform.getUploadDirectory("avatar/2026"),
+                    "类别自带尾斜杠时不重复补，否则路径里会出现 upload/avatar/2026//");
         }
 
         @Test
@@ -396,7 +401,22 @@ class AbstractFilePlatformFactoryTest {
         @DisplayName("类别自带尾斜杠时不会重复")
         void categoryWithTrailingSeparator() {
             assertEquals("upload/avatar/", platform.getUploadDirectory("avatar/"),
-                    "根目录已经带了一个斜杠，类别再带一个正好，不会出现 upload/avatar//");
+                    "formatDirectory 只在缺少分隔符时补，已有分隔符不会变成 //");
+        }
+
+        @Test
+        @DisplayName("根目录未配置时报「请配置上传文件的根目录」")
+        void blankRootDirectory() {
+            for (String root : new String[]{null, "", "   "}) {
+                FileConfig config = new FileConfig();
+                config.setUploadDirectory(root);
+                AbstractFilePlatformFactory custom = withConfig(new TestFilePlatform(), config);
+                ServiceException exception =
+                        assertThrows(ServiceException.class, () -> custom.getUploadDirectory("avatar"));
+                assertEquals(PARAM_INVALID.getCode(), exception.getCode());
+                assertEquals("请配置上传文件的根目录", exception.getMessage(),
+                        "空根目录若放行，formatDirectory 会把它变成文件系统根目录，文件直接落到根下");
+            }
         }
 
         @Test
@@ -405,13 +425,13 @@ class AbstractFilePlatformFactoryTest {
             FileConfig config = new FileConfig();
             config.setUploadDirectory("data/upload");
             AbstractFilePlatformFactory custom = withConfig(new TestFilePlatform(), config);
-            assertEquals("data/upload/avatar", custom.getUploadDirectory("avatar"));
+            assertEquals("data/upload/avatar/", custom.getUploadDirectory("avatar"));
         }
 
         @Test
         @DisplayName("类别里的 .. 不会被规范化")
         void traversalCategoryKept() {
-            assertEquals("upload/../etc", platform.getUploadDirectory("../etc"),
+            assertEquals("upload/../etc/", platform.getUploadDirectory("../etc"),
                     "⚠️ 已记录行为：类别参数原样拼进路径，既不规范化也不拒绝 ..，"
                             + "能防住穿越的只有 save 时对文件名的正则校验，目录部分没有任何防护");
         }

@@ -1,12 +1,15 @@
 package cn.hamm.airpower.file;
 
+import cn.hamm.airpower.core.exception.ServiceException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
+import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
@@ -77,13 +80,17 @@ class FileConfigTest {
         }
 
         @Test
-        @DisplayName("配置成空串会退化成文件系统根目录")
-        void emptyStringBecomesRoot() {
-            FileConfig config = new FileConfig();
-            config.setUploadDirectory("");
-            assertEquals(File.separator, config.getUploadDirectory(),
-                    "⚠️ 已记录缺陷：空串不是「配置缺失」而是「根目录」，"
-                            + "文件会直接落到 " + File.separator + " 下，且没有任何告警");
+        @DisplayName("配置为空时报「请配置上传文件的根目录」")
+        void blankDirectoryRejected() {
+            for (String directory : new String[]{null, "", "   "}) {
+                FileConfig config = new FileConfig();
+                config.setUploadDirectory(directory);
+                ServiceException exception =
+                        assertThrows(ServiceException.class, config::getUploadDirectory);
+                assertEquals(PARAM_INVALID.getCode(), exception.getCode());
+                assertEquals("请配置上传文件的根目录", exception.getMessage(),
+                        "空根目录若放行，formatDirectory 会把它变成文件系统根目录 " + File.separator + "，文件直接落到根下");
+            }
         }
 
         @Test

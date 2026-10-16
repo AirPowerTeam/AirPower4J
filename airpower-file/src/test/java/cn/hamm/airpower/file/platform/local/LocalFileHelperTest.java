@@ -291,8 +291,8 @@ class LocalFileHelperTest {
         }
 
         @Test
-        @DisplayName("中间目录是符号链接时仍会删到根外文件")
-        void symbolicLinkDirectoryBypassesCheck() throws IOException {
+        @DisplayName("中间目录是符号链接时拒绝删除")
+        void symbolicLinkDirectoryRejected() throws IOException {
             // 根目录内的 upload/link -> 根目录外的一整个目录树
             Path outsideDir = Files.createTempDirectory("airpower-outside");
             try {
@@ -300,14 +300,54 @@ class LocalFileHelperTest {
                 Files.writeString(secret, "机密");
                 Files.createDirectories(root.resolve("upload"));
                 Files.createSymbolicLink(root.resolve("upload/link"), outsideDir);
-                helper.delete("upload/link/secret.txt");
-                assertFalse(Files.exists(secret),
-                        "⚠️ 已记录缺陷：只检查了目标本身是不是符号链接，"
-                                + "父目录是符号链接时照样能删到根目录之外，防护只挡住了一半");
+                ServiceException exception =
+                        assertThrows(ServiceException.class, () -> helper.delete("upload/link/secret.txt"));
+                assertEquals("不允许操作符号链接", exception.getMessage(),
+                        "目标自身不是链接，但父目录是链接时照样能删到根目录之外，必须逐级检查");
+                assertTrue(Files.exists(secret), "根目录外的文件必须毫发无损");
             } finally {
                 Files.deleteIfExists(outsideDir.resolve("secret.txt"));
                 Files.deleteIfExists(outsideDir);
             }
+        }
+
+        @Test
+        @DisplayName("多级目录里的符号链接同样被拦下")
+        void deepSymbolicLinkRejected() throws IOException {
+            Path outsideDir = Files.createTempDirectory("airpower-outside");
+            try {
+                Files.writeString(outsideDir.resolve("secret.txt"), "机密");
+                Files.createDirectories(root.resolve("upload/a/b"));
+                Files.createSymbolicLink(root.resolve("upload/a/link"), outsideDir);
+                assertThrows(ServiceException.class, () -> helper.delete("upload/a/link/secret.txt"));
+                assertTrue(Files.exists(outsideDir.resolve("secret.txt")));
+            } finally {
+                Files.deleteIfExists(outsideDir.resolve("secret.txt"));
+                Files.deleteIfExists(outsideDir);
+            }
+        }
+
+        @Test
+        @DisplayName("链路中间是符号链接时，删链接自己也不行")
+        void symbolicLinkItselfUnderLinkRejected() throws IOException {
+            Path outsideDir = Files.createTempDirectory("airpower-outside");
+            try {
+                Files.createDirectories(root.resolve("upload"));
+                Files.createSymbolicLink(root.resolve("upload/link"), outsideDir);
+                assertThrows(ServiceException.class, () -> helper.delete("upload/link"),
+                        "删除符号链接自身（不跟随）本可以放行，这里按「路径中出现链接就拒绝」的从严策略处理");
+            } finally {
+                Files.deleteIfExists(root.resolve("upload/link"));
+                Files.deleteIfExists(outsideDir);
+            }
+        }
+
+        @Test
+        @DisplayName("路径中的普通目录不会被误判为链接")
+        void plainDirectoryStillDeletable() throws IOException {
+            Path target = createFile("upload/a/b/c.txt", "abc");
+            helper.delete("upload/a/b/c.txt");
+            assertFalse(Files.exists(target), "逐级检查不能把正常的多级目录当成链接拦下来");
         }
 
         @Test
@@ -329,21 +369,30 @@ class LocalFileHelperTest {
         }
 
         @Test
-        @DisplayName("传根目录本身时非空则报错")
-        void deleteRootNotEmpty() throws IOException {
+        @DisplayName("传根目录本身时被拒绝")
+        void deleteRootRejected() throws IOException {
             createFile("upload/a.txt", "abc");
             ServiceException exception = assertThrows(ServiceException.class, () -> helper.delete("."));
-            assertEquals("删除文件失败", exception.getMessage());
+            assertEquals("不允许删除存储根目录", exception.getMessage(),
+                    "「.」规范化后正好等于根目录，startsWith 判定会放行；"
+                            + "一个 delete 调用就能抹掉整个存储目录");
             assertTrue(Files.exists(root), "根目录必须还在");
         }
 
         @Test
-        @DisplayName("传根目录本身且为空时整个存储目录会被删掉")
-        void deleteRootWhenEmpty() {
-            assertDoesNotThrow(() -> helper.delete("."));
-            assertFalse(Files.exists(root),
-                    "⚠️ 已记录缺陷：「.」规范化后正好等于根目录，校验只判 startsWith 不判「不能等于根」，"
-                            + "空存储目录会被一次 delete 抹掉");
+        @DisplayName("根目录为空时同样拒绝删除根目录")
+        void deleteEmptyRootRejected() {
+            assertThrows(ServiceException.class, () -> helper.delete("."));
+            assertTrue(Files.exists(root), "空根目录也不能被一次 delete 抹掉");
+        }
+
+        @Test
+        @DisplayName("绕道 .. 回到根目录同样被拒绝")
+        void deleteRootViaParentRejected() throws IOException {
+            createFile("upload/a.txt", "abc");
+            assertThrows(ServiceException.class, () -> helper.delete("upload/.."),
+                    "规范化后等于根目录的路径必须一并拦下");
+            assertTrue(Files.exists(root));
         }
     }
 
@@ -408,6 +457,20 @@ class LocalFileHelperTest {
             assertThrows(ServiceException.class, () -> helper.upload(file, "avatar"));
             assertFalse(Files.exists(root.resolve("upload/avatar")),
                     "超限的文件不应留下空目录以外的任何痕迹");
+        }
+
+        @Test
+        @DisplayName("存储目录未配置时保存与删除都报配置错误")
+        void blankStorageDirectoryRejected() {
+            localFileConfig.setLocalAbsoluteDirectory("");
+            ServiceException saveError = assertThrows(ServiceException.class,
+                    () -> helper.save(abcStream(), "upload/", "a.txt"));
+            assertEquals("请配置本地文件存储目录", saveError.getMessage(),
+                    "空存储目录放行时会退化成文件系统根目录，文件直接落到根下");
+            ServiceException deleteError =
+                    assertThrows(ServiceException.class, () -> helper.delete("upload/a.txt"));
+            assertEquals("请配置本地文件存储目录", deleteError.getMessage(),
+                    "删除时的越权校验基准同样会退化成系统根目录");
         }
 
         @Test

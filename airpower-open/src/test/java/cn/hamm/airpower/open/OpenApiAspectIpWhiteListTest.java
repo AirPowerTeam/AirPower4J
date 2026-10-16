@@ -57,18 +57,13 @@ class OpenApiAspectIpWhiteListTest {
             }
 
             @Override
-            public Integer getArithmetic() {
-                return 0;
-            }
-
-            @Override
-            public String getPrivateKey() {
-                return "";
-            }
-
-            @Override
             public String getIpWhiteList() {
                 return ipWhiteList;
+            }
+
+            @Override
+            public String getPublicKey() {
+                return "";
             }
         };
     }

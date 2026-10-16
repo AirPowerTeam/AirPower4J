@@ -1,10 +1,7 @@
 package cn.hamm.airpower.open;
 
-import cn.hamm.airpower.core.crypto.AesUtil;
-import cn.hamm.airpower.core.dictionary.DictionaryUtil;
 import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.crypto.RsaUtil;
-import cn.hamm.airpower.core.exception.ServiceException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -30,19 +27,9 @@ public class OpenResponse {
             return null;
         }
         String response = Json.toString(data);
-        OpenArithmeticType appArithmeticType = DictionaryUtil.getDictionary(
-                OpenArithmeticType.class, openApp.getArithmetic()
-        );
         try {
-            switch (appArithmeticType) {
-                case AES -> response = AesUtil.create().setKey(openApp.getAppSecret())
-                        .encrypt(response);
-                case RSA -> response = RsaUtil.create().setPrivateKey(openApp.getPrivateKey())
-                        .publicKeyEncrypt(response);
-                case NO -> {
-                }
-                default -> throw new ServiceException(ENCRYPT_DATA_FAIL, "暂不支持的 OpenApi 加密算法");
-            }
+            // 公钥加密
+            response = RsaUtil.create().setPublicKey(openApp.getPublicKey()).publicKeyEncrypt(response);
         } catch (Exception e) {
             ENCRYPT_DATA_FAIL.show();
         }

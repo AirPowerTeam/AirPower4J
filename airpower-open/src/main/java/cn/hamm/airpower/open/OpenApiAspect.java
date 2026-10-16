@@ -191,7 +191,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
      * @param appKey 应用标识
      * @param nonce  随机字符串
      */
-    private void checkNonce(String appKey, String nonce) {
+    void checkNonce(String appKey, String nonce) {
         String cacheKey = REDIS_PREFIX + appKey + ":nonce:" + DigestUtils.sha256Hex(nonce);
         if (!redisHelper.setIfAbsent(cacheKey, 1, NONCE_SECOND)) {
             REPEAT_REQUEST.show();

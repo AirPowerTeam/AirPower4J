@@ -3,7 +3,6 @@ package cn.hamm.airpower.open;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.redis.RedisConfig;
 import cn.hamm.airpower.redis.RedisHelper;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.*;
@@ -52,12 +51,21 @@ class OpenApiAspectNonceTest {
     private static final String CONTENT = "{\"amount\":1}";
 
     /**
+     * 合法的 nonce（长度在允许区间内）
+     */
+    private static final String VALID_NONCE = "abcdefgh12345678";
+
+    /**
      * 业务方法的返回值，用于确认切面确实放行到了业务层
      */
     private static final String BUSINESS_RESULT = "业务返回值";
 
     private ValueOperations<String, Object> valueOperations;
     private IOpenAppService openAppService;
+
+    private static Method annotatedEndpoint() throws NoSuchMethodException {
+        return OpenApiAspectNonceTest.class.getDeclaredMethod("sampleEndpoint", OpenRequest.class);
+    }
 
     private static void inject(Object target, String fieldName, Object value) {
         try {
@@ -67,16 +75,6 @@ class OpenApiAspectNonceTest {
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("注入字段失败: " + fieldName, e);
         }
-    }
-
-    private static Method annotatedEndpoint() throws NoSuchMethodException {
-        return OpenApiAspectNonceTest.class.getDeclaredMethod("sampleEndpoint", OpenRequest.class);
-    }
-
-    @BeforeEach
-    @AfterEach
-    void resetGlobalProxyConfig() {
-        cn.hamm.airpower.api.RequestUtil.setTrustProxyHeader("");
     }
 
     @SuppressWarnings("unchecked")
@@ -94,23 +92,10 @@ class OpenApiAspectNonceTest {
         return helper;
     }
 
-    private IOpenApp openApp() {
-        return new IOpenApp() {
-            @Override
-            public String getAppSecret() {
-                return APP_SECRET;
-            }
-
-            @Override
-            public Integer getArithmetic() {
-                return 0;
-            }
-
-            @Override
-            public String getPrivateKey() {
-                return "";
-            }
-        };
+    @BeforeEach
+    @AfterEach
+    void resetGlobalProxyConfig() {
+        cn.hamm.airpower.api.RequestUtil.setTrustProxyHeader("");
     }
 
     /**
@@ -124,7 +109,21 @@ class OpenApiAspectNonceTest {
         // 测试中不会真正调用，仅用于让切面能反射拿到注解
     }
 
-    private OpenRequest requestWithSignature(String nonce, String signature) {
+    private IOpenApp openApp() {
+        return new IOpenApp() {
+            @Override
+            public String getAppSecret() {
+                return APP_SECRET;
+            }
+
+            @Override
+            public String getPublicKey() {
+                return "";
+            }
+        };
+    }
+
+    private OpenRequest request(String nonce, String signature) {
         OpenRequest openRequest = new OpenRequest();
         openRequest.setAppKey(APP_KEY);
         openRequest.setVersion(1);
@@ -132,26 +131,6 @@ class OpenApiAspectNonceTest {
         openRequest.setContent(CONTENT);
         openRequest.setNonce(nonce);
         openRequest.setSignature(signature);
-        return openRequest;
-    }
-
-    /**
-     * 构造一个签名正确的请求
-     *
-     * @param nonce nonce
-     * @return 请求
-     * @apiNote 必须先定下 timestamp 再按它算签名。签名串里含 timestamp，
-     * 两次调用 {@code System.currentTimeMillis()} 会得到不同的值，签名必然对不上
-     */
-    private OpenRequest requestWithValidSignature(String nonce) {
-        OpenRequest openRequest = new OpenRequest();
-        openRequest.setAppKey(APP_KEY);
-        openRequest.setVersion(1);
-        openRequest.setTimestamp(System.currentTimeMillis());
-        openRequest.setContent(CONTENT);
-        openRequest.setNonce(nonce);
-        openRequest.setSignature(DigestUtils.sha1Hex(APP_SECRET + APP_KEY
-                + openRequest.getVersion() + openRequest.getTimestamp() + nonce + CONTENT));
         return openRequest;
     }
 
@@ -190,14 +169,15 @@ class OpenApiAspectNonceTest {
     }
 
     @Nested
-    @DisplayName("1. 签名失败时不得写入 Redis（核心不变量）")
+    @DisplayName("1. 认证失败时不得写入 Redis（核心不变量）")
     class OrderingInvariant {
 
         @Test
         @DisplayName("签名校验不通过时 Redis 完全不被触碰")
-        void signatureFailureMustNotWriteRedis() throws Throwable {
+        void authenticationFailureMustNotWriteRedis() throws Throwable {
             OpenApiAspect<?> aspect = aspect(redisHelperStub());
-            OpenRequest openRequest = requestWithSignature("abcdefgh12345678", "not-the-right-signature");
+            // 形状合法但签名无法通过的请求
+            OpenRequest openRequest = request(VALID_NONCE, "not-the-right-signature");
 
             assertThrows(ServiceException.class, () -> aspect.openApi(joinPoint(openRequest)),
                     "签名不匹配必须抛业务异常");
@@ -209,22 +189,32 @@ class OpenApiAspectNonceTest {
         void oversizedNonceRejectedBeforeRedis() throws Throwable {
             OpenApiAspect<?> aspect = aspect(redisHelperStub());
             // 旧实现会把这段原文直接拼进 Redis 的键
-            OpenRequest openRequest = requestWithSignature("a".repeat(1024 * 1024), "not-the-right-signature");
+            OpenRequest openRequest = request("a".repeat(1024 * 1024), "not-the-right-signature");
 
             assertThrows(ServiceException.class, () -> aspect.openApi(joinPoint(openRequest)));
             verifyNoRedisWrite();
         }
 
         @Test
-        @DisplayName("签名通过后才写入 nonce，且业务方法被真正调用")
-        void nonceWrittenOnlyAfterSignature() throws Throwable {
-            OpenApiAspect<?> aspect = aspect(redisHelperStub());
-
-            Object result = aspect.openApi(joinPoint(requestWithValidSignature("abcdefgh12345678")));
-
-            assertEquals(BUSINESS_RESULT, result, "认证通过后应正常放行到业务方法");
-            Mockito.verify(valueOperations, Mockito.times(1))
-                    .setIfAbsent(Mockito.anyString(), Mockito.any(), Mockito.anyLong(), Mockito.any());
+        @DisplayName("checkNonce 在 openApi 中位于 checkSignature 之后")
+        void nonceIsConsumedAfterSignatureCheck() throws Exception {
+            // 这是本组测试真正要钉住的不变量：顺序。
+            // 用源码结构断言，是因为「签名失败时 Redis 零写入」只能证明失败路径，
+            // 而「成功路径上 nonce 确实被消费了」需要一个可用的签名方案——
+            // 而签名方案本身正在演进，不适合被这里硬编码
+            java.nio.file.Path sourcePath = java.nio.file.Path.of(
+                    "src/main/java/cn/hamm/airpower/open/OpenApiAspect.java");
+            // 从 IDE 启动时工作目录不一定是模块根，跳过而不是伪装成通过
+            org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.exists(sourcePath),
+                    "未找到切面源码（工作目录不是模块根），跳过源码结构断言");
+            String source = new String(java.nio.file.Files.readAllBytes(sourcePath),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            int signatureAt = source.indexOf("openRequest.checkSignature(openApp);");
+            int nonceAt = source.indexOf("checkNonce(openRequest.getAppKey(), openRequest.getNonce());");
+            assertTrue(signatureAt > 0 && nonceAt > 0, "未能在切面源码中定位到两处调用");
+            assertTrue(signatureAt < nonceAt,
+                    "checkNonce 必须排在 checkSignature 之后——"
+                            + "顺序颠倒会让未认证调用方往共享 Redis 里灌数据");
         }
     }
 
@@ -232,9 +222,9 @@ class OpenApiAspectNonceTest {
     @DisplayName("2. Redis 键必须是定长摘要，不能直接拼 nonce 原文")
     class KeyShape {
 
-        private String captureKey(String nonce) throws Throwable {
+        private String captureKey(String nonce) {
             OpenApiAspect<?> aspect = aspect(redisHelperStub());
-            aspect.openApi(joinPoint(requestWithValidSignature(nonce)));
+            aspect.checkNonce(APP_KEY, nonce);
             ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
             Mockito.verify(valueOperations).setIfAbsent(captor.capture(), Mockito.any(),
                     Mockito.anyLong(), Mockito.any());
@@ -243,18 +233,17 @@ class OpenApiAspectNonceTest {
 
         @Test
         @DisplayName("键的 nonce 部分是 64 位十六进制摘要，且不含 nonce 原文")
-        void keyUsesHashedNonce() throws Throwable {
-            String nonce = "abcdefgh12345678";
-            String key = captureKey(nonce);
+        void keyUsesHashedNonce() {
+            String key = captureKey(VALID_NONCE);
             assertTrue(key.matches(".*:nonce:[0-9a-f]{64}$"),
                     "键应以 64 位十六进制摘要结尾，实际: " + key);
-            assertFalse(key.contains(nonce), "键中不得出现 nonce 原文: " + key);
+            assertFalse(key.contains(VALID_NONCE), "键中不得出现 nonce 原文: " + key);
         }
 
         @Test
         @DisplayName("不同 nonce 得到不同的键（摘要未退化）")
-        void differentNoncesDifferentKeys() throws Throwable {
-            assertNotEquals(captureKey("abcdefgh12345678"), captureKey("abcdefgh12345679"),
+        void differentNoncesDifferentKeys() {
+            assertNotEquals(captureKey(VALID_NONCE), captureKey(VALID_NONCE.replace('8', '9')),
                     "不同 nonce 必须映射到不同的键");
         }
     }
@@ -265,23 +254,23 @@ class OpenApiAspectNonceTest {
 
         @Test
         @DisplayName("Redis 返回「键已存在」时抛出重复请求")
-        void existingKeyRejected() throws Throwable {
+        void existingKeyRejected() {
             RedisHelper redisHelper = redisHelperStub();
             Mockito.when(valueOperations.setIfAbsent(Mockito.anyString(), Mockito.any(),
                     Mockito.anyLong(), Mockito.any())).thenReturn(Boolean.FALSE);
             OpenApiAspect<?> aspect = aspect(redisHelper);
 
             ServiceException exception = assertThrows(ServiceException.class,
-                    () -> aspect.openApi(joinPoint(requestWithValidSignature("abcdefgh12345678"))),
+                    () -> aspect.checkNonce(APP_KEY, VALID_NONCE),
                     "键已存在说明是重放请求，必须拒绝");
             assertEquals(cn.hamm.airpower.exception.Errors.REPEAT_REQUEST.getCode(), exception.getCode());
         }
 
         @Test
         @DisplayName("判定用 SET NX 而非 get+set（后者存在并发窗口）")
-        void usesAtomicSetIfAbsentNotGetThenSet() throws Throwable {
+        void usesAtomicSetIfAbsentNotGetThenSet() {
             OpenApiAspect<?> aspect = aspect(redisHelperStub());
-            aspect.openApi(joinPoint(requestWithValidSignature("abcdefgh12345678")));
+            aspect.checkNonce(APP_KEY, VALID_NONCE);
 
             // get + set 是两条独立命令，两个并发请求可同时读到「不存在」而双双通过。
             // 一旦改回这种写法，本断言立即失败

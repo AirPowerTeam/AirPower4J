@@ -15,18 +15,11 @@ public interface IOpenApp {
     String getAppSecret();
 
     /**
-     * 获取应用的加密算法
+     * 获取应用的公钥
      *
-     * @return 算法
+     * @return 公钥
      */
-    Integer getArithmetic();
-
-    /**
-     * 获取应用的私钥
-     *
-     * @return 私钥
-     */
-    String getPrivateKey();
+    String getPublicKey();
 
     /**
      * 获取 IP 白名单列表

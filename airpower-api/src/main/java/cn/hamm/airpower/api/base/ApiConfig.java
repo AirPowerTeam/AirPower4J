@@ -92,7 +92,6 @@ public class ApiConfig {
      */
     private Boolean permissionWithPackage = true;
 
-
     /**
      * 将配置同步到权限工具类
      *

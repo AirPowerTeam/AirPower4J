@@ -1,12 +1,13 @@
 package cn.hamm.airpower.open;
 
 import cn.hamm.airpower.api.RequestUtil;
-import cn.hamm.airpower.core.datetime.DateTimeUtil;
 import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.datetime.DateTimeUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
 import cn.hamm.airpower.redis.RedisHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
@@ -41,6 +42,18 @@ public class OpenApiAspect<S extends IOpenAppService> {
      */
     private static final String REDIS_PREFIX = "open:";
 
+    /**
+     * nonce 允许的最小长度
+     */
+    private static final int MIN_NONCE_LENGTH = 8;
+
+    /**
+     * nonce 允许的最大长度
+     *
+     * @apiNote 上界是<b>安全属性</b>，不是风格偏好：nonce 会被拼进 Redis 的键
+     */
+    private static final int MAX_NONCE_LENGTH = 64;
+
     @Autowired(required = false)
     private S openAppService;
 
@@ -65,6 +78,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
         IOpenApp openApp = getOpenApp(openRequest);
         checkIpWhiteList(openApp, openRequest.getAppKey());
         openRequest.checkSignature(openApp);
+        checkNonce(openRequest.getAppKey(), openRequest.getNonce());
         Object object = proceedingJoinPoint.proceed();
         if (object instanceof Json json) {
             // 如果是Json 需要将 Json.data 对输出的数据进行加密
@@ -99,7 +113,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
             throw new ServiceException("OpenApi 必须接收一个 OpenRequest参数");
         }
         checkTimestamp(openRequest.getTimestamp());
-        checkNonce(openRequest.getAppKey(), openRequest.getNonce());
+        checkNonceShape(openRequest.getNonce());
         return openRequest;
     }
 
@@ -178,9 +192,21 @@ public class OpenApiAspect<S extends IOpenAppService> {
      * @param nonce  随机字符串
      */
     private void checkNonce(String appKey, String nonce) {
-        String cacheKey = REDIS_PREFIX + appKey + ":nonce:" + nonce;
-        Object savedNonce = redisHelper.get(cacheKey);
-        REPEAT_REQUEST.whenNotNull(savedNonce);
-        redisHelper.set(cacheKey, 1, NONCE_SECOND);
+        String cacheKey = REDIS_PREFIX + appKey + ":nonce:" + DigestUtils.sha256Hex(nonce);
+        if (!redisHelper.setIfAbsent(cacheKey, 1, NONCE_SECOND)) {
+            REPEAT_REQUEST.show();
+        }
+    }
+
+    /**
+     * 校验 nonce 的形状
+     *
+     * @param nonce 随机串
+     * @apiNote 纯计算、无副作用，因此可以在签名前调用。
+     */
+    void checkNonceShape(@NotNull String nonce) {
+        if (nonce.length() < MIN_NONCE_LENGTH || nonce.length() > MAX_NONCE_LENGTH) {
+            PARAM_INVALID.show("nonce 长度必须在 " + MIN_NONCE_LENGTH + "~" + MAX_NONCE_LENGTH + " 之间");
+        }
     }
 }

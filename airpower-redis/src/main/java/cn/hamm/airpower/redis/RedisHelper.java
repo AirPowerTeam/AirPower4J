@@ -1,9 +1,9 @@
 package cn.hamm.airpower.redis;
 
 import cn.hamm.airpower.core.Json;
+import cn.hamm.airpower.core.common.IEntity;
 import cn.hamm.airpower.core.common.RootModel;
 import cn.hamm.airpower.core.exception.ServiceException;
-import cn.hamm.airpower.core.common.IEntity;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
@@ -563,6 +563,32 @@ public class RedisHelper {
                 // 无限期：直接写入，不能再调用自己，否则会无限递归直到栈溢出
                 getRedisTemplate().opsForValue().set(getKey(key), value.toString());
             }
+        } catch (Exception e) {
+            log.error(REDIS_ERROR.getMessage(), e);
+            throw new ServiceException(REDIS_ERROR);
+        }
+    }
+
+    /**
+     * 仅当 Key 不存在时才写入（原子操作）
+     *
+     * @param key    缓存的 Key
+     * @param value  缓存的值
+     * @param second 缓存时间(秒)
+     * @return true 表示本次调用真正写入了；false 表示 Key 已存在
+     */
+    public final boolean setIfAbsent(String key, Object value, long second) {
+        try {
+            String content = Objects.isNull(value) ? "" : value.toString();
+            Boolean success;
+            if (second > 0) {
+                success = getRedisTemplate().opsForValue()
+                        .setIfAbsent(getKey(key), content, second, TimeUnit.SECONDS);
+            } else {
+                // 无限期：不能传 TTL，否则语义会从「永不过期」悄悄变成「按默认过期」
+                success = getRedisTemplate().opsForValue().setIfAbsent(getKey(key), content);
+            }
+            return Boolean.TRUE.equals(success);
         } catch (Exception e) {
             log.error(REDIS_ERROR.getMessage(), e);
             throw new ServiceException(REDIS_ERROR);

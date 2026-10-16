@@ -11,6 +11,7 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
 /**
@@ -22,6 +23,7 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
  */
 @WebFilter
 @Slf4j
+@Component
 public class RequestFilter implements Filter {
     @Autowired
     private ApiConfig apiConfig;

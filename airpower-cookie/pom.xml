@@ -21,6 +21,21 @@
             <groupId>cn.hamm</groupId>
             <artifactId>airpower-exception</artifactId>
         </dependency>
+
+        <!-- ==================== 测试依赖 ==================== -->
+        <!-- 仅测试期使用，不进入运行时依赖树；版本由父 pom 的 dependencyManagement / BOM 统一管理 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- MockHttpServletResponse 属于 spring-test，但它格式化 Set-Cookie 头时用到
+             spring-web 的 MediaType，缺了会在测试期抛 NoClassDefFoundError -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <licenses>

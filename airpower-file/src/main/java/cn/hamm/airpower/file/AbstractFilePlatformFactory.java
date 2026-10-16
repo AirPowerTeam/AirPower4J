@@ -141,11 +141,14 @@ public abstract class AbstractFilePlatformFactory {
      * @apiNote 传入回调后<b>不再做</b>默认的大小校验，而是把字节数交给回调自行处理；
      * 字节数取自 {@code available()}，未标记长度的流该值并不可靠
      */
-    public String upload(@NotNull InputStream inputStream,
-                         @NotNull String relativeDirectory,
-                         @NotNull String fileName,
+    public String upload(InputStream inputStream,
+                         String relativeDirectory,
+                         String fileName,
                          @Nullable Consumer<Integer> fileSizeLimit
     ) {
+        PARAM_INVALID.whenNull(inputStream, "文件输入流不能为空");
+        PARAM_INVALID.whenEmpty(relativeDirectory, "文件相对路径不能为空");
+        PARAM_INVALID.whenEmpty(fileName, "文件名不能为空");
         relativeDirectory = FileUtil.formatDirectory(relativeDirectory);
         try {
             if (Objects.nonNull(fileSizeLimit)) {
@@ -181,9 +184,7 @@ public abstract class AbstractFilePlatformFactory {
      * @param fileName          文件名
      * @return 存储的文件路径
      */
-    public String upload(@NotNull InputStream inputStream,
-                         @NotNull String relativeDirectory,
-                         @NotNull String fileName) {
+    public String upload(InputStream inputStream, String relativeDirectory, String fileName) {
         return upload(inputStream, relativeDirectory, fileName, null);
     }
 

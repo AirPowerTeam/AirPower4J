@@ -122,24 +122,22 @@ class FileUploadTest {
         }
 
         @Test
-        @DisplayName("目录为 null 时抛 NPE，且不会被包装成业务异常")
+        @DisplayName("目录为 null 时抛 ServiceException")
         void nullDirectoryThrowsNpe() {
-            assertThrows(NullPointerException.class, () -> platform.upload(abcStream(), null, "a.txt"),
+            assertThrows(ServiceException.class, () -> platform.upload(abcStream(), null, "a.txt"),
                     "⚠️ 已记录缺陷：formatDirectory 在 try 之外，NPE 直接穿透，业务侧拿到的是 500 而不是可读的提示");
         }
 
         @Test
-        @DisplayName("文件名为 null 时不报错，拼出字面量 null")
+        @DisplayName("文件名为 null 时抛出 ServiceException")
         void nullFileNameNotRejected() {
-            assertEquals("upload/avatar/null", platform.upload(abcStream(), "upload/avatar/", null),
-                    "⚠️ 已记录缺陷：fileName 为 null 完全不校验，最终路径里会出现字符串 null");
+            assertThrows(ServiceException.class, () -> platform.upload(abcStream(), "upload/avatar/", null));
         }
 
         @Test
-        @DisplayName("文件名为空串时返回目录本身")
+        @DisplayName("文件名为空串时抛出ServiceException")
         void blankFileNameReturnsDirectory() {
-            assertEquals("upload/avatar/", platform.upload(abcStream(), "upload/avatar/", ""),
-                    "⚠️ 已记录缺陷：空文件名同样不校验，save 收到的也是空名");
+            assertThrows(ServiceException.class, () -> platform.upload(abcStream(), "upload/avatar/", ""));
         }
 
         @Test

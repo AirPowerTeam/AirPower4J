@@ -24,15 +24,6 @@ public interface IOpenApp {
     }
 
     /**
-     * 获取应用的 AppSecret
-     *
-     * @return AppSecret
-     */
-    default String getAppSecret() {
-        return "";
-    }
-
-    /**
      * 获取应用的公钥
      *
      * @return 公钥

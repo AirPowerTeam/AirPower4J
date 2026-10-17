@@ -32,14 +32,20 @@ public enum Errors implements IException<ServiceException>, IDictionary {
 
     // 403 无权限代码
     FORBIDDEN(403, "无权操作"),
-    FORBIDDEN_EXIST(4031, "添加失败，数据已存在"),
-    FORBIDDEN_EDIT(4032, "修改失败"),
-    FORBIDDEN_DELETE(4033, "删除失败"),
-    FORBIDDEN_DELETE_USED(4034, "删除失败，数据正在使用中"),
-    FORBIDDEN_UPLOAD_MAX_SIZE(4035, "上传的文件大小超过最大限制"),
-    FORBIDDEN_DISABLED(4036, "ID %s 的 %s 已被禁用"),
-    FORBIDDEN_DISABLED_NOT_ALLOWED(4038, "不允许禁用"),
-    DATABASE_CONCURRENT_ERROR(4039, "系统繁忙，请稍后重试！"),
+
+
+    FORBIDDEN_DELETE_USED(40301, "删除失败，数据正在使用中"),
+    FORBIDDEN_UPLOAD_MAX_SIZE(40302, "上传的文件大小超过最大限制"),
+    FORBIDDEN_DISABLED(40303, "ID %s 的 %s 已被禁用"),
+    FORBIDDEN_DELETED(40304, "ID %s 的 %s 已被删除"),
+    DATABASE_CONCURRENT_ERROR(40305, "系统繁忙，请稍后重试！"),
+
+    FORBIDDEN_EXIST(40311, "添加失败，数据已存在"),
+    FORBIDDEN_EDIT(40312, "修改失败"),
+    FORBIDDEN_DELETE(40313, "删除失败"),
+    FORBIDDEN_DISABLE(40314, "禁用失败"),
+    FORBIDDEN_ENABLE(40315, "启用失败"),
+
 
     // 404 没有查到数据代码
     DATA_NOT_FOUND(404, "没有查到相关的数据"),

@@ -2,6 +2,7 @@ package cn.hamm.airpower.api.base;
 
 import cn.hamm.airpower.core.access.AccessTokenUtil;
 import cn.hamm.airpower.core.StringUtil;
+import cn.hamm.airpower.core.exception.ServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ public class ApiController {
             accessToken = request.getHeader(apiConfig.getAuthorizeHeader());
         }
         if (StringUtil.isEmpty(accessToken)) {
-            throw new RuntimeException("身份令牌缺失，请先登录后再操作");
+            throw new ServiceException("身份令牌缺失，请先登录后再操作");
         }
         return AccessTokenUtil.create().verify(
                 accessToken,

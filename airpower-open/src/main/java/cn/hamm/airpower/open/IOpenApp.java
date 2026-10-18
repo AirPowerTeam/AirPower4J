@@ -40,13 +40,4 @@ public interface IOpenApp {
     default String getIpWhiteList() {
         return "";
     }
-
-    /**
-     * 是否禁用
-     *
-     * @return {@code true} 已禁用，禁用后所有调用都会被拒绝
-     */
-    default Boolean getIsDisabled() {
-        return false;
-    }
 }

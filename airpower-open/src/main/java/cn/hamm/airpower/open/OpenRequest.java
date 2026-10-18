@@ -9,9 +9,7 @@ import cn.hamm.airpower.exception.Errors;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 import static cn.hamm.airpower.open.OpenApiError.*;
 

@@ -1,6 +1,7 @@
 package cn.hamm.airpower.open;
 
 import cn.hamm.airpower.api.RequestUtil;
+import cn.hamm.airpower.api.curd.CurdEntity;
 import cn.hamm.airpower.core.Json;
 import cn.hamm.airpower.core.crypto.RsaUtil;
 import cn.hamm.airpower.core.datetime.DateTimeUtil;
@@ -34,7 +35,7 @@ import static cn.hamm.airpower.open.OpenApiError.*;
 @Slf4j
 @Aspect
 @Component
-public class OpenApiAspect<S extends IOpenAppService> {
+public class OpenApiAspect<A extends CurdEntity<A> & IOpenApp, S extends IOpenAppService<A>> {
     /**
      * 防重放时长
      */
@@ -78,7 +79,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
     public Object openApi(@NotNull ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
         validOpenApi(proceedingJoinPoint);
         OpenRequest openRequest = getOpenRequest(proceedingJoinPoint);
-        IOpenApp openApp = getOpenApp(openRequest);
+        A openApp = getOpenApp(openRequest);
         openRequest.setOpenApp(openApp);
 
         // 校验白名单
@@ -152,10 +153,10 @@ public class OpenApiAspect<S extends IOpenAppService> {
      * @param openRequest {@code OpenRequest}
      * @return {@code OpenApp}
      */
-    private @NotNull IOpenApp getOpenApp(@NotNull OpenRequest openRequest) {
+    private @NotNull A getOpenApp(@NotNull OpenRequest openRequest) {
         APP_KEY_REQUIRED.whenEmpty(openRequest.getAppKey());
         SERVICE_ERROR.whenNull(openAppService, "注入 OpenAppService 失败");
-        IOpenApp openApp = openAppService.getByAppKey(openRequest.getAppKey());
+        A openApp = openAppService.getByAppKey(openRequest.getAppKey());
         APP_KEY_INVALID.whenNull(openApp);
         OPEN_APP_STATUS_ERROR.whenNull(openApp.getIsDisabled(), "应用状态异常");
         OPEN_APP_DISABLED.when(openApp.getIsDisabled());
@@ -169,7 +170,7 @@ public class OpenApiAspect<S extends IOpenAppService> {
      * @param appKey  应用标识，仅用于日志定位
      * @apiNote 白名单未配置时放行：它是可选的第二道防线，不是必选项
      */
-    void checkIpWhiteList(@NotNull IOpenApp openApp, @NotNull String appKey) {
+    void checkIpWhiteList(@NotNull A openApp, @NotNull String appKey) {
         String ipStr = Objects.requireNonNullElse(openApp.getIpWhiteList(), "");
         ipStr = ipStr
                 // 避免输入换行、全角空格、半角逗号和分号

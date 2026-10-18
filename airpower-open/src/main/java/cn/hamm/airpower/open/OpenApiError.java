@@ -3,7 +3,6 @@ package cn.hamm.airpower.open;
 import cn.hamm.airpower.core.dictionary.IDictionary;
 import cn.hamm.airpower.core.exception.IException;
 import cn.hamm.airpower.core.exception.ServiceException;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

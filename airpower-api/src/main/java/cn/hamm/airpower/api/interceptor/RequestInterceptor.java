@@ -146,7 +146,7 @@ public class RequestInterceptor implements HandlerInterceptor {
      * @apiNote 抛出异常则为拦截
      */
     public void checkUserPermission(
-            AccessTokenUtil.@NotNull VerifiedToken verifiedToken, String permissionIdentity, HttpServletRequest request
+            AccessTokenUtil.VerifiedToken verifiedToken, String permissionIdentity, HttpServletRequest request
     ) {
         throw new ServiceException("未实现权限校验");
     }

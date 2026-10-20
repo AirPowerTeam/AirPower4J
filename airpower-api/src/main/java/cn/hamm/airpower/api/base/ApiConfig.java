@@ -27,6 +27,13 @@ public class ApiConfig {
     private Boolean requestLog = true;
 
     /**
+     * 是否请求头传递 {@code X-TRACE-ID}
+     *
+     * @apiNote 如配置为 <code>true</code>, 则请求头中携带 {@code X-TRACE-ID} 会通过 <code>X-TRACE-ID</code> 原样输出；否则将由系统自动生成后通过 <code>JSON</code> 输出
+     */
+    private Boolean traceInHeader = false;
+
+    /**
      * 输入到日志的请求头列表
      */
     private String[] requestLogHeaders = {HttpHeaders.AUTHORIZATION, HttpHeaders.REFERER, HttpHeaders.USER_AGENT};

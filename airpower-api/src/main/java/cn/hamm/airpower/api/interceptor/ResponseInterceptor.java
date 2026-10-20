@@ -8,6 +8,7 @@ import cn.hamm.airpower.core.common.RootModel;
 import cn.hamm.airpower.core.desensitize.DesensitizeIgnore;
 import cn.hamm.airpower.core.export.ExportUtil;
 import cn.hamm.airpower.core.export.ExposeAll;
+import cn.hamm.airpower.core.http.HttpConstant;
 import cn.hamm.airpower.core.reflect.ReflectUtil;
 import cn.hamm.airpower.api.annotation.DisableRequestLog;
 import cn.hamm.airpower.api.annotation.DisableResponseLog;
@@ -88,6 +89,10 @@ public class ResponseInterceptor implements ResponseBodyAdvice<Object> {
             @NotNull ServerHttpRequest request,
             @NotNull ServerHttpResponse response
     ) {
+        if (apiConfig.getTraceInHeader()) {
+            // header 传递 Trace_ID
+            response.getHeaders().add(HttpConstant.Header.TRACE_ID, TraceUtil.getTraceId());
+        }
         Method method = (Method) getShareData(REQUEST_METHOD_KEY);
         ApiController controller = (ApiController) getShareData(REQUEST_CONTROLLER_KEY);
         Object responseResult;
@@ -200,7 +205,10 @@ public class ResponseInterceptor implements ResponseBodyAdvice<Object> {
             // 返回不是JsonData 原样返回
             return result;
         }
-        json.setTraceId(TraceUtil.getTraceId());
+        String traceId = TraceUtil.getTraceId();
+        if (!apiConfig.getTraceInHeader()) {
+            json.setTraceId(traceId);
+        }
         Object data = json.getData();
         if (Objects.isNull(data)) {
             return json;

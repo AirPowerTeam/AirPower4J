@@ -2,6 +2,7 @@ package cn.hamm.airpower.api.interceptor;
 
 import cn.hamm.airpower.api.base.ApiController;
 import cn.hamm.airpower.api.base.ApiConfig;
+import cn.hamm.airpower.core.StringUtil;
 import cn.hamm.airpower.core.access.AccessTokenUtil;
 import cn.hamm.airpower.core.TraceUtil;
 import cn.hamm.airpower.core.http.HttpConstant;
@@ -67,7 +68,7 @@ public class RequestInterceptor implements HandlerInterceptor {
             @NotNull HttpServletResponse response,
             @NotNull Object object
     ) {
-        TraceUtil.setTraceId(UUID.randomUUID().toString());
+        TraceUtil.setTraceId(getTraceId(request));
         HandlerMethod handlerMethod = (HandlerMethod) object;
         Class<?> clazz = handlerMethod.getBeanType();
         Method method = handlerMethod.getMethod();
@@ -76,6 +77,23 @@ public class RequestInterceptor implements HandlerInterceptor {
         setShareData(REQUEST_CONTROLLER_KEY, handlerMethod.getBean());
         handleRequest(request, response, clazz, method);
         return true;
+    }
+
+    /**
+     * <h2>获取 TraceId</h2>
+     *
+     * @param request 请求
+     * @return TraceId
+     */
+    private String getTraceId(@NotNull HttpServletRequest request) {
+        Boolean traceInHeader = apiConfig.getTraceInHeader();
+        if (Objects.nonNull(traceInHeader) && traceInHeader) {
+            String traceId = request.getHeader(HttpConstant.Header.TRACE_ID);
+            if (StringUtil.hasText(traceId)) {
+                return traceId;
+            }
+        }
+        return UUID.randomUUID().toString();
     }
 
     /**

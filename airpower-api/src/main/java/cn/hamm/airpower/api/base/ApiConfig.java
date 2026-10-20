@@ -28,8 +28,10 @@ public class ApiConfig {
 
     /**
      * 是否请求头传递 {@code X-TRACE-ID}
+     * <p>
+     * 如配置为 <code>true</code>, 则请求头中携带 {@code X-TRACE-ID} 会通过 <code>X-TRACE-ID</code> 原样输出；否则将由系统自动生成后通过 <code>JSON</code> 输出.
      *
-     * @apiNote 如配置为 <code>true</code>, 则请求头中携带 {@code X-TRACE-ID} 会通过 <code>X-TRACE-ID</code> 原样输出；否则将由系统自动生成后通过 <code>JSON</code> 输出
+     * @apiNote 请注意，仅 <code>X-TRACE-ID</code> 可信时配置为 <code>true</code>
      */
     private Boolean traceInHeader = false;
 

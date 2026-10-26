@@ -13,7 +13,7 @@ import java.io.InputStream;
  */
 public class UnannotatedPlatform extends AbstractFilePlatformFactory {
     @Override
-    public void save(InputStream inputStream, String directory, String fileName) {
+    protected void save(InputStream inputStream, String directory, String fileName) {
         // 测试里无需落盘
     }
 }

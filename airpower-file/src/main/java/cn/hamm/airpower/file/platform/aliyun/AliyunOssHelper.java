@@ -84,7 +84,7 @@ public class AliyunOssHelper extends AbstractFilePlatformFactory {
      * @apiNote 整流一次性读入内存，大文件慎用
      */
     @Override
-    public void save(@NotNull InputStream inputStream, String directory, String fileName) {
+    protected void save(@NotNull InputStream inputStream, String directory, String fileName) {
         try {
             getClient().putObject(getBucketName(), directory + fileName, new ByteArrayInputStream(inputStream.readAllBytes()));
         } catch (IOException e) {

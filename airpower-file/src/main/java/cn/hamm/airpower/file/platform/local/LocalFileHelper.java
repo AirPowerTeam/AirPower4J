@@ -1,7 +1,7 @@
 package cn.hamm.airpower.file.platform.local;
 
-import cn.hamm.airpower.core.file.FileUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
+import cn.hamm.airpower.core.file.FileUtil;
 import cn.hamm.airpower.file.AbstractFilePlatformFactory;
 import cn.hamm.airpower.file.FilePlatform;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class LocalFileHelper extends AbstractFilePlatformFactory {
      * @apiNote 整流一次性读入内存，大文件慎用
      */
     @Override
-    public void save(@NotNull InputStream inputStream, String directory, String fileName) {
+    protected void save(@NotNull InputStream inputStream, String directory, String fileName) {
         try {
             FileUtil.saveFile(localFileConfig.getLocalAbsoluteDirectory() + directory,
                     fileName,

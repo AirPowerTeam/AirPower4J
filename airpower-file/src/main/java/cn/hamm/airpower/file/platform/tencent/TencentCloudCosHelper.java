@@ -51,7 +51,7 @@ public class TencentCloudCosHelper extends AbstractFilePlatformFactory {
      * @apiNote COS 要求上传前就声明 Content-Length，故先取 {@code available()}
      */
     @Override
-    public void save(@NotNull InputStream inputStream, String directory, String fileName) {
+    protected void save(@NotNull InputStream inputStream, String directory, String fileName) {
         try {
             ObjectMetadata meta = new ObjectMetadata();
             meta.setContentLength(inputStream.available());

@@ -15,7 +15,7 @@ import java.io.InputStream;
 @FilePlatform("TEST")
 public class DuplicateKeyPlatform extends AbstractFilePlatformFactory {
     @Override
-    public void save(InputStream inputStream, String directory, String fileName) {
+    protected void save(InputStream inputStream, String directory, String fileName) {
         // 测试里无需落盘
     }
 }

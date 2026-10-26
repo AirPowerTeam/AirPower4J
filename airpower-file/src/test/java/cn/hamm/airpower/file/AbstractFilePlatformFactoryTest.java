@@ -26,10 +26,7 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import static cn.hamm.airpower.exception.Errors.PARAM_INVALID;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,19 +71,12 @@ class AbstractFilePlatformFactoryTest {
      */
     private FileConfig fileConfig;
 
-    @BeforeEach
-    void setUp() {
-        fileConfig = new FileConfig();
-        platform = withConfig(new TestFilePlatform(), fileConfig);
-        plainPlatform = withConfig(new UnannotatedPlatform(), fileConfig);
-    }
-
     /**
      * 构造一个注入好 {@link FileConfig} 的平台
      *
-     * @param target    被测平台
+     * @param target     被测平台
      * @param fileConfig 配置
-     * @param <T>       平台类型
+     * @param <T>        平台类型
      * @return 被测平台
      */
     private static <T extends AbstractFilePlatformFactory> T withConfig(T target, FileConfig fileConfig) {
@@ -104,6 +94,13 @@ class AbstractFilePlatformFactoryTest {
     private static MultipartFile newFile(String fileName, String content) {
         return new MockMultipartFile("file", fileName, "application/octet-stream",
                 content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @BeforeEach
+    void setUp() {
+        fileConfig = new FileConfig();
+        platform = withConfig(new TestFilePlatform(), fileConfig);
+        plainPlatform = withConfig(new UnannotatedPlatform(), fileConfig);
     }
 
     @Nested
@@ -522,7 +519,7 @@ class AbstractFilePlatformFactoryTest {
         @Test
         @DisplayName("save 是抽象方法，必须由平台实现")
         void saveIsAbstract() throws NoSuchMethodException {
-            Method save = AbstractFilePlatformFactory.class.getMethod("save", InputStream.class, String.class, String.class);
+            Method save = AbstractFilePlatformFactory.class.getDeclaredMethod("save", InputStream.class, String.class, String.class);
             assertTrue(Modifier.isAbstract(save.getModifiers()),
                     "save 留给平台实现，基类只统一命名、哈希与大小校验");
         }

@@ -21,49 +21,42 @@ import java.util.List;
 @FilePlatform("TEST")
 public class TestFilePlatform extends AbstractFilePlatformFactory {
     /**
-     * save 调用次数
-     */
-    public int saveCount;
-
-    /**
-     * 最近一次 save 的目录
-     */
-    public String lastDirectory;
-
-    /**
-     * 最近一次 save 的文件名
-     */
-    public String lastFileName;
-
-    /**
-     * 最近一次 save 收到的字节内容
-     */
-    public byte[] lastContent;
-
-    /**
-     * delete 的入参
-     */
-    public String deletedPath;
-
-    /**
-     * 传给 save 的流在保存后是否已被读完（平台实现一般会整流读入内存）
-     */
-    public boolean contentReadToEnd;
-
-    /**
      * save 的历史入参，顺序与调用顺序一致
      *
      * @apiNote 用于断言「同一文件重复上传会落到同一路径」
      */
     public final List<String> savedKeys = new ArrayList<>();
-
+    /**
+     * save 调用次数
+     */
+    public int saveCount;
+    /**
+     * 最近一次 save 的目录
+     */
+    public String lastDirectory;
+    /**
+     * 最近一次 save 的文件名
+     */
+    public String lastFileName;
+    /**
+     * 最近一次 save 收到的字节内容
+     */
+    public byte[] lastContent;
+    /**
+     * delete 的入参
+     */
+    public String deletedPath;
+    /**
+     * 传给 save 的流在保存后是否已被读完（平台实现一般会整流读入内存）
+     */
+    public boolean contentReadToEnd;
     /**
      * 让 save 抛异常的钩子，非 null 时原样抛出
      */
     public RuntimeException saveException;
 
     @Override
-    public void save(InputStream inputStream, String directory, String fileName) {
+    protected void save(InputStream inputStream, String directory, String fileName) {
         if (saveException != null) {
             throw saveException;
         }

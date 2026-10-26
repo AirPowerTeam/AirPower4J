@@ -1,7 +1,7 @@
 package cn.hamm.airpower.file;
 
-import cn.hamm.airpower.core.file.FileUtil;
 import cn.hamm.airpower.core.exception.ServiceException;
+import cn.hamm.airpower.core.file.FileUtil;
 import io.micrometer.common.lang.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,6 @@ public abstract class AbstractFilePlatformFactory {
      */
     @Autowired
     private FileConfig fileConfig;
-
 
     /**
      * 获取上传文件的名称
@@ -288,9 +287,9 @@ public abstract class AbstractFilePlatformFactory {
      * @param directory   文件目录
      * @param fileName    文件名
      */
-    public abstract void save(@NotNull InputStream inputStream,
-                              @NotNull String directory,
-                              @NotNull String fileName);
+    protected abstract void save(@NotNull InputStream inputStream,
+                                 @NotNull String directory,
+                                 @NotNull String fileName);
 
     /**
      * 获取文件 URL

@@ -3,11 +3,13 @@ package cn.hamm.airpower.redis;
 import cn.hamm.airpower.api.Json;
 import cn.hamm.airpower.curd.CurdEntity;
 import cn.hamm.airpower.root.RootModel;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
@@ -27,8 +29,7 @@ import static cn.hamm.airpower.exception.ServiceError.REDIS_ERROR;
 @Component
 @Slf4j
 public class RedisHelper {
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
+    private volatile RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private RedisConfig redisConfig;
@@ -269,5 +270,32 @@ public class RedisHelper {
     private <T extends CurdEntity<T>> @NotNull String getEntityCacheKey(@NotNull T entity) {
         //noinspection unchecked
         return getCacheKey(entity.getClass(), entity.getId());
+    }
+
+    @Resource
+    private RedisConnectionFactory redisConnectionFactory;
+
+    /**
+     * 初始化本组件独占的 {@link RedisTemplate}
+     */
+    @PostConstruct
+    public void initRedisTemplate() {
+        if (Objects.nonNull(redisTemplate)) {
+            return;
+        }
+        synchronized (this) {
+            if (Objects.nonNull(redisTemplate)) {
+                return;
+            }
+            StringRedisSerializer serializer = new StringRedisSerializer(StandardCharsets.UTF_8);
+            RedisTemplate<String, Object> template = new RedisTemplate<>();
+            template.setConnectionFactory(redisConnectionFactory);
+            template.setKeySerializer(serializer);
+            template.setHashKeySerializer(serializer);
+            template.setValueSerializer(serializer);
+            template.setHashValueSerializer(serializer);
+            template.afterPropertiesSet();
+            this.redisTemplate = template;
+        }
     }
 }

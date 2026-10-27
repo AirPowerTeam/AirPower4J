@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -274,27 +272,13 @@ public class Json {
      */
     private static @NotNull ObjectMapper getObjectMapper() {
         if (Objects.isNull(objectMapper)) {
-            synchronized (Json.class) {
-                if (Objects.isNull(objectMapper)) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    // 忽略未声明的属性
-                    mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-                    // 全局忽略值为 null 的属性。
-                    // 用 setSerializationInclusion 而非 configOverride：后者只决定 POJO 属性
-                    // 在未标注 @JsonInclude 时的默认行为，对被直接序列化的 Map 不生效
-                    mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
-                    // 忽略没有属性的类
-                    mapper.configure(FAIL_ON_EMPTY_BEANS, false);
-                    // 必须注册 JSR-310：否则 LocalDate / LocalDateTime / Instant 被当成普通 POJO
-                    // 做 bean 序列化，产出 {"year":2026,"monthValue":10,...} 这种结构；
-                    // parse 回来时字段类型不匹配直接失败，Redis 缓存整体读不回
-                    mapper.registerModule(new JavaTimeModule());
-                    // 时间统一输出 ISO-8601 字符串，不要默认的时间戳数字：
-                    // 数字形式在跨时区、跨语言时无法自解释，前端也无法直接解析
-                    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-                    objectMapper = mapper;
-                }
-            }
+            objectMapper = new ObjectMapper();
+            // 忽略未声明的属性
+            objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+            // 忽略值为null的属性
+            objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            // 忽略没有属性的类
+            objectMapper.configure(FAIL_ON_EMPTY_BEANS, false);
         }
         return objectMapper;
     }

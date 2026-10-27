@@ -5,6 +5,7 @@ import cn.hamm.airpower.curd.CurdEntity;
 import cn.hamm.airpower.root.RootModel;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +30,7 @@ import static cn.hamm.airpower.exception.ServiceError.REDIS_ERROR;
 @Component
 @Slf4j
 public class RedisHelper {
+    @Getter
     private volatile RedisTemplate<String, Object> redisTemplate;
 
     @Autowired

@@ -68,7 +68,7 @@ public class CurdEntity<E extends CurdEntity<E>> extends RootModel
 
     @Description("是否禁用")
     @ReadOnly
-    @Column(columnDefinition = "bit(1) default 0 comment '是否禁用'")
+    @Column(columnDefinition = "tinyint(1) default 0 comment '是否禁用'")
     private Boolean isDisabled;
 
     @Description("创建时间")
